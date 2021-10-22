@@ -1,4 +1,4 @@
-from math import nan
+from math import nan, isnan
 
 groups = [
     [
@@ -63,20 +63,20 @@ def _divide(a, b) -> float:
 
 
 def _get_every(larger_len: int, smaller_len: int) -> int:
-    ratio = _divide(larger_len + smaller_len, smaller_len)
-    return ratio if ratio is not nan else larger_len
+    ratio = _divide(larger_len, smaller_len + 1) + 1
+    return ratio if not isnan(ratio) else larger_len
 
 
 def interleave(a: list[str], b: list[str]) -> list[str]:
     ab = sorted([a, b], key=lambda arr: len(arr), reverse=True)
     larger, smaller = ab
     every = _get_every(len(larger), len(smaller))
-    last_small_idx = int(every * len(smaller) - 1)
+    last_small_idx = int(every * len(smaller))
     total_len = len(larger) + len(smaller)
     result = [""] * total_len
     for i in range(total_len):
-        which = last_small_idx >= i and 1 > (i + 1 + MARGIN) % every
-        smaller_idx = int(i / every)
+        which = last_small_idx >= i and 1 > (i + 1 + MARGIN) % every and len(smaller) != 0
+        smaller_idx = min(len(smaller), int(i / (every)))
         larger_idx = i - smaller_idx
         result[i] = ab[which][[larger_idx, smaller_idx][which]]
     return result
