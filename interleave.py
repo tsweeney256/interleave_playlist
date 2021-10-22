@@ -91,7 +91,7 @@ def interleave_all(groups: list[list[str]]) -> list[str]:
 
 
 def main():
-    for item in interleave_all(groups):
+    for item in interleave_all(data):
         print(item)
 
 
