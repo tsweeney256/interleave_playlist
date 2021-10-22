@@ -68,8 +68,7 @@ def _get_every(larger_len: int, smaller_len: int) -> int:
 
 
 def interleave(a: list[str], b: list[str]) -> list[str]:
-    ab = sorted([a, b], key=lambda arr: len(arr), reverse=True)
-    larger, smaller = ab
+    larger, smaller = sorted([a, b], key=lambda arr: len(arr), reverse=True)
     every = _get_every(len(larger), len(smaller))
     last_small_idx = int(every * len(smaller))
     total_len = len(larger) + len(smaller)
