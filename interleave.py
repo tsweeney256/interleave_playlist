@@ -76,7 +76,7 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
     result = [""] * total_len
     for i in range(total_len):
         which = last_small_idx >= i and 1 > (i + 1 + MARGIN) % every
-        smaller_idx = min(len(smaller), int(i / (every)))
+        smaller_idx = min(len(smaller), int(i / every))
         larger_idx = i - smaller_idx
         result[i] = ab[which][[larger_idx, smaller_idx][which]]
     return result
