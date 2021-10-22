@@ -70,11 +70,10 @@ def _get_every(larger_len: int, smaller_len: int) -> int:
 def interleave(a: list[str], b: list[str]) -> list[str]:
     larger, smaller = sorted([a, b], key=lambda arr: len(arr), reverse=True)
     every = _get_every(len(larger), len(smaller))
-    last_small_idx = int(every * len(smaller))
     total_len = len(larger) + len(smaller)
     result = [""] * total_len
     for i in range(total_len):
-        use_smaller = last_small_idx >= i and 1 > (i + 1 + MARGIN) % every
+        use_smaller = 1 > (i + 1 + MARGIN) % every
         smaller_idx = min(len(smaller), int(i / every))
         larger_idx = i - smaller_idx
         arr = smaller if use_smaller else larger
