@@ -1,6 +1,6 @@
 from math import nan, isnan
 
-groups = [
+data = [
     [
         "a1",
         "a2",
@@ -24,7 +24,7 @@ groups = [
     ]
 ]
 
-# groups = [
+# data = [
 #     [
 #         "a1",
 #         "a2"
@@ -40,7 +40,7 @@ groups = [
 #     ]
 # ]
 
-# groups = [
+# data = [
 #     [
 #         "a1",
 #         "a2"
@@ -68,7 +68,7 @@ def _get_every(larger_len: int, smaller_len: int) -> int:
 
 
 def interleave(a: list[str], b: list[str]) -> list[str]:
-    larger, smaller = sorted([a, b], key=lambda arr: len(arr), reverse=True)
+    larger, smaller = sorted([a, b], key=lambda ab: len(ab), reverse=True)
     every = _get_every(len(larger), len(smaller))
     total_len = len(larger) + len(smaller)
     result = [""] * total_len
