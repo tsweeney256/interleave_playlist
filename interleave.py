@@ -62,7 +62,7 @@ def _divide(a, b) -> float:
         return nan
 
 
-def _get_every(larger_len: int, smaller_len: int) -> int:
+def _get_every(larger_len: int, smaller_len: int) -> float:
     ratio = _divide(larger_len, smaller_len + 1) + 1
     return ratio if not isnan(ratio) else larger_len
 
