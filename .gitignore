@@ -1,0 +1,5 @@
+blacklist.txt
+settings.yml
+__pycache__/
+.idea/
+*~
