@@ -1,5 +1,7 @@
+import asyncio
 import os
 import subprocess
+import threading
 from os import path
 
 from PySide6.QtCore import Slot
@@ -62,8 +64,11 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def play(self):
-        subprocess.run([settings.get_play_command()]
-                       + [self.playlist_dict[i.text()] for i in self.item_list.selectedItems()])
+        def _play():
+            subprocess.run([settings.get_play_command()]
+                           + [self.playlist_dict[i.text()] for i in self.item_list.selectedItems()])
+        thread = threading.Thread(target=_play)
+        thread.start()
 
     @Slot()
     def mark_watched(self):
