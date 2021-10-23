@@ -16,15 +16,13 @@ class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        playlist = list(get_playlist())
-        self.playlist_dict = dict(zip(map(path.basename, playlist), playlist))
-
+        self.playlist_dict = self._create_playlist_dict()
         self.item_list = QListWidget()
-        self.item_list.addItems(self.playlist_dict.keys())
         self.item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         font = QFont()
         font.setPointSize(settings.get_font_size())
         self.item_list.setFont(font)
+        self._refresh()
         self.item_list.selectAll()
 
         play_btn = QPushButton('Play')
@@ -36,6 +34,9 @@ class PlaylistWindow(QWidget):
         unwatched_btn = QPushButton('Unmark Watched')
         unwatched_btn.clicked.connect(self.unmark_watched)
 
+        refresh_btn = QPushButton('Refresh')
+        refresh_btn.clicked.connect(self.refresh)
+
         open_input_btn = QPushButton('Open Input File')
         open_input_btn.clicked.connect(self.open_settings)
 
@@ -46,6 +47,7 @@ class PlaylistWindow(QWidget):
         button_layout.addWidget(play_btn)
         button_layout.addWidget(watched_btn)
         button_layout.addWidget(unwatched_btn)
+        button_layout.addWidget(refresh_btn)
         button_layout.addWidget(open_input_btn)
         button_layout.addWidget(open_watched_btn)
 
@@ -85,9 +87,22 @@ class PlaylistWindow(QWidget):
         os.replace('config/tmp.txt', 'config/blacklist.txt')
 
     @Slot()
+    def refresh(self):
+        self._refresh()
+
+    def _refresh(self):
+        self.playlist_dict = self._create_playlist_dict()
+        self.item_list.clear()
+        self.item_list.addItems(self.playlist_dict.keys())
+
+    @Slot()
     def open_settings(self):
         open_with_default_application('config/settings.yml')
 
     @Slot()
     def open_blacklist(self):
         open_with_default_application('config/blacklist.txt')
+
+    def _create_playlist_dict(self):
+        playlist = list(get_playlist())
+        return dict(zip(map(path.basename, playlist), playlist))
