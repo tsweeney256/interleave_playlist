@@ -63,8 +63,13 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def mark_watched(self):
-        with open('config/blacklist.txt', 'a') as f:
-            f.writelines(['\n' + i.text() for i in self.item_list.selectedItems()])
+        with open('config/blacklist.txt', 'r') as f:
+            with open('config/tmp.txt', 'w') as tmp:
+                for line in f:
+                    if line.strip() != '':
+                        tmp.write(line.strip() + '\n')
+                tmp.writelines('\n'.join(map(lambda i: i.text(), self.item_list.selectedItems())))
+        os.replace('config/tmp.txt', 'config/blacklist.txt')
 
     @Slot()
     def unmark_watched(self):
