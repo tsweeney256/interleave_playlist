@@ -1,8 +1,9 @@
 import yaml
 
 
-with open('config/settings.yml', 'r') as f:
-    _settings: dict[str] = yaml.safe_load(f)
+def _get_settings():
+    with open('config/settings.yml', 'r') as f:
+        return yaml.safe_load(f)
 
 
 def create_needed_files():
@@ -11,12 +12,12 @@ def create_needed_files():
 
 
 def get_locations() -> list[str]:
-    return _settings['locations']
+    return _get_settings()['locations']
 
 
 def get_font_size() -> int:
-    return _settings['font-size']
+    return _get_settings()['font-size']
 
 
 def get_play_command() -> str:
-    return _settings['play-command']
+    return _get_settings()['play-command']
