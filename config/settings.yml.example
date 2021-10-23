@@ -1,0 +1,5 @@
+font-size: 12
+locations:
+    - '/directory/to/my/show/Foo'
+    - '/directory/to/my/other/show/Bar'
+    - '/directory/somewhere/completely/different/Baz'
