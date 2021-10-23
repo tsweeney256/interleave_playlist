@@ -67,6 +67,7 @@ def _get_every(larger_len: int, smaller_len: int) -> float:
     return ratio if not isnan(ratio) else larger_len
 
 
+# Written in SIMD style just for fun. No SIMD actually used
 def interleave(a: list[str], b: list[str]) -> list[str]:
     larger, smaller = sorted([a, b], key=lambda ab: len(ab), reverse=True)
     every: float = _get_every(len(larger), len(smaller))
@@ -82,6 +83,7 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
     return result
 
 
+# TODO: Need to interleave current two smallest groups
 def interleave_all(groups: list[list[str]]) -> list[str]:
     groups.sort(key=lambda f: len(f))
     result: list[str] = []
