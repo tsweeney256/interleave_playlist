@@ -16,3 +16,7 @@ def get_locations() -> list[str]:
 
 def get_font_size() -> int:
     return _settings['font-size']
+
+
+def get_play_command() -> str:
+    return _settings['play-command']
