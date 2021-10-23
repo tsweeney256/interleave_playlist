@@ -30,6 +30,8 @@ class PlaylistWindow(QWidget):
         self.play_btn.clicked.connect(self.play)
 
         self.watched_btn = QPushButton('Mark Watched')
+        self.watched_btn.clicked.connect(self.mark_watched)
+
         self.unwatched_btn = QPushButton('Unmark Watched')
 
         self.open_input_btn = QPushButton('Open Input File')
@@ -56,6 +58,11 @@ class PlaylistWindow(QWidget):
     def play(self):
         subprocess.run([settings.get_play_command()]
                        + [self.playlist_map[i.text()] for i in self.item_list.selectedItems()])
+
+    @Slot()
+    def mark_watched(self):
+        with open('config/blacklist.txt', 'a') as f:
+            f.writelines(['\n' + i.text() for i in self.item_list.selectedItems()])
 
     @Slot()
     def open_settings(self):
