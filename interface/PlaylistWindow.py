@@ -13,6 +13,7 @@ from interface import open_with_default_application
 
 WATCHED_COLOR = QBrush(QColor.fromRgbF(1, 0, 0))
 
+
 class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
