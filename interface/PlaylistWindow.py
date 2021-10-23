@@ -3,7 +3,7 @@ import subprocess
 from os import path
 
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QColor, QBrush
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton
 
@@ -11,6 +11,7 @@ import settings
 from core.playlist import get_playlist
 from interface import open_with_default_application
 
+WATCHED_COLOR = QBrush(QColor.fromRgbF(1, 0, 0))
 
 class PlaylistWindow(QWidget):
     def __init__(self):
@@ -71,8 +72,14 @@ class PlaylistWindow(QWidget):
                 for line in f:
                     if line.strip() != '' and line.strip() in full_playlist:
                         tmp.write(line.strip() + '\n')
-                tmp.writelines('\n'.join(map(lambda i: i.text(), self.item_list.selectedItems())))
+                tmp.writelines('\n'.join(
+                    map(lambda i: i.text(),
+                        filter(lambda i: i.background() != WATCHED_COLOR,  # lol
+                               self.item_list.selectedItems()))))
         os.replace('config/tmp.txt', 'config/blacklist.txt')
+
+        for item in self.item_list.selectedItems():
+            item.setBackground(WATCHED_COLOR)
 
     @Slot()
     def unmark_watched(self):
@@ -85,6 +92,10 @@ class PlaylistWindow(QWidget):
                             and line.strip() in full_playlist):
                         tmp.write(line)
         os.replace('config/tmp.txt', 'config/blacklist.txt')
+
+        white = QBrush(QColor.fromRgbF(1, 1, 1))
+        for item in self.item_list.selectedItems():
+            item.setBackground(white)
 
     @Slot()
     def refresh(self):
