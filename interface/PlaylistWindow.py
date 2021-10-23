@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemVi
 
 import settings
 from core.playlist import get_playlist
-from interface import open_with_default_application
+from interface import open_with_default_application, _create_playlist_dict
 
 WATCHED_COLOR = QBrush(QColor.fromRgbF(1, 0, 0))
 
@@ -18,7 +18,7 @@ class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.playlist_dict = self._create_playlist_dict()
+        self.playlist_dict = _create_playlist_dict()
         self.item_list = QListWidget()
         self.item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         font = QFont()
@@ -103,7 +103,7 @@ class PlaylistWindow(QWidget):
         self._refresh()
 
     def _refresh(self):
-        self.playlist_dict = self._create_playlist_dict()
+        self.playlist_dict = _create_playlist_dict()
         self.item_list.clear()
         self.item_list.addItems(self.playlist_dict.keys())
 
@@ -114,7 +114,3 @@ class PlaylistWindow(QWidget):
     @Slot()
     def open_blacklist(self):
         open_with_default_application('config/blacklist.txt')
-
-    def _create_playlist_dict(self):
-        playlist = list(get_playlist())
-        return dict(zip(map(path.basename, playlist), playlist))
