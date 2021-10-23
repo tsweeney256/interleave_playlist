@@ -1,3 +1,4 @@
+import os
 import subprocess
 from os import path
 
@@ -33,6 +34,7 @@ class PlaylistWindow(QWidget):
         self.watched_btn.clicked.connect(self.mark_watched)
 
         self.unwatched_btn = QPushButton('Unmark Watched')
+        self.unwatched_btn.clicked.connect(self.unmark_watched)
 
         self.open_input_btn = QPushButton('Open Input File')
         self.open_input_btn.clicked.connect(self.open_settings)
@@ -65,10 +67,19 @@ class PlaylistWindow(QWidget):
             f.writelines(['\n' + i.text() for i in self.item_list.selectedItems()])
 
     @Slot()
+    def unmark_watched(self):
+        with open('config/blacklist.txt', 'r') as f:
+            with open('config/tmp.txt', 'w') as tmp:
+                for line in f:
+                    if (line.strip() not in map(lambda i: i.text(), self.item_list.selectedItems())
+                            and line.strip() != ''):
+                        tmp.write(line)
+        os.replace('config/tmp.txt', 'config/blacklist.txt')
+
+    @Slot()
     def open_settings(self):
         open_with_default_application('config/settings.yml')
 
     @Slot()
     def open_blacklist(self):
         open_with_default_application('config/blacklist.txt')
-
