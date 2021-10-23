@@ -1,4 +1,3 @@
-import asyncio
 import os
 import subprocess
 import threading
@@ -70,6 +69,7 @@ class PlaylistWindow(QWidget):
         thread = threading.Thread(target=_play)
         thread.start()
 
+    # O(1) memory, just cause
     @Slot()
     def mark_watched(self):
         full_playlist = list(map(path.basename, get_playlist(False)))
