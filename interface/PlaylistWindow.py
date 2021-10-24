@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemVi
 
 import settings
 from core.playlist import get_playlist
-from interface import open_with_default_application, _create_playlist_dict
+from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name
 
 WATCHED_COLOR = QBrush(QColor.fromRgbF(1, 0, 0))
 
@@ -101,8 +101,8 @@ class PlaylistWindow(QWidget):
     @Slot()
     def mark_watched(self):
         full_playlist = list(map(path.basename, get_playlist(False)))
-        with open('config/blacklist.txt', 'r') as f:
-            with open('config/tmp.txt', 'w') as tmp:
+        with open(settings.get_watched_file_name(), 'r') as f:
+            with open(_get_temp_file_name(), 'w') as tmp:
                 for line in f:
                     if line.strip() != '' and line.strip() in full_playlist:
                         tmp.write(line.strip() + '\n')
@@ -110,7 +110,7 @@ class PlaylistWindow(QWidget):
                     map(lambda i: i.text(),
                         filter(lambda i: i.background() != WATCHED_COLOR,  # lol
                                self.item_list.selectedItems()))))
-        os.replace('config/tmp.txt', 'config/blacklist.txt')
+        os.replace(_get_temp_file_name(), settings.get_watched_file_name())
 
         for item in self.item_list.selectedItems():
             item.setBackground(WATCHED_COLOR)
@@ -118,14 +118,14 @@ class PlaylistWindow(QWidget):
     @Slot()
     def unmark_watched(self):
         full_playlist = list(map(path.basename, get_playlist(False)))
-        with open('config/blacklist.txt', 'r') as f:
-            with open('config/tmp.txt', 'w') as tmp:
+        with open(settings.get_watched_file_name(), 'r') as f:
+            with open(_get_temp_file_name(), 'w') as tmp:
                 for line in f:
                     if (line.strip() not in map(lambda i: i.text(), self.item_list.selectedItems())
                             and line.strip() != ''
                             and line.strip() in full_playlist):
                         tmp.write(line)
-        os.replace('config/tmp.txt', 'config/blacklist.txt')
+        os.replace(_get_temp_file_name(), settings.get_watched_file_name())
 
         white = QBrush(QColor.fromRgbF(1, 1, 1))
         for item in self.item_list.selectedItems():
@@ -158,4 +158,4 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def open_blacklist(self):
-        open_with_default_application('config/blacklist.txt')
+        open_with_default_application(settings.get_watched_file_name())

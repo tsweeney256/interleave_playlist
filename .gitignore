@@ -1,6 +1,6 @@
-blacklist.txt
-todo.txt
 input.yml
+input.yml.watched.txt
+todo.txt
 __pycache__/
 .idea/
 *~

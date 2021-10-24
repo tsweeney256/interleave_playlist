@@ -7,7 +7,7 @@ from core.interleave import interleave_all
 
 def get_playlist(use_blacklist: bool = True) -> iter:
     if use_blacklist:
-        with open('config/blacklist.txt', 'r') as f:
+        with open(settings.get_watched_file_name(), 'r') as f:
             blacklist = [line.strip() for line in f]
     else:
         blacklist = []

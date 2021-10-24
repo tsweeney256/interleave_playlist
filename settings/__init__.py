@@ -1,4 +1,5 @@
 import json
+import os.path
 
 import yaml
 from yaml.parser import ParserError
@@ -9,9 +10,16 @@ from settings.InvalidInputFile import InvalidInputFile
 _STATE_FILE = 'config/state.json'
 
 
+def get_watched_file_name():
+    fn = get_last_input_file() + '.watched.txt'
+    if not os.path.exists(fn):
+        with open(fn, 'w'):
+            pass
+    return fn
+
+
 def create_needed_files():
-    with open('config/blacklist.txt', 'a'):
-        pass
+    pass  # TODO: implement this
 
 
 def get_locations() -> list[str]:

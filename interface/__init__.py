@@ -1,4 +1,6 @@
 import subprocess, os, platform
+
+import settings
 from core.playlist import get_playlist
 
 
@@ -15,3 +17,7 @@ def open_with_default_application(filepath: str):
 def _create_playlist_dict() -> dict[str, str]:
     playlist = list(get_playlist())
     return dict(zip(map(os.path.basename, playlist), playlist))
+
+
+def _get_temp_file_name():
+    return settings.get_watched_file_name() + '.tmp'
