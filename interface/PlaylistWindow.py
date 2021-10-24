@@ -100,7 +100,7 @@ class PlaylistWindow(QWidget):
     # O(1) memory, just cause
     @Slot()
     def mark_watched(self):
-        full_playlist = list(map(path.basename, get_playlist(False)))
+        full_playlist = list(map(path.basename, get_playlist(settings.get_locations(), [])))
         with open(settings.get_watched_file_name(), 'r') as f:
             with open(_get_temp_file_name(), 'w') as tmp:
                 for line in f:
@@ -117,7 +117,7 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def unmark_watched(self):
-        full_playlist = list(map(path.basename, get_playlist(False)))
+        full_playlist = list(map(path.basename, get_playlist(settings.get_locations(), [])))
         with open(settings.get_watched_file_name(), 'r') as f:
             with open(_get_temp_file_name(), 'w') as tmp:
                 for line in f:

@@ -1,31 +1,15 @@
 import os
 from os import path
 
-import settings
 from core.interleave import interleave_all
 
 
-def get_playlist(use_blacklist: bool = True) -> iter:
-    if use_blacklist:
-        with open(settings.get_watched_file_name(), 'r') as f:
-            blacklist = [line.strip() for line in f]
-    else:
-        blacklist = []
-
+def get_playlist(locations: list[str], blacklist: list[str]) -> iter:
     data = []
-    for loc in settings.get_locations():
+    for loc in locations:
         data.append(sorted(filter(
             lambda i: (path.basename(i) not in blacklist and ('.mkv' in i or '.mp4' in i)),
             map(lambda i: loc + '/' + i, os.listdir(loc))
         )))
 
     return interleave_all(data)
-
-
-def main():
-    for item in get_playlist():
-        print(item)
-
-
-if __name__ == '__main__':
-    main()
