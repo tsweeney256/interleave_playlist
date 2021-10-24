@@ -9,6 +9,36 @@ from settings.InvalidInputFile import InvalidInputFile
 _STATE_FILE = 'config/state.json'
 
 
+def create_needed_files():
+    with open('config/blacklist.txt', 'a'):
+        pass
+
+
+def get_locations() -> list[str]:
+    return _get_input(get_last_input_file())['locations']
+
+
+def get_font_size() -> int:
+    return _get_settings()['font-size']
+
+
+def get_play_command() -> str:
+    return _get_settings()['play-command']
+
+
+def get_dark_mode() -> bool:
+    return _get_settings()['dark-mode']
+
+
+def get_last_input_file() -> str:
+    return _get_state()['last-input-file']
+
+
+def set_last_input_file(input_file: str):
+    _get_input(input_file)  # ensure that the input can be read
+    _set_state('last-input-file', input_file)
+
+
 def _get_settings():
     with open('config/settings.yml', 'r') as f:
         return yaml.safe_load(f)
@@ -44,33 +74,3 @@ def _set_state(key: str, val: any):
     state[key] = val
     with open(_STATE_FILE, 'w') as f:
         return json.dump(state, f)
-
-
-def create_needed_files():
-    with open('config/blacklist.txt', 'a'):
-        pass
-
-
-def get_locations() -> list[str]:
-    return _get_input(get_last_input_file())['locations']
-
-
-def get_font_size() -> int:
-    return _get_settings()['font-size']
-
-
-def get_play_command() -> str:
-    return _get_settings()['play-command']
-
-
-def get_dark_mode() -> bool:
-    return _get_settings()['dark-mode']
-
-
-def get_last_input_file() -> str:
-    return _get_state()['last-input-file']
-
-
-def set_last_input_file(input_file: str):
-    _get_input(input_file)  # ensure that the input can be read
-    _set_state('last-input-file', input_file)

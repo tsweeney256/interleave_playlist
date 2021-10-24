@@ -85,6 +85,10 @@ class PlaylistWindow(QWidget):
                 return True
         return False
 
+    @Slot()
+    def play(self):
+        self._play()
+
     def _play(self):
         def _play_impl():
             subprocess.run([settings.get_play_command()]
@@ -92,10 +96,6 @@ class PlaylistWindow(QWidget):
         if self.playlist_dict is not None:
             thread = threading.Thread(target=_play_impl)
             thread.start()
-
-    @Slot()
-    def play(self):
-        self._play()
 
     # O(1) memory, just cause
     @Slot()
