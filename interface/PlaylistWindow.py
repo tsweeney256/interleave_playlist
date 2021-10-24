@@ -6,7 +6,7 @@ from os import path
 from PySide6.QtCore import Slot, QEvent, Qt
 from PySide6.QtGui import QFont, QColor, QBrush
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
-    QPushButton, QMessageBox
+    QPushButton, QMessageBox, QFileDialog
 
 import settings
 from core.playlist import get_playlist
@@ -28,9 +28,13 @@ class PlaylistWindow(QWidget):
         try:
             self.playlist_dict: dict[str, str] = _create_playlist_dict()
             self._refresh(self.playlist_dict)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             QMessageBox(text="Input yml file not found: {}\n\n"
                              "Please create or find file and open it"
+                        .format(settings.get_last_input_file()),
+                        icon=QMessageBox.Warning).exec()
+        except settings.InvalidInputFile:
+            QMessageBox(text="Unable to parse input yml file. Please fix it and try again\n\n{}"
                         .format(settings.get_last_input_file()),
                         icon=QMessageBox.Warning).exec()
         self.item_list.selectAll()
@@ -139,7 +143,18 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def open_input(self):
-        open_with_default_application('config/input.yml')
+        file_name: str = QFileDialog.getOpenFileName(
+            self, 'Open yaml', os.path.expanduser('~'), 'yaml files (*.yml *.yaml)')[0]
+        if file_name.strip() == '':
+            return
+        try:
+            settings.set_last_input_file(file_name)
+        except settings.InvalidInputFile:
+            QMessageBox(text='Error: Attempted to open invalid settings yaml file\n\n'
+                             '{}'.format(file_name),
+                        icon=QMessageBox.Critical).exec()
+            return
+        self._refresh(_create_playlist_dict())
 
     @Slot()
     def open_blacklist(self):
