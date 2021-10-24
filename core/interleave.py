@@ -1,5 +1,7 @@
 from math import nan, isnan
 
+from sortedcontainers import SortedList
+
 data = [
     [
         "a1",
@@ -83,13 +85,13 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
     return result
 
 
-# TODO: Need to interleave current two smallest groups
 def interleave_all(groups: list[list[str]]) -> list[str]:
-    groups.sort(key=lambda f: len(f))
-    result: list[str] = []
-    for group in groups:
-        result = interleave(result, group)
-    return result
+    sorted_groups = SortedList(groups, key=lambda l: -len(l))
+    while len(sorted_groups) > 1:
+        a = sorted_groups.pop()
+        b = sorted_groups.pop()
+        sorted_groups.add(interleave(a, b))
+    return sorted_groups[0]
 
 
 def main():
