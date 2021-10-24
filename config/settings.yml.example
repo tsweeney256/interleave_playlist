@@ -1,5 +1,6 @@
 font-size: 12
 play-command: mpv
+dark-mode: false
 locations:
     - '/directory/to/my/show/Foo'
     - '/directory/to/my/other/show/Bar'

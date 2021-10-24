@@ -1,0 +1,13 @@
+* {
+    color: #cdcdcd;
+    background-color: #282828;
+}
+
+QPushButton {
+    background-color: #353535;
+}
+
+QListWidget {
+    background-color: #353535;
+    alternate-background-color: #303030;
+}

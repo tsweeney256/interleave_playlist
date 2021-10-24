@@ -22,6 +22,7 @@ class PlaylistWindow(QWidget):
         self.playlist_dict = _create_playlist_dict()
         self.item_list = QListWidget()
         self.item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.item_list.setAlternatingRowColors(True)
         font = QFont()
         font.setPointSize(settings.get_font_size())
         self.item_list.setFont(font)

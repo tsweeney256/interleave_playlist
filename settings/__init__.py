@@ -21,3 +21,7 @@ def get_font_size() -> int:
 
 def get_play_command() -> str:
     return _get_settings()['play-command']
+
+
+def get_dark_mode() -> bool:
+    return _get_settings()['dark-mode']
