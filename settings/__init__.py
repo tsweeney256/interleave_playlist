@@ -6,6 +6,9 @@ from yaml.parser import ParserError
 from settings.InvalidInputFile import InvalidInputFile
 
 
+_STATE_FILE = 'config/state.json'
+
+
 def _get_settings():
     with open('config/settings.yml', 'r') as f:
         return yaml.safe_load(f)
@@ -32,14 +35,14 @@ def _expected_loc_type(location):
 
 
 def _get_state():
-    with open('config/state.json', 'r') as f:
+    with open(_STATE_FILE, 'r') as f:
         return json.load(f)
 
 
 def _set_state(key: str, val: any):
     state = _get_state()
     state[key] = val
-    with open('config/state.json', 'w') as f:
+    with open(_STATE_FILE, 'w') as f:
         return json.dump(state, f)
 
 
