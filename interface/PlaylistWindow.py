@@ -3,7 +3,7 @@ import subprocess
 import threading
 from os import path
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QEvent, Qt
 from PySide6.QtGui import QFont, QColor, QBrush
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton
@@ -31,6 +31,8 @@ class PlaylistWindow(QWidget):
 
         play_btn = QPushButton('Play')
         play_btn.clicked.connect(self.play)
+        self.item_list.doubleClicked.connect(self.play)
+        self.item_list.installEventFilter(self)
 
         watched_btn = QPushButton('Mark Watched')
         watched_btn.clicked.connect(self.mark_watched)
@@ -62,13 +64,27 @@ class PlaylistWindow(QWidget):
         layout.addLayout(button_layout)
         layout.addLayout(list_layout)
 
-    @Slot()
-    def play(self):
-        def _play():
+    def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
+        if event.type() == QEvent.KeyPress:
+            switch = {
+                Qt.NoModifier + Qt.Key_Return: self._play,
+                Qt.NoModifier + Qt.Key_Enter: self._play,
+            }
+            if event.keyCombination().toCombined() in switch:
+                switch[event.keyCombination().toCombined()]()
+                return True
+        return False
+
+    def _play(self):
+        def _play_impl():
             subprocess.run([settings.get_play_command()]
                            + [self.playlist_dict[i.text()] for i in self.item_list.selectedItems()])
-        thread = threading.Thread(target=_play)
+        thread = threading.Thread(target=_play_impl)
         thread.start()
+
+    @Slot()
+    def play(self):
+        self._play()
 
     # O(1) memory, just cause
     @Slot()
