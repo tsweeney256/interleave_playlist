@@ -74,6 +74,8 @@ class PlaylistWindow(QWidget):
         layout.addLayout(button_layout)
         layout.addLayout(list_layout)
 
+        self.item_list.setFocus()
+
     def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
         if event.type() == QEvent.KeyPress:
             switch: dict[int, callable] = {
