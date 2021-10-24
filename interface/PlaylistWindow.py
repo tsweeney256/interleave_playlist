@@ -44,7 +44,7 @@ class PlaylistWindow(QWidget):
         refresh_btn.clicked.connect(self.refresh)
 
         open_input_btn = QPushButton('Open Input File')
-        open_input_btn.clicked.connect(self.open_settings)
+        open_input_btn.clicked.connect(self.open_input)
 
         open_watched_btn = QPushButton('Open Watched File')
         open_watched_btn.clicked.connect(self.open_blacklist)
@@ -130,8 +130,8 @@ class PlaylistWindow(QWidget):
         self.item_list.addItems(self.playlist_dict.keys())
 
     @Slot()
-    def open_settings(self):
-        open_with_default_application('config/settings.yml')
+    def open_input(self):
+        open_with_default_application('config/input.yml')
 
     @Slot()
     def open_blacklist(self):

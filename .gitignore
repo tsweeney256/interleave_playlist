@@ -1,6 +1,7 @@
 blacklist.txt
 settings.yml
 todo.txt
+input.yml
 __pycache__/
 .idea/
 *~

@@ -6,13 +6,18 @@ def _get_settings():
         return yaml.safe_load(f)
 
 
+def _get_input():
+    with open('config/input.yml', 'r') as f:
+        return yaml.safe_load(f)
+
+
 def create_needed_files():
     with open('config/blacklist.txt', 'a'):
         pass
 
 
 def get_locations() -> list[str]:
-    return _get_settings()['locations']
+    return _get_input()['locations']
 
 
 def get_font_size() -> int:
