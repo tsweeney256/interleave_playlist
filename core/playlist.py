@@ -15,11 +15,11 @@ def get_playlist(use_blacklist: bool = True) -> iter:
     data = []
     for loc in settings.get_locations():
         data.append(sorted(filter(
-            lambda i: ('.mkv' in i or '.mp4' in i),
+            lambda i: (path.basename(i) not in blacklist and ('.mkv' in i or '.mp4' in i)),
             map(lambda i: loc + '/' + i, os.listdir(loc))
         )))
 
-    return filter(lambda d: path.basename(d) not in blacklist, interleave_all(data))
+    return interleave_all(data)
 
 
 def main():
