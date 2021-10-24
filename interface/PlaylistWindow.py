@@ -29,8 +29,10 @@ class PlaylistWindow(QWidget):
             self.playlist_dict: dict[str, str] = _create_playlist_dict()
             self._refresh(self.playlist_dict)
         except FileNotFoundError as e:
-            QMessageBox(text="Input yml file not found: {}\nPlease create file and open it"
-                        .format(settings.get_last_input_file())).exec()
+            QMessageBox(text="Input yml file not found: {}\n\n"
+                             "Please create or find file and open it"
+                        .format(settings.get_last_input_file()),
+                        icon=QMessageBox.Warning).exec()
         self.item_list.selectAll()
 
         play_btn = QPushButton('Play')
