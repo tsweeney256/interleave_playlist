@@ -6,7 +6,7 @@ from os import path
 from PySide6.QtCore import Slot, QEvent, Qt
 from PySide6.QtGui import QFont, QColor, QBrush
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
-    QPushButton
+    QPushButton, QMessageBox
 
 import settings
 from core.playlist import get_playlist
@@ -19,14 +19,18 @@ class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.playlist_dict = _create_playlist_dict()
         self.item_list = QListWidget()
         self.item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.item_list.setAlternatingRowColors(True)
         font = QFont()
         font.setPointSize(settings.get_font_size())
         self.item_list.setFont(font)
-        self._refresh()
+        try:
+            self.playlist_dict: dict[str, str] = _create_playlist_dict()
+            self._refresh(self.playlist_dict)
+        except FileNotFoundError as e:
+            QMessageBox(text="Input yml file not found: {}\nPlease create file and open it"
+                        .format(settings.get_last_input_file())).exec()
         self.item_list.selectAll()
 
         play_btn = QPushButton('Play')
@@ -66,7 +70,7 @@ class PlaylistWindow(QWidget):
 
     def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
         if event.type() == QEvent.KeyPress:
-            switch = {
+            switch: dict[int, callable] = {
                 Qt.NoModifier + Qt.Key_Return: self._play,
                 Qt.NoModifier + Qt.Key_Enter: self._play,
             }
@@ -79,8 +83,9 @@ class PlaylistWindow(QWidget):
         def _play_impl():
             subprocess.run([settings.get_play_command()]
                            + [self.playlist_dict[i.text()] for i in self.item_list.selectedItems()])
-        thread = threading.Thread(target=_play_impl)
-        thread.start()
+        if self.playlist_dict is not None:
+            thread = threading.Thread(target=_play_impl)
+            thread.start()
 
     @Slot()
     def play(self):
@@ -122,12 +127,13 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def refresh(self):
-        self._refresh()
+        self._refresh(_create_playlist_dict())
 
-    def _refresh(self):
-        self.playlist_dict = _create_playlist_dict()
+    def _refresh(self, playlist_dict: dict[str, str]):
         self.item_list.clear()
-        self.item_list.addItems(self.playlist_dict.keys())
+        self.playlist_dict = playlist_dict
+        if playlist_dict is not None:
+            self.item_list.addItems(self.playlist_dict.keys())
 
     @Slot()
     def open_input(self):

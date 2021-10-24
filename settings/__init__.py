@@ -1,3 +1,5 @@
+import json
+
 import yaml
 
 
@@ -9,6 +11,18 @@ def _get_settings():
 def _get_input():
     with open('config/input.yml', 'r') as f:
         return yaml.safe_load(f)
+
+
+def _get_state():
+    with open('config/state.json', 'r') as f:
+        return json.load(f)
+
+
+def _set_state(key: str, val: any):
+    state = _get_state()
+    state[key] = val
+    with open('config/state.json', 'w') as f:
+        return json.dump(state, f)
 
 
 def create_needed_files():
@@ -30,3 +44,11 @@ def get_play_command() -> str:
 
 def get_dark_mode() -> bool:
     return _get_settings()['dark-mode']
+
+
+def get_last_input_file() -> str:
+    return _get_state()['last-input-file']
+
+
+def set_last_input_file(last: str):
+    _set_state('last-input-file', last)

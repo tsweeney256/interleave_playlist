@@ -12,6 +12,6 @@ def open_with_default_application(filepath: str):
         subprocess.call(('xdg-open', filepath))
 
 
-def _create_playlist_dict():
+def _create_playlist_dict() -> dict[str, str]:
     playlist = list(get_playlist())
     return dict(zip(map(os.path.basename, playlist), playlist))
