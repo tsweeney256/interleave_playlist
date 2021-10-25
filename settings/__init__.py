@@ -1,5 +1,6 @@
 import json
 import os.path
+import sys
 
 import yaml
 from yaml.parser import ParserError
@@ -7,7 +8,9 @@ from yaml.parser import ParserError
 from settings.InvalidInputFile import InvalidInputFile
 
 
-_STATE_FILE = 'config/state.json'
+_SCRIPT_LOC = os.path.dirname(os.path.realpath(sys.argv[0]))
+_SETTINGS_FILE = os.path.join(_SCRIPT_LOC, 'config', 'settings.yml')
+_STATE_FILE = os.path.join(_SCRIPT_LOC, 'config', 'state.json')
 
 
 def get_watched_file_name():
@@ -19,7 +22,10 @@ def get_watched_file_name():
 
 
 def create_needed_files():
-    pass  # TODO: implement this
+    if not os.path.exists(_SETTINGS_FILE):
+        _create_settings_file()
+    if not os.path.exists(_STATE_FILE):
+        _create_state_file()
 
 
 def get_locations() -> list[str]:
@@ -48,7 +54,7 @@ def set_last_input_file(input_file: str):
 
 
 def _get_settings():
-    with open('config/settings.yml', 'r') as f:
+    with open(_SETTINGS_FILE, 'r') as f:
         return yaml.safe_load(f)
 
 
@@ -82,3 +88,16 @@ def _set_state(key: str, val: any):
     state[key] = val
     with open(_STATE_FILE, 'w') as f:
         return json.dump(state, f)
+
+
+def _create_settings_file():
+    with open(_SETTINGS_FILE, 'w') as f:
+        f.write("""###This settings file is recreated with defaults if deleted###
+font-size: 12
+play-command: mpv
+dark-mode: false""")
+
+
+def _create_state_file():
+    with open(_STATE_FILE, 'w') as f:
+        f.write('{"last-input-file": "See config/input.yml.example"}')
