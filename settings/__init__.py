@@ -91,7 +91,7 @@ def _set_state(key: str, val: any):
 
 def _create_settings_file():
     with open(_SETTINGS_FILE, 'w') as f:
-        f.write("""###This settings file is recreated with defaults if deleted###
+        f.write("""### This settings file is recreated with defaults if deleted ###
 font-size: 12
 play-command: mpv
 dark-mode: false""")
