@@ -1,3 +1,5 @@
+### It is recommended you copy and edit this file ###
+
 locations:
     - '/directory/to/my/show/Foo'
     - '/directory/to/my/other/show/Bar'
