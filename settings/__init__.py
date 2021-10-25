@@ -7,10 +7,9 @@ from yaml.parser import ParserError
 
 from settings.InvalidInputFile import InvalidInputFile
 
-
-_SCRIPT_LOC = os.path.dirname(os.path.realpath(sys.argv[0]))
-_SETTINGS_FILE = os.path.join(_SCRIPT_LOC, 'config', 'settings.yml')
-_STATE_FILE = os.path.join(_SCRIPT_LOC, 'config', 'state.json')
+SCRIPT_LOC = os.path.dirname(os.path.realpath(sys.argv[0]))
+_SETTINGS_FILE = os.path.join(SCRIPT_LOC, 'config', 'settings.yml')
+_STATE_FILE = os.path.join(SCRIPT_LOC, 'config', 'state.json')
 
 
 def get_watched_file_name():
