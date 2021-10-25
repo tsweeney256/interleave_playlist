@@ -2,57 +2,6 @@ from math import nan, isnan
 
 from sortedcontainers import SortedList
 
-data = [
-    [
-        "a1",
-        "a2",
-        "a3",
-        "a4",
-        "a5",
-    ],
-    [
-        "b1",
-    ],
-    [
-        "c1",
-        "c2",
-        "c3",
-        "c4",
-    ],
-    [
-        "d1",
-        "d2",
-        "d3",
-    ]
-]
-
-# data = [
-#     [
-#         "a1",
-#         "a2"
-#     ],
-#     [
-#         "d1",
-#         "d2",
-#         "d3",
-#         "d4",
-#         "d5",
-#         "d6",
-#         # "d7"
-#     ]
-# ]
-
-# data = [
-#     [
-#         "a1",
-#         "a2"
-#     ],
-#     [
-#         "b1",
-#         "b2"
-#     ]
-# ]
-
 MARGIN: float = 10e-6
 
 
@@ -89,12 +38,3 @@ def interleave_all(groups: list[list[str]]) -> list[str]:
         b = sorted_groups.pop()
         sorted_groups.add(interleave(a, b))
     return sorted_groups[0]
-
-
-def main():
-    for item in interleave_all(data):
-        print(item)
-
-
-if __name__ == '__main__':
-    main()
