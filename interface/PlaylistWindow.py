@@ -81,6 +81,10 @@ class PlaylistWindow(QWidget):
             switch: dict[int, callable] = {
                 Qt.NoModifier + Qt.Key_Return: self._play,
                 Qt.NoModifier + Qt.Key_Enter: self._play,
+                Qt.ControlModifier + Qt.Key_W: self.mark_watched,
+                Qt.ControlModifier + Qt.Key_U: self.unmark_watched,
+                Qt.ControlModifier + Qt.Key_O: self.open_input,
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_O: self.open_blacklist
             }
             if event.keyCombination().toCombined() in switch:
                 switch[event.keyCombination().toCombined()]()
