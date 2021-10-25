@@ -1,4 +1,6 @@
-import subprocess, os, platform
+import os
+import platform
+import subprocess
 
 import settings
 from core.playlist import get_playlist
@@ -16,8 +18,8 @@ def open_with_default_application(filepath: str):
 
 def _create_playlist_dict() -> dict[str, str]:
     with open(settings.get_watched_file_name(), 'r') as f:
-        blacklist = [line.strip() for line in f]
-    playlist = list(get_playlist(settings.get_locations(),  blacklist))
+        watched_list = [line.strip() for line in f]
+    playlist = list(get_playlist(settings.get_locations(),  watched_list))
     return dict(zip(map(os.path.basename, playlist), playlist))
 
 

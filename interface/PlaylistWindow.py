@@ -57,7 +57,7 @@ class PlaylistWindow(QWidget):
         open_input_btn.clicked.connect(self.open_input)
 
         open_watched_btn = QPushButton('Open Watched File')
-        open_watched_btn.clicked.connect(self.open_blacklist)
+        open_watched_btn.clicked.connect(self.open_watched_file)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(play_btn)
@@ -84,7 +84,7 @@ class PlaylistWindow(QWidget):
                 Qt.ControlModifier + Qt.Key_W: self.mark_watched,
                 Qt.ControlModifier + Qt.Key_U: self.unmark_watched,
                 Qt.ControlModifier + Qt.Key_O: self.open_input,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_O: self.open_blacklist
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_O: self.open_watched_file
             }
             if event.keyCombination().toCombined() in switch:
                 switch[event.keyCombination().toCombined()]()
@@ -163,5 +163,5 @@ class PlaylistWindow(QWidget):
         self._refresh(_create_playlist_dict())
 
     @Slot()
-    def open_blacklist(self):
+    def open_watched_file(self):
         open_with_default_application(settings.get_watched_file_name())
