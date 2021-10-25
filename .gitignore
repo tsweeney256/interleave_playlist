@@ -1,6 +1,8 @@
 input.yml
 input.yml.watched.txt
 todo.txt
+settings.yml
+state.json
 __pycache__/
 .idea/
 *~
