@@ -19,30 +19,15 @@ class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.item_list = QListWidget()
-        self.item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.item_list.setAlternatingRowColors(True)
-        font = QFont()
-        font.setPointSize(settings.get_font_size())
-        self.item_list.setFont(font)
-        try:
-            self.playlist_dict: dict[str, str] = _create_playlist_dict()
-            self._refresh(self.playlist_dict)
-        except FileNotFoundError:
-            QMessageBox(text="Input yml file not found: {}\n\n"
-                             "Please create or find file and open it"
-                        .format(settings.get_last_input_file()),
-                        icon=QMessageBox.Warning).exec()
-        except settings.InvalidInputFile:
-            QMessageBox(text="Unable to parse input yml file. Please fix it and try again\n\n{}"
-                        .format(settings.get_last_input_file()),
-                        icon=QMessageBox.Warning).exec()
+        self.item_list = _create_item_list()
+        self.item_list.doubleClicked.connect(self.play)
+        self.item_list.installEventFilter(self)
+        self.playlist_dict: dict[str, str] = _create_playlist_dict()
+        self._refresh(self.playlist_dict)
         self.item_list.selectAll()
 
         play_btn = QPushButton('Play')
         play_btn.clicked.connect(self.play)
-        self.item_list.doubleClicked.connect(self.play)
-        self.item_list.installEventFilter(self)
 
         watched_btn = QPushButton('Mark Watched')
         watched_btn.clicked.connect(self.mark_watched)
@@ -165,3 +150,13 @@ class PlaylistWindow(QWidget):
     @Slot()
     def open_watched_file(self):
         open_with_default_application(settings.get_watched_file_name())
+
+
+def _create_item_list():
+    item_list = QListWidget()
+    item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+    item_list.setAlternatingRowColors(True)
+    font = QFont()
+    font.setPointSize(settings.get_font_size())
+    item_list.setFont(font)
+    return item_list
