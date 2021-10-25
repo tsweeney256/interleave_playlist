@@ -56,12 +56,9 @@ data = [
 MARGIN: float = 10e-6
 
 
-#  wtf I hate python now
 def _divide(a, b) -> float:
-    try:
-        return a / b
-    except ZeroDivisionError:
-        return nan
+    b = b if b != 0 else nan
+    return a / b
 
 
 def _get_every(larger_len: int, smaller_len: int) -> float:
