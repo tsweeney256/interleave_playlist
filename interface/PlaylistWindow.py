@@ -19,12 +19,8 @@ class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.item_list = _create_item_list()
-        self.item_list.doubleClicked.connect(self.play)
-        self.item_list.installEventFilter(self)
-        self.playlist_dict: dict[str, str] = _create_playlist_dict()
-        self._refresh(self.playlist_dict)
-        self.item_list.selectAll()
+        self.playlist_dict: dict[str, str] = {}
+        self.item_list: QListWidget = self._create_item_list()
 
         play_btn = QPushButton('Play')
         play_btn.clicked.connect(self.play)
@@ -60,6 +56,19 @@ class PlaylistWindow(QWidget):
         layout.addLayout(list_layout)
 
         self.item_list.setFocus()
+
+    def _create_item_list(self):
+        item_list = QListWidget()
+        item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        item_list.setAlternatingRowColors(True)
+        font = QFont()
+        font.setPointSize(settings.get_font_size())
+        item_list.setFont(font)
+        item_list.doubleClicked.connect(self.play)
+        item_list.installEventFilter(self)
+        self._refresh(item_list)
+        item_list.selectAll()
+        return item_list
 
     def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
         if event.type() == QEvent.KeyPress:
@@ -124,13 +133,13 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def refresh(self):
-        self._refresh(_create_playlist_dict())
+        self._refresh(self.item_list)
 
-    def _refresh(self, playlist_dict: dict[str, str]):
-        self.item_list.clear()
-        self.playlist_dict = playlist_dict
-        if playlist_dict is not None:
-            self.item_list.addItems(self.playlist_dict.keys())
+    def _refresh(self, item_list: QListWidget):
+        item_list.clear()
+        self.playlist_dict = _create_playlist_dict()
+        if self.playlist_dict is not None:
+            item_list.addItems(self.playlist_dict.keys())
 
     @Slot()
     def open_input(self):
@@ -145,18 +154,8 @@ class PlaylistWindow(QWidget):
                              '{}'.format(file_name),
                         icon=QMessageBox.Critical).exec()
             return
-        self._refresh(_create_playlist_dict())
+        self._refresh(self.item_list)
 
     @Slot()
     def open_watched_file(self):
         open_with_default_application(settings.get_watched_file_name())
-
-
-def _create_item_list():
-    item_list = QListWidget()
-    item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-    item_list.setAlternatingRowColors(True)
-    font = QFont()
-    font.setPointSize(settings.get_font_size())
-    item_list.setFont(font)
-    return item_list
