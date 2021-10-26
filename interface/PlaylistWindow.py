@@ -91,11 +91,11 @@ class PlaylistWindow(QWidget):
         self._play()
 
     def _play(self):
-        def _play_impl():
+        def _impl():
             subprocess.run([settings.get_play_command()]
                            + [self.playlist_dict[i.text()] for i in self.item_list.selectedItems()])
         if self.playlist_dict is not None:
-            thread = threading.Thread(target=_play_impl)
+            thread = threading.Thread(target=_impl)
             thread.start()
 
     # O(1) memory, just cause
@@ -159,4 +159,7 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def open_watched_file(self):
-        open_with_default_application(settings.get_watched_file_name())
+        def _impl():
+            open_with_default_application(settings.get_watched_file_name())
+        thread = threading.Thread(target=_impl)
+        thread.start()
