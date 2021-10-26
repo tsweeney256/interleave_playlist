@@ -8,9 +8,9 @@ from PySide6.QtGui import QFont, QColor, QBrush
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog
 
-import settings
 from core.playlist import get_playlist
 from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name
+from persistence import settings, input_, state
 
 WATCHED_COLOR = QBrush(QColor.fromRgbF(1, 0, 0))
 
@@ -101,8 +101,8 @@ class PlaylistWindow(QWidget):
     # O(1) memory, just cause
     @Slot()
     def mark_watched(self):
-        full_playlist = list(map(path.basename, get_playlist(settings.get_locations(), [])))
-        with open(settings.get_watched_file_name(), 'r') as f:
+        full_playlist = list(map(path.basename, get_playlist(input_.get_locations(), [])))
+        with open(input_.get_watched_file_name(), 'r') as f:
             with open(_get_temp_file_name(), 'w') as tmp:
                 for line in f:
                     if line.strip() != '' and line.strip() in full_playlist:
@@ -111,22 +111,22 @@ class PlaylistWindow(QWidget):
                     map(lambda i: i.text(),
                         filter(lambda i: i.background() != WATCHED_COLOR,  # lol
                                self.item_list.selectedItems()))))
-        os.replace(_get_temp_file_name(), settings.get_watched_file_name())
+        os.replace(_get_temp_file_name(), input_.get_watched_file_name())
 
         for item in self.item_list.selectedItems():
             item.setBackground(WATCHED_COLOR)
 
     @Slot()
     def unmark_watched(self):
-        full_playlist = list(map(path.basename, get_playlist(settings.get_locations(), [])))
-        with open(settings.get_watched_file_name(), 'r') as f:
+        full_playlist = list(map(path.basename, get_playlist(input_.get_locations(), [])))
+        with open(input_.get_watched_file_name(), 'r') as f:
             with open(_get_temp_file_name(), 'w') as tmp:
                 for line in f:
                     if (line.strip() not in map(lambda i: i.text(), self.item_list.selectedItems())
                             and line.strip() != ''
                             and line.strip() in full_playlist):
                         tmp.write(line)
-        os.replace(_get_temp_file_name(), settings.get_watched_file_name())
+        os.replace(_get_temp_file_name(), input_.get_watched_file_name())
 
         white = QBrush(QColor.fromRgbF(1, 1, 1))
         for item in self.item_list.selectedItems():
@@ -149,8 +149,8 @@ class PlaylistWindow(QWidget):
         if file_name.strip() == '':
             return
         try:
-            settings.set_last_input_file(file_name)
-        except settings.InvalidInputFile:
+            state.set_last_input_file(file_name)
+        except input_.InvalidInputFile:
             QMessageBox(text='Error: Attempted to open invalid settings yaml file\n\n'
                              '{}'.format(file_name),
                         icon=QMessageBox.Critical).exec()
@@ -160,6 +160,6 @@ class PlaylistWindow(QWidget):
     @Slot()
     def open_watched_file(self):
         def _impl():
-            open_with_default_application(settings.get_watched_file_name())
+            open_with_default_application(input_.get_watched_file_name())
         thread = threading.Thread(target=_impl)
         thread.start()

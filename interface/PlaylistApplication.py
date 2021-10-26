@@ -3,8 +3,9 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
-import settings
 from interface.PlaylistWindow import PlaylistWindow
+from persistence.settings import get_dark_mode
+from util import SCRIPT_LOC
 
 
 class PlaylistApplication(QApplication):
@@ -14,9 +15,9 @@ class PlaylistApplication(QApplication):
         playlist_window.setWindowTitle('Interleave Playlist')
         playlist_window.resize(800, 600)
         playlist_window.show()
-        if settings.get_dark_mode():
+        if get_dark_mode():
             with open(os.path.join(
-                    settings.SCRIPT_LOC, 'interface', 'style', 'dark.qss'), 'r') as f:
+                    SCRIPT_LOC, 'interface', 'style', 'dark.qss'), 'r') as f:
                 _style = f.read()
                 self.setStyleSheet(_style)
         sys.exit(self.exec())
