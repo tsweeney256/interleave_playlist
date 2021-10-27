@@ -30,9 +30,9 @@ def _create_playlist_dict() -> dict[str, str]:
                          "Please create or find file and open it"
                     .format(persistence.get_last_input_file()),
                     icon=QMessageBox.Warning).exec()
-    except input_.InvalidInputFile:
-        QMessageBox(text="Unable to parse input yml file. Please fix it and try again\n\n{}"
-                    .format(persistence.get_last_input_file()),
+    except input_.InvalidInputFile as e:
+        QMessageBox(text="Error reading yml file. Please fix it and try again\n{}\n{}"
+                    .format(e, persistence.get_last_input_file()),
                     icon=QMessageBox.Warning).exec()
     return {}
 
