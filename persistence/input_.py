@@ -16,19 +16,16 @@ class InvalidInputFile(Exception):
     pass
 
 
+class LocationNotFound(Exception):
+    pass
+
+
 def get_locations() -> list[Location]:
     input_ = _get_input(state.get_last_input_file())
     locations = []
     for loc in input_['locations']:
         locations.append(Location(loc['name'],
                                   loc['filters'] if 'filters' in loc else input_['filters']))
-    return locations
-
-
-def get_location_names() -> list[str]:
-    locations = []
-    for loc in get_locations():
-        locations.append(loc.name)
     return locations
 
 
@@ -64,6 +61,8 @@ def _get_input(input_file: str):
                 raise InvalidInputFile("Locations must have names")
             if not isinstance(loc['name'], str):
                 raise InvalidInputFile("Location names must be strings")
+            if not os.path.exists(loc['name']):
+                raise LocationNotFound(loc['name'])
             if 'filters' in loc and loc['filters'] is not None and isinstance(loc['filters'], str):
                 raise InvalidInputFile("Location specific filters must be strings")
     except ParserError as e:

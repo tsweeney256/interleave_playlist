@@ -34,6 +34,10 @@ def _create_playlist_dict() -> dict[str, str]:
         QMessageBox(text="Error reading yml file. Please fix it and try again\n{}\n{}"
                     .format(e, persistence.get_last_input_file()),
                     icon=QMessageBox.Warning).exec()
+    except input_.LocationNotFound as e:
+        QMessageBox(text="Location from input file not found. Please fix it and try again\n{}\n{}"
+                    .format(e, persistence.get_last_input_file()),
+                    icon=QMessageBox.Warning).exec()
     return {}
 
 
