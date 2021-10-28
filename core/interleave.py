@@ -18,7 +18,7 @@ def _get_every(larger_len: int, smaller_len: int) -> float:
 
 # Written in SIMD style just for fun. No SIMD actually used
 def interleave(a: list[str], b: list[str]) -> list[str]:
-    larger, smaller = sorted([a, b], key=lambda ab: len(ab), reverse=True)
+    smaller, larger = sorted([a, b], key=lambda ab: len(ab))
     every: float = _get_every(len(larger), len(smaller))
     total_len: int = len(larger) + len(smaller)
     result: list[str] = [""] * total_len
