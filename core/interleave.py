@@ -45,11 +45,17 @@ def interleave_all(groups: list[list[str]]) -> list[str]:
                 min_i = i
         a: list[str] = sorted_groups.pop(min_i)  # smaller or equal
         b: list[str] = sorted_groups.pop(min_i)
-        i = 0
-        while len(sorted_groups) > 0 and i < len(sorted_groups) and len(a) < len(b):
-            if len(sorted_groups[i]) + len(a) <= len(b):
-                a.extend(sorted_groups.pop(i))
-            else:
-                i += 1
+        # TODO: make this optional, it's a tradeoff
+        _subsume_smaller_groups(sorted_groups, a, b)
         sorted_groups.add(interleave(a, b))
     return sorted_groups[0]
+
+
+def _subsume_smaller_groups(sorted_groups: SortedList, smaller: list[str], larger: list[str]):
+    i = 0
+    diff = len(smaller) - len(larger)
+    while len(sorted_groups) > 0 and i < len(sorted_groups):
+        if abs(len(sorted_groups[i]) + diff) <= abs(diff):
+            smaller.extend(sorted_groups.pop(i))
+        else:
+            i += 1
