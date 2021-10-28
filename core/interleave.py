@@ -36,14 +36,14 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
 def interleave_all(groups: list[list[str]]) -> list[str]:
     sorted_groups = SortedList(groups, key=lambda l: len(l))
     while len(sorted_groups) > 1:
-        min_diff = sys.maxsize
-        min_i = -1
+        min_diff: int = sys.maxsize
+        min_i: int = -1
         for i in range(len(sorted_groups) - 1):
-            diff = abs(len(sorted_groups[i]) - len(sorted_groups[i+1]))
+            diff: int = abs(len(sorted_groups[i]) - len(sorted_groups[i+1]))
             if min_diff > diff:
                 min_diff = diff
                 min_i = i
-        a = sorted_groups.pop(min_i)
-        b = sorted_groups.pop(min_i)
+        a: list[str] = sorted_groups.pop(min_i)
+        b: list[str] = sorted_groups.pop(min_i)
         sorted_groups.add(interleave(a, b))
     return sorted_groups[0]
