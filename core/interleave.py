@@ -56,6 +56,7 @@ def _subsume_smaller_groups(sorted_groups: SortedList, smaller: list[str], large
     diff = len(smaller) - len(larger)
     while len(sorted_groups) > 0 and i < len(sorted_groups):
         if abs(len(sorted_groups[i]) + diff) <= abs(diff):
+            # TODO: just interleave this you doofus
             smaller.extend(sorted_groups.pop(i))
         else:
             i += 1
