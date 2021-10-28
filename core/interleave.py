@@ -43,7 +43,13 @@ def interleave_all(groups: list[list[str]]) -> list[str]:
             if min_diff > diff:
                 min_diff = diff
                 min_i = i
-        a: list[str] = sorted_groups.pop(min_i)
+        a: list[str] = sorted_groups.pop(min_i)  # smaller or equal
         b: list[str] = sorted_groups.pop(min_i)
+        i = 0
+        while len(sorted_groups) > 0 and i < len(sorted_groups) and len(a) < len(b):
+            if len(sorted_groups[i]) + len(a) <= len(b):
+                a.extend(sorted_groups.pop(i))
+            else:
+                i += 1
         sorted_groups.add(interleave(a, b))
     return sorted_groups[0]
