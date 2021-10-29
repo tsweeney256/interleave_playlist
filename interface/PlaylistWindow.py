@@ -31,6 +31,7 @@ class PlaylistWindow(QWidget):
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
         self.duration_cache = {}
         self.durations_loaded = False
+        self._runtime_pending = False
 
         label_font = QFont()
         label_font.setPointSize(16)
@@ -164,9 +165,11 @@ class PlaylistWindow(QWidget):
     def refresh(self):
         self._refresh(self.item_list)
         self.durations_loaded = False
-        # TODO: this is bad. find another way
-        thread = threading.Thread(target=self._get_total_runtime)
-        thread.start()
+        if not self._running_runtime_thread:
+            thread = threading.Thread(target=self._get_total_runtime)
+            thread.start()
+        else:
+            self._runtime_pending = True
 
     def _refresh(self, item_list: QListWidget):
         item_list.clear()
@@ -206,14 +209,22 @@ class PlaylistWindow(QWidget):
 
     def _get_total_runtime(self):
         duration = 0
-        for i in self.playlist_dict.values():
-            if i not in self.duration_cache:
-                media_info = MediaInfo.parse(i)
-                d = media_info.video_tracks[0].duration
-                self.duration_cache[i] = d
+        self.total_runtime_label.setText(_TOTAL_RUNTIME.format('...'))
+        self._running_runtime_thread = True
+        while True:
+            for i in self.playlist_dict.values():
+                if i not in self.duration_cache:
+                    media_info = MediaInfo.parse(i)
+                    d = media_info.video_tracks[0].duration
+                    self.duration_cache[i] = d
+                else:
+                    d = self.duration_cache[i]
+                duration += d
+            if not self._runtime_pending:
+                break
             else:
-                d = self.duration_cache[i]
-            duration += d
+                self._runtime_pending = False
+        self._running_runtime_thread = False
         self.total_runtime_label.setText(
             _TOTAL_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration / 1000))))
         self.durations_loaded = True
@@ -221,6 +232,7 @@ class PlaylistWindow(QWidget):
 
     def _get_selected_runtime(self):
         duration = 0
+        self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         for i in self.item_list.selectedItems():
             duration += self.duration_cache[self.playlist_dict[i.text()]]
         self.selected_runtime_label.setText(
