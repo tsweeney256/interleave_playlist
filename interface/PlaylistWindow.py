@@ -1,12 +1,14 @@
 import os
 import subprocess
 import threading
+import time
 from os import path
 
 from PySide6.QtCore import Slot, QEvent, Qt
 from PySide6.QtGui import QFont, QColor, QBrush
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel
+from pymediainfo import MediaInfo
 
 from core.playlist import get_playlist
 from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name
@@ -18,6 +20,7 @@ _WATCHED_COLOR = (QBrush(QColor.fromRgb(255, 121, 121))
 
 _TOTAL_SHOWS_TEXT = 'Total Shows: {}'
 _SELECTED_SHOWS_TEXT = 'Selected Shows: {}'
+_TOTAL_RUNTIME = 'Total Runtime: {}'
 
 
 class PlaylistWindow(QWidget):
@@ -38,9 +41,23 @@ class PlaylistWindow(QWidget):
         self.total_selected_label.setFont(label_font)
         self.item_list.selectAll()
 
+        self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
+        self.total_runtime_label.setFont(label_font)
+
+        def _get_runtime():
+            duration = 0
+            for i in self.playlist_dict.values():
+                media_info = MediaInfo.parse(i)
+                duration += media_info.video_tracks[0].duration
+            self.total_runtime_label.setText(
+                _TOTAL_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration/1000))))
+        thread = threading.Thread(target=_get_runtime)
+        thread.start()
+
         label_layout = QVBoxLayout()
         label_layout.addWidget(self.total_shows_label)
         label_layout.addWidget(self.total_selected_label)
+        label_layout.addWidget(self.total_runtime_label)
 
         list_layout = QVBoxLayout()
         list_layout.addWidget(self.item_list)
