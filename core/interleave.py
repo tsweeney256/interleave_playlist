@@ -3,6 +3,8 @@ from math import nan, isnan, floor
 
 from sortedcontainers import SortedList
 
+_MARGIN = 10e-6
+
 
 def _divide(a, b) -> float:
     b = b if b != 0 else nan
@@ -21,7 +23,7 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
     total_len: int = len(larger) + len(smaller)
     result: list[str] = [""] * total_len
     for i in range(total_len):
-        use_smaller: bool = 1 > (i + floor(every)) % every
+        use_smaller: bool = 1 > (i + floor(every) + _MARGIN) % every
         smaller_idx: int = min(len(smaller), int((i + floor(every) - 1) / every))
         larger_idx: int = i - smaller_idx
         arr: list[str] = smaller if use_smaller else larger
