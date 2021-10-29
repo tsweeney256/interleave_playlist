@@ -6,7 +6,7 @@ from os import path
 from PySide6.QtCore import Slot, QEvent, Qt
 from PySide6.QtGui import QFont, QColor, QBrush
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
-    QPushButton, QMessageBox, QFileDialog
+    QPushButton, QMessageBox, QFileDialog, QLabel
 
 from core.playlist import get_playlist
 from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name
@@ -16,6 +16,9 @@ _WATCHED_COLOR = (QBrush(QColor.fromRgb(255, 121, 121))
                   if not settings.get_dark_mode() else
                   QBrush(QColor.fromRgb(77, 12, 12)))
 
+_TOTAL_SHOWS_TEXT = 'Total Shows: {}'
+_SELECTED_SHOWS_TEXT = 'Selected Shows: {}'
+
 
 class PlaylistWindow(QWidget):
     def __init__(self):
@@ -23,13 +26,27 @@ class PlaylistWindow(QWidget):
 
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
 
+        label_font = QFont()
+        label_font.setPointSize(16)
+        self.total_shows_label = QLabel()
+        self.total_shows_label.setFont(label_font)
+
         self.playlist_dict: dict[str, str] = {}
         self.item_list: QListWidget = self._create_item_list()
+
+        self.total_selected_label = QLabel()
+        self.total_selected_label.setFont(label_font)
+        self.item_list.selectAll()
+
+        label_layout = QVBoxLayout()
+        label_layout.addWidget(self.total_shows_label)
+        label_layout.addWidget(self.total_selected_label)
 
         list_layout = QVBoxLayout()
         list_layout.addWidget(self.item_list)
 
         layout = QVBoxLayout(self)
+        layout.addLayout(label_layout)
         layout.addLayout(self._create_button_layout())
         layout.addLayout(list_layout)
 
@@ -43,9 +60,9 @@ class PlaylistWindow(QWidget):
         font.setPointSize(settings.get_font_size())
         item_list.setFont(font)
         item_list.doubleClicked.connect(self.play)
+        item_list.itemSelectionChanged.connect(self.selection_change)
         item_list.installEventFilter(self)
         self._refresh(item_list)
-        item_list.selectAll()
         return item_list
 
     def _create_button_layout(self):
@@ -135,6 +152,7 @@ class PlaylistWindow(QWidget):
         self.playlist_dict = _create_playlist_dict()
         if self.playlist_dict is not None:
             item_list.addItems(self.playlist_dict.keys())
+        self.total_shows_label.setText(_TOTAL_SHOWS_TEXT.format(len(self.playlist_dict)))
 
     @Slot()
     def open_input(self):
@@ -157,6 +175,11 @@ class PlaylistWindow(QWidget):
             open_with_default_application(input_.get_watched_file_name())
         thread = threading.Thread(target=_impl)
         thread.start()
+
+    @Slot()
+    def selection_change(self):
+        self.total_selected_label.setText(
+            _SELECTED_SHOWS_TEXT.format(len(self.item_list.selectedItems())))
 
     @staticmethod
     def _get_standard_row_colors():
