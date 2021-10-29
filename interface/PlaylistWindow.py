@@ -164,6 +164,9 @@ class PlaylistWindow(QWidget):
     def refresh(self):
         self._refresh(self.item_list)
         self.durations_loaded = False
+        # TODO: this is bad. find another way
+        thread = threading.Thread(target=self._get_total_runtime)
+        thread.start()
 
     def _refresh(self, item_list: QListWidget):
         item_list.clear()
