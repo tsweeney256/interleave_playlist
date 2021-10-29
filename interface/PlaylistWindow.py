@@ -12,12 +12,21 @@ from core.playlist import get_playlist
 from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name
 from persistence import settings, input_, state
 
-WATCHED_COLOR = QBrush(QColor.fromRgbF(1, 0, 0))
+_WATCHED_COLOR = (QBrush(QColor.fromRgb(255, 121, 121))
+                  if not settings.get_dark_mode() else
+                  QBrush(QColor.fromRgb(77, 12, 12)))
 
 
 class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
+
+        # wow this is silly
+        _hidden_list = QListWidget()
+        _hidden_list.setAlternatingRowColors(True)
+        _hidden_list.addItems(["", ""])
+        self._row_color1 = _hidden_list.item(0).background()
+        self._row_color2 = _hidden_list.item(1).background()
 
         self.playlist_dict: dict[str, str] = {}
         self.item_list: QListWidget = self._create_item_list()
@@ -109,12 +118,12 @@ class PlaylistWindow(QWidget):
                         tmp.write(line.strip() + '\n')
                 tmp.writelines('\n'.join(
                     map(lambda i: i.text(),
-                        filter(lambda i: i.background() != WATCHED_COLOR,  # lol
+                        filter(lambda i: i.background() != _WATCHED_COLOR,  # lol
                                self.item_list.selectedItems()))))
         os.replace(_get_temp_file_name(), input_.get_watched_file_name())
 
         for item in self.item_list.selectedItems():
-            item.setBackground(WATCHED_COLOR)
+            item.setBackground(_WATCHED_COLOR)
 
     @Slot()
     def unmark_watched(self):
@@ -128,9 +137,10 @@ class PlaylistWindow(QWidget):
                         tmp.write(line)
         os.replace(_get_temp_file_name(), input_.get_watched_file_name())
 
-        white = QBrush(QColor.fromRgbF(1, 1, 1))
-        for item in self.item_list.selectedItems():
-            item.setBackground(white)
+        for i in range(len(self.item_list.selectedItems())):
+            color = self._row_color1 if i % 2 == 0 else self._row_color2
+            self.item_list.selectedItems()[i].setBackground(color)
+
 
     @Slot()
     def refresh(self):
