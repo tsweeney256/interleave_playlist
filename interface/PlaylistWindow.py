@@ -49,31 +49,19 @@ class PlaylistWindow(QWidget):
         return item_list
 
     def _create_button_layout(self):
-        play_btn = QPushButton('Play')
-        play_btn.clicked.connect(self.play)
-
-        watched_btn = QPushButton('Mark Watched')
-        watched_btn.clicked.connect(self.mark_watched)
-
-        unwatched_btn = QPushButton('Unmark Watched')
-        unwatched_btn.clicked.connect(self.unmark_watched)
-
-        refresh_btn = QPushButton('Refresh')
-        refresh_btn.clicked.connect(self.refresh)
-
-        open_input_btn = QPushButton('Open Input File')
-        open_input_btn.clicked.connect(self.open_input)
-
-        open_watched_btn = QPushButton('Open Watched File')
-        open_watched_btn.clicked.connect(self.open_watched_file)
-
         button_layout = QHBoxLayout()
-        button_layout.addWidget(play_btn)
-        button_layout.addWidget(watched_btn)
-        button_layout.addWidget(unwatched_btn)
-        button_layout.addWidget(refresh_btn)
-        button_layout.addWidget(open_input_btn)
-        button_layout.addWidget(open_watched_btn)
+        buttons = {
+            'Play': self.play,
+            'Mark Watched': self.mark_watched,
+            'Unmark Watched': self.unmark_watched,
+            'Refresh': self.refresh,
+            'Open Input File': self.open_input,
+            'Open Watched File': self.open_watched_file,
+        }
+        for key, value in buttons.items():
+            button = QPushButton(key)
+            button.clicked.connect(value)
+            button_layout.addWidget(button)
         return button_layout
 
     def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
@@ -137,7 +125,6 @@ class PlaylistWindow(QWidget):
         for i in range(len(self.item_list.selectedItems())):
             color = self._row_color1 if i % 2 == 0 else self._row_color2
             self.item_list.selectedItems()[i].setBackground(color)
-
 
     @Slot()
     def refresh(self):
