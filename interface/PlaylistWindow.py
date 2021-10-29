@@ -21,6 +21,7 @@ _WATCHED_COLOR = (QBrush(QColor.fromRgb(255, 121, 121))
 _TOTAL_SHOWS_TEXT = 'Total Shows: {}'
 _SELECTED_SHOWS_TEXT = 'Selected Shows: {}'
 _TOTAL_RUNTIME = 'Total Runtime: {}'
+_SELECTED_RUNTIME = 'Selected Runtime: {}'
 
 
 class PlaylistWindow(QWidget):
@@ -28,6 +29,8 @@ class PlaylistWindow(QWidget):
         super().__init__()
 
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
+        self.duration_cache = {}
+        self.durations_loaded = False
 
         label_font = QFont()
         label_font.setPointSize(16)
@@ -39,25 +42,22 @@ class PlaylistWindow(QWidget):
 
         self.total_selected_label = QLabel()
         self.total_selected_label.setFont(label_font)
-        self.item_list.selectAll()
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
         self.total_runtime_label.setFont(label_font)
 
-        def _get_runtime():
-            duration = 0
-            for i in self.playlist_dict.values():
-                media_info = MediaInfo.parse(i)
-                duration += media_info.video_tracks[0].duration
-            self.total_runtime_label.setText(
-                _TOTAL_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration/1000))))
-        thread = threading.Thread(target=_get_runtime)
+        self.selected_runtime_label = QLabel(_SELECTED_RUNTIME.format('...'))
+        self.selected_runtime_label.setFont(label_font)
+        self.item_list.selectAll()
+
+        thread = threading.Thread(target=self._get_total_runtime)
         thread.start()
 
         label_layout = QVBoxLayout()
         label_layout.addWidget(self.total_shows_label)
         label_layout.addWidget(self.total_selected_label)
         label_layout.addWidget(self.total_runtime_label)
+        label_layout.addWidget(self.selected_runtime_label)
 
         list_layout = QVBoxLayout()
         list_layout.addWidget(self.item_list)
@@ -163,6 +163,7 @@ class PlaylistWindow(QWidget):
     @Slot()
     def refresh(self):
         self._refresh(self.item_list)
+        self.durations_loaded = False
 
     def _refresh(self, item_list: QListWidget):
         item_list.clear()
@@ -197,6 +198,30 @@ class PlaylistWindow(QWidget):
     def selection_change(self):
         self.total_selected_label.setText(
             _SELECTED_SHOWS_TEXT.format(len(self.item_list.selectedItems())))
+        if self.durations_loaded:
+            self._get_selected_runtime()
+
+    def _get_total_runtime(self):
+        duration = 0
+        for i in self.playlist_dict.values():
+            if i not in self.duration_cache:
+                media_info = MediaInfo.parse(i)
+                d = media_info.video_tracks[0].duration
+                self.duration_cache[i] = d
+            else:
+                d = self.duration_cache[i]
+            duration += d
+        self.total_runtime_label.setText(
+            _TOTAL_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration / 1000))))
+        self.durations_loaded = True
+        self._get_selected_runtime()
+
+    def _get_selected_runtime(self):
+        duration = 0
+        for i in self.item_list.selectedItems():
+            duration += self.duration_cache[self.playlist_dict[i.text()]]
+        self.selected_runtime_label.setText(
+                  _SELECTED_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration / 1000))))
 
     @staticmethod
     def _get_standard_row_colors():
