@@ -21,16 +21,34 @@ class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        # wow this is silly
-        _hidden_list = QListWidget()
-        _hidden_list.setAlternatingRowColors(True)
-        _hidden_list.addItems(["", ""])
-        self._row_color1 = _hidden_list.item(0).background()
-        self._row_color2 = _hidden_list.item(1).background()
+        self._row_color1, self._row_color2 = self._get_standard_row_colors()
 
         self.playlist_dict: dict[str, str] = {}
         self.item_list: QListWidget = self._create_item_list()
 
+        list_layout = QVBoxLayout()
+        list_layout.addWidget(self.item_list)
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(self._create_button_layout())
+        layout.addLayout(list_layout)
+
+        self.item_list.setFocus()
+
+    def _create_item_list(self):
+        item_list = QListWidget()
+        item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        item_list.setAlternatingRowColors(True)
+        font = QFont()
+        font.setPointSize(settings.get_font_size())
+        item_list.setFont(font)
+        item_list.doubleClicked.connect(self.play)
+        item_list.installEventFilter(self)
+        self._refresh(item_list)
+        item_list.selectAll()
+        return item_list
+
+    def _create_button_layout(self):
         play_btn = QPushButton('Play')
         play_btn.clicked.connect(self.play)
 
@@ -56,28 +74,7 @@ class PlaylistWindow(QWidget):
         button_layout.addWidget(refresh_btn)
         button_layout.addWidget(open_input_btn)
         button_layout.addWidget(open_watched_btn)
-
-        list_layout = QVBoxLayout()
-        list_layout.addWidget(self.item_list)
-
-        layout = QVBoxLayout(self)
-        layout.addLayout(button_layout)
-        layout.addLayout(list_layout)
-
-        self.item_list.setFocus()
-
-    def _create_item_list(self):
-        item_list = QListWidget()
-        item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        item_list.setAlternatingRowColors(True)
-        font = QFont()
-        font.setPointSize(settings.get_font_size())
-        item_list.setFont(font)
-        item_list.doubleClicked.connect(self.play)
-        item_list.installEventFilter(self)
-        self._refresh(item_list)
-        item_list.selectAll()
-        return item_list
+        return button_layout
 
     def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
         if event.type() == QEvent.KeyPress:
@@ -173,3 +170,13 @@ class PlaylistWindow(QWidget):
             open_with_default_application(input_.get_watched_file_name())
         thread = threading.Thread(target=_impl)
         thread.start()
+
+    @staticmethod
+    def _get_standard_row_colors():
+        # wow this is silly
+        _hidden_list = QListWidget()
+        _hidden_list.setAlternatingRowColors(True)
+        _hidden_list.addItems(["", ""])
+        color1 = _hidden_list.item(0).background()
+        color2 = _hidden_list.item(1).background()
+        return color1, color2
