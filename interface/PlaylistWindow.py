@@ -221,7 +221,7 @@ class PlaylistWindow(QWidget):
         for i in self.item_list.selectedItems():
             duration += self.duration_cache[self.playlist_dict[i.text()]]
         self.selected_runtime_label.setText(
-                  _SELECTED_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration / 1000))))
+            _SELECTED_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration / 1000))))
 
     @staticmethod
     def _get_standard_row_colors():
