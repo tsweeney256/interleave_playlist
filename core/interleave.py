@@ -17,7 +17,8 @@ def _get_every(larger_len: int, smaller_len: int) -> float:
     return ratio if not isnan(ratio) else larger_len
 
 
-# Written in SIMD style just for fun
+# Written in SIMD style just for fun.
+# This is actually 5x slower than my "SIMD style" for loop using no SIMD lol
 def interleave(a: list[str], b: list[str]) -> list[str]:
     smaller, larger = sorted([a, b], key=lambda ab: len(ab))
     arr = np.asarray(smaller + larger)
