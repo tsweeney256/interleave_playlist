@@ -24,7 +24,7 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
     result: list[str] = [""] * total_len
     for i in range(total_len):
         use_smaller: bool = 1 > (i + floor(every) + _MARGIN) % every
-        smaller_idx: int = min(len(smaller), int((i + floor(every) - 1) / every))
+        smaller_idx: int = min(len(smaller), int((i + floor(every) - 1 + _MARGIN) / every))
         larger_idx: int = i - smaller_idx
         arr: list[str] = smaller if use_smaller else larger
         idx: int = smaller_idx if use_smaller else larger_idx
