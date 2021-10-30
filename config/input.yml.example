@@ -2,6 +2,7 @@
 whitelist:
   - '.mkv'
   - '.mp4'
+# items must not contain these strings to be included in the playlist
 blacklist:
   - 'something I do not want to see'
 # whitelist by regex and group items with (?P<group>)
@@ -9,12 +10,15 @@ regex: '^(?:\[.+\]|\(.+\))?\s*(?P<group>.+)\s*-\s*[0-9]+.+(?:\.mp4|\.mkv)$'
 locations:
   - name: '/directory/to/my/show/Foo'
   - name: '/directory/to/my/other/show/Bar'
-    whitelist:  # override global whitelist defined above
+    # override global whitelist defined above
+    whitelist:
       - '.webm'
       - '.opus'
-    blacklist:  # override global blacklist defined above
+    # override global blacklist defined above
+    blacklist:
       - 'something I do not want to see'
       - 'boring show'
+    # override global regex defined above
     regex: '^(?:\[.+\]|\(.+\))?\s*(?P<group>.+)\s*-\s*(?:[0-9]+).+$'
   - name: '/directory/somewhere/completely/different/Baz'
     whitelist:
