@@ -48,12 +48,7 @@ def _get_input(input_file: str):
     try:
         with open(input_file, 'r') as f:
             i = yaml.safe_load(f)
-        if 'filters' in i:
-            if not isinstance(i['filters'], list):
-                raise InvalidInputFile('"filters" must be a list')
-            for filter_ in i['filters']:
-                if not isinstance(filter_, str):
-                    raise InvalidInputFile('Filter entries must be strings')
+        _validate_filters(i)
         _validate_regex(i)
         if 'locations' not in i:
             raise InvalidInputFile('Input requires "locations"')
@@ -66,13 +61,21 @@ def _get_input(input_file: str):
                 raise InvalidInputFile("Location names must be strings")
             if not os.path.exists(loc['name']):
                 raise LocationNotFound(loc['name'])
-            if 'filters' in loc and loc['filters'] is not None and isinstance(loc['filters'], str):
-                raise InvalidInputFile("Location specific filters must be strings")
+            _validate_filters(loc)
             _validate_regex(loc)
 
     except ParserError as e:
         raise InvalidInputFile("Unable to parse input file") from e
     return i
+
+
+def _validate_filters(d: dict):
+    if 'filters' in d:
+        if not isinstance(d['filters'], list):
+            raise InvalidInputFile('"filters" must be a list')
+        for filter_ in d['filters']:
+            if not isinstance(filter_, str):
+                raise InvalidInputFile('Filter entries must be strings')
 
 
 def _validate_regex(d: dict):
