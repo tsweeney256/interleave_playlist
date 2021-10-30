@@ -17,11 +17,10 @@ def _get_every(larger_len: int, smaller_len: int) -> float:
     return ratio if not isnan(ratio) else larger_len
 
 
-# Written in SIMD style just for fun.
-# This is actually 5x slower than my "SIMD style" for loop using no SIMD lol
-def interleave(a: list[str], b: list[str]) -> list[str]:
+# This is actually 5x slower than my "SIMD style for loop" using no SIMD lol
+def interleave_simd(a: list[str], b: list[str]) -> list[str]:
     smaller, larger = sorted([a, b], key=lambda ab: len(ab))
-    arr = np.asarray(smaller + larger)
+    arr = np.asarray(smaller + larger)  # boo >:(
     every: float = _get_every(len(larger), len(smaller))
     total_len = len(a) + len(b)
     i = np.array(range(total_len))
@@ -30,6 +29,22 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
     larger_idx = i - smaller_idx + len(smaller)
     idx = np.where(use_smaller, smaller_idx, larger_idx)
     return np.take(arr, idx).tolist()
+
+
+# Written in SIMD style just for fun. No SIMD actually used
+def interleave(a: list[str], b: list[str]) -> list[str]:
+    smaller, larger = sorted([a, b], key=lambda ab: len(ab))
+    every: float = _get_every(len(larger), len(smaller))
+    total_len: int = len(larger) + len(smaller)
+    result: list[str] = [""] * total_len
+    for i in range(total_len):
+        use_smaller: bool = 1 > (i + floor(every) + _MARGIN) % every
+        smaller_idx: int = min(len(smaller), int((i + floor(every) - 1 + _MARGIN) / every))
+        larger_idx: int = i - smaller_idx
+        arr: list[str] = smaller if use_smaller else larger
+        idx: int = smaller_idx if use_smaller else larger_idx
+        result[i] = arr[idx]
+    return result
 
 
 # Sort by minimum group size difference
