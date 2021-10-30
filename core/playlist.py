@@ -1,6 +1,5 @@
-import os
 import re
-from os import path
+from os import path, listdir
 
 from core.interleave import interleave_all
 from persistence.input_ import Location
@@ -17,7 +16,7 @@ def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
             lambda i: (path.basename(i) not in watched_list
                        and _matches_filter(i, loc.filters)
                        and regex.match(i)),
-            map(lambda i: loc.name + '/' + i, os.listdir(loc.name)))
+            map(lambda i: loc.name + '/' + i, listdir(loc.name)))
         grouped_items = {}
         for item in items:
             match = regex.match(item)
