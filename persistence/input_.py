@@ -26,9 +26,10 @@ def get_locations() -> list[Location]:
     input_ = _get_input(state.get_last_input_file())
     locations = []
     for loc in input_['locations']:
-        locations.append(Location(loc['name'],
-                                  loc['whitelist'] if 'whitelist' in loc else input_.get('whitelist'),
-                                  loc['regex'] if 'regex' in loc else input_.get('regex')))
+        locations.append(
+            Location(loc['name'],
+                     loc['whitelist'] if 'whitelist' in loc else input_.get('whitelist'),
+                     loc['regex'] if 'regex' in loc else input_.get('regex')))
     return locations
 
 
