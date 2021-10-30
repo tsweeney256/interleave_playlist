@@ -1,3 +1,4 @@
+import math
 import os
 import subprocess
 import threading
@@ -5,9 +6,9 @@ import time
 from os import path
 
 from PySide6.QtCore import Slot, QEvent, Qt
-from PySide6.QtGui import QFont, QColor, QBrush
+from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
-    QPushButton, QMessageBox, QFileDialog, QLabel
+    QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout
 from pymediainfo import MediaInfo
 
 from core.playlist import get_playlist
@@ -18,10 +19,10 @@ _WATCHED_COLOR = (QBrush(QColor.fromRgb(255, 121, 121))
                   if not settings.get_dark_mode() else
                   QBrush(QColor.fromRgb(77, 12, 12)))
 
-_TOTAL_SHOWS_TEXT = 'Total Shows: {}'
+_TOTAL_SHOWS_TEXT =    'Total Shows:    {}'
 _SELECTED_SHOWS_TEXT = 'Selected Shows: {}'
-_TOTAL_RUNTIME = 'Total Runtime: {}'
-_SELECTED_RUNTIME = 'Selected Runtime: {}'
+_TOTAL_RUNTIME =       'Total Runtime:    {}'
+_SELECTED_RUNTIME =    'Selected Runtime: {}'
 
 
 class PlaylistWindow(QWidget):
@@ -33,7 +34,7 @@ class PlaylistWindow(QWidget):
         self.durations_loaded = False
         self._runtime_pending = False
 
-        label_font = QFont()
+        label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         label_font.setPointSize(16)
         self.total_shows_label = QLabel()
         self.total_shows_label.setFont(label_font)
@@ -54,11 +55,11 @@ class PlaylistWindow(QWidget):
         thread = threading.Thread(target=self._get_total_runtime)
         thread.start()
 
-        label_layout = QVBoxLayout()
-        label_layout.addWidget(self.total_shows_label)
-        label_layout.addWidget(self.total_selected_label)
-        label_layout.addWidget(self.total_runtime_label)
-        label_layout.addWidget(self.selected_runtime_label)
+        label_layout = QGridLayout()
+        label_layout.addWidget(self.total_shows_label,      0, 0)
+        label_layout.addWidget(self.total_selected_label,   1, 0)
+        label_layout.addWidget(self.total_runtime_label,    0, 1)
+        label_layout.addWidget(self.selected_runtime_label, 1, 1)
 
         list_layout = QVBoxLayout()
         list_layout.addWidget(self.item_list)
@@ -203,7 +204,8 @@ class PlaylistWindow(QWidget):
     @Slot()
     def selection_change(self):
         self.total_selected_label.setText(
-            _SELECTED_SHOWS_TEXT.format(len(self.item_list.selectedItems())))
+            _SELECTED_SHOWS_TEXT.format(str(len(self.item_list.selectedItems()))
+                                        .rjust(math.ceil(math.log10(len(self.playlist_dict))))))
         if self.durations_loaded:
             self._get_selected_runtime()
 
