@@ -2,7 +2,6 @@ import math
 import os
 import subprocess
 import threading
-import time
 from os import path
 
 from PySide6.QtCore import Slot, QEvent, Qt
@@ -12,7 +11,8 @@ from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemVi
 from pymediainfo import MediaInfo
 
 from core.playlist import get_playlist
-from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name
+from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name, \
+    _get_duration_str
 from persistence import settings, input_, state
 
 _WATCHED_COLOR = (QBrush(QColor.fromRgb(255, 121, 121))
@@ -33,6 +33,7 @@ class PlaylistWindow(QWidget):
         self.duration_cache = {}
         self.durations_loaded = False
         self._runtime_pending = False
+        self._total_duration = 0
 
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         label_font.setPointSize(16)
@@ -226,9 +227,10 @@ class PlaylistWindow(QWidget):
                 break
             else:
                 self._runtime_pending = False
+        self._total_duration = duration
         self._running_runtime_thread = False
         self.total_runtime_label.setText(
-            _TOTAL_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration / 1000))))
+            _TOTAL_RUNTIME.format(_get_duration_str(duration, duration)))
         self.durations_loaded = True
         self._get_selected_runtime()
 
@@ -238,7 +240,7 @@ class PlaylistWindow(QWidget):
         for i in self.item_list.selectedItems():
             duration += self.duration_cache[self.playlist_dict[i.text()]]
         self.selected_runtime_label.setText(
-            _SELECTED_RUNTIME.format(time.strftime('%H:%M:%S', time.gmtime(duration / 1000))))
+            _SELECTED_RUNTIME.format(_get_duration_str(duration, self._total_duration)))
 
     @staticmethod
     def _get_standard_row_colors():
