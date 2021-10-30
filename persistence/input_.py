@@ -1,4 +1,5 @@
 import os
+import re
 
 import yaml
 from yaml.parser import ParserError
@@ -7,9 +8,10 @@ from persistence import state
 
 
 class Location:
-    def __init__(self, name, filters):
+    def __init__(self, name, filters, regex):
         self.name = name
         self.filters = filters
+        self.regex = regex
 
 
 class InvalidInputFile(Exception):
@@ -25,7 +27,8 @@ def get_locations() -> list[Location]:
     locations = []
     for loc in input_['locations']:
         locations.append(Location(loc['name'],
-                                  loc['filters'] if 'filters' in loc else input_['filters']))
+                                  loc['filters'] if 'filters' in loc else input_.get('filters'),
+                                  loc['regex'] if 'regex' in loc else input_.get('regex')))
     return locations
 
 
@@ -45,13 +48,13 @@ def _get_input(input_file: str):
     try:
         with open(input_file, 'r') as f:
             i = yaml.safe_load(f)
-        if 'filters' not in i:
-            raise InvalidInputFile('Input requires top level "filters"')
-        if not isinstance(i['filters'], list):
-            raise InvalidInputFile('"filters" must be a list')
-        for filter_ in i['filters']:
-            if not isinstance(filter_, str):
-                raise InvalidInputFile('Filter entries must be strings')
+        if 'filters' in i:
+            if not isinstance(i['filters'], list):
+                raise InvalidInputFile('"filters" must be a list')
+            for filter_ in i['filters']:
+                if not isinstance(filter_, str):
+                    raise InvalidInputFile('Filter entries must be strings')
+        _validate_regex(i)
         if 'locations' not in i:
             raise InvalidInputFile('Input requires "locations"')
         if not isinstance(i['locations'], list):
@@ -65,6 +68,18 @@ def _get_input(input_file: str):
                 raise LocationNotFound(loc['name'])
             if 'filters' in loc and loc['filters'] is not None and isinstance(loc['filters'], str):
                 raise InvalidInputFile("Location specific filters must be strings")
+            _validate_regex(loc)
+
     except ParserError as e:
         raise InvalidInputFile("Unable to parse input file") from e
     return i
+
+
+def _validate_regex(d: dict):
+    if 'regex' in d and d['regex'] is not None:
+        if not isinstance(d['regex'], str):
+            raise InvalidInputFile("Regex must be a string")
+        try:
+            re.compile(d['regex'])
+        except re.error:
+            raise InvalidInputFile("Regex is invalid")

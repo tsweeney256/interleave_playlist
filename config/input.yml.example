@@ -1,10 +1,17 @@
+# items must contain these strings to be included in the playlist
 filters:
     - '.mkv'
     - '.mp4'
+# filter by regex and group items with (?P<group>) and optionally sort group with (?P<sort>)
+regex: '^(?:\[.+\]|\(.+\))? ?(?P<group>.+)\s+-\s+(?P<sort>[0-9]+).+(?:\.mp4|\.mkv)$'
 locations:
     - name: '/directory/to/my/show/Foo'
     - name: '/directory/to/my/other/show/Bar'
-    filters:
+      filters:  # override global filter defined above
         - '.webm'
         - '.opus'
+      regex: '^(?:\[.+\]|\(.+\))?\s+?(?P<group>.+)\s+-\s+(?:[0-9]+).+$'
     - name: '/directory/somewhere/completely/different/Baz'
+      filters:
+        - '' # this will disable global filter defined above
+      regex: '' # this will disable global reged defined above
