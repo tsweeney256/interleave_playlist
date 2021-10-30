@@ -8,9 +8,9 @@ from persistence import state
 
 
 class Location:
-    def __init__(self, name, filters, regex):
+    def __init__(self, name, whitelist, regex):
         self.name = name
-        self.filters = filters
+        self.whitelist = whitelist
         self.regex = regex
 
 
@@ -27,13 +27,9 @@ def get_locations() -> list[Location]:
     locations = []
     for loc in input_['locations']:
         locations.append(Location(loc['name'],
-                                  loc['filters'] if 'filters' in loc else input_.get('filters'),
+                                  loc['whitelist'] if 'whitelist' in loc else input_.get('whitelist'),
                                   loc['regex'] if 'regex' in loc else input_.get('regex')))
     return locations
-
-
-def get_global_filter() -> list[str]:
-    return _get_input(state.get_last_input_file())['filter']
 
 
 def get_watched_file_name():
@@ -48,7 +44,7 @@ def _get_input(input_file: str):
     try:
         with open(input_file, 'r') as f:
             i = yaml.safe_load(f)
-        _validate_filters(i)
+        _validate_whitelist(i)
         _validate_regex(i)
         if 'locations' not in i:
             raise InvalidInputFile('Input requires "locations"')
@@ -61,7 +57,7 @@ def _get_input(input_file: str):
                 raise InvalidInputFile("Location names must be strings")
             if not os.path.exists(loc['name']):
                 raise LocationNotFound(loc['name'])
-            _validate_filters(loc)
+            _validate_whitelist(loc)
             _validate_regex(loc)
 
     except ParserError as e:
@@ -69,13 +65,13 @@ def _get_input(input_file: str):
     return i
 
 
-def _validate_filters(d: dict):
-    if 'filters' in d:
-        if not isinstance(d['filters'], list):
-            raise InvalidInputFile('"filters" must be a list')
-        for filter_ in d['filters']:
-            if not isinstance(filter_, str):
-                raise InvalidInputFile('Filter entries must be strings')
+def _validate_whitelist(d: dict):
+    if 'whitelist' in d:
+        if not isinstance(d['whitelist'], list):
+            raise InvalidInputFile('"whitelist" must be a list')
+        for white in d['whitelist']:
+            if not isinstance(white, str):
+                raise InvalidInputFile('Whitelist entries must be strings')
 
 
 def _validate_regex(d: dict):

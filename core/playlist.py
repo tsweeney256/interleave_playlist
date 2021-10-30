@@ -14,7 +14,7 @@ def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
             regex = re.compile('')
         items = filter(
             lambda i: (path.basename(i) not in watched_list
-                       and _matches_filter(i, loc.filters)
+                       and _matches_whitelist(i, loc.whitelist)
                        and regex.match(i)),
             map(lambda i: loc.name + '/' + i, listdir(loc.name)))
         grouped_items = {}
@@ -32,10 +32,10 @@ def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
     return interleave_all(data)
 
 
-def _matches_filter(s: str, filters: list[str]):
-    if filters is None:
+def _matches_whitelist(s: str, whitelist: list[str]):
+    if whitelist is None:
         return True
-    for filter_ in filters:
-        if filter_ in s:
+    for white in whitelist:
+        if white in s:
             return True
     return False
