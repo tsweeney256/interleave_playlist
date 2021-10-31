@@ -41,11 +41,11 @@ class PlaylistWindow(QWidget):
         self.total_shows_label = QLabel()
         self.total_shows_label.setFont(label_font)
 
-        self.playlist_dict: dict[str, str] = {}
-        self.item_list: QListWidget = self._create_item_list()
-
         self.total_selected_label = QLabel()
         self.total_selected_label.setFont(label_font)
+
+        self.playlist_dict: dict[str, str] = {}
+        self.item_list: QListWidget = self._create_item_list()
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
         self.total_runtime_label.setFont(label_font)
@@ -180,6 +180,7 @@ class PlaylistWindow(QWidget):
         if self.playlist_dict is not None:
             item_list.addItems(self.playlist_dict.keys())
         self.total_shows_label.setText(_TOTAL_SHOWS_TEXT.format(len(self.playlist_dict)))
+        self._selection_change(0)
 
     @Slot()
     def open_input(self):
@@ -205,9 +206,16 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def selection_change(self):
+        self._selection_change(len(self.item_list.selectedItems()))
+
+    def _selection_change(self, num_selected: int):
         self.total_selected_label.setText(
-            _SELECTED_SHOWS_TEXT.format(str(len(self.item_list.selectedItems()))
-                                        .rjust(math.ceil(math.log10(len(self.playlist_dict))))))
+            _SELECTED_SHOWS_TEXT.format(
+                str(num_selected).rjust(math.ceil(
+                    math.log10(len(self.playlist_dict))
+                    if len(self.playlist_dict) > 0 else
+                    1
+                ))))
         if self.durations_loaded:
             self._get_selected_runtime()
 
