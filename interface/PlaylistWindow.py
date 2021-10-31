@@ -5,7 +5,7 @@ import threading
 from os import path
 
 from PySide6.QtCore import Slot, QEvent, Qt
-from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase
+from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout
 from pymediainfo import MediaInfo
@@ -33,6 +33,7 @@ class PlaylistWindow(QWidget):
         self.duration_cache = {}
         self.durations_loaded = False
         self._runtime_pending = False
+        self._runtime_thread_stop = False
         self._total_duration = 0
 
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
@@ -216,6 +217,8 @@ class PlaylistWindow(QWidget):
         self._running_runtime_thread = True
         while True:
             for i in self.playlist_dict.values():
+                if self._runtime_thread_stop:
+                    return
                 if i not in self.duration_cache:
                     media_info = MediaInfo.parse(i)
                     # sometimes this is a str???
@@ -252,3 +255,6 @@ class PlaylistWindow(QWidget):
         color1 = _hidden_list.item(0).background()
         color2 = _hidden_list.item(1).background()
         return color1, color2
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self._runtime_thread_stop = True
