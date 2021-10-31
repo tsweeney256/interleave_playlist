@@ -26,3 +26,9 @@ locations:
     blacklist:
       - '' # this will disable global blacklist defined above
     regex: '' # this will disable global regex defined above
+  - name: '/directory/for/something/else'
+    timed:
+      start: '2021-10-31'  # start adding files into the playlist at this date
+      cron: '0 3 * * TUE'  # do it every Tuesday at 3am
+      first: 16            # starting at the 16th file, alphabetically
+      amount: 2            # include 2 files every time the cron point is reached

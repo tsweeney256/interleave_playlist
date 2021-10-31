@@ -28,7 +28,13 @@ def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
                 group = grouped_items.setdefault('all', list())
             group.append(item)
         for k, v in grouped_items.items():
-            grouped_items[k] = sorted(v)
+            sorted_grouped_items = sorted(v)
+            if loc.timed is not None:
+                cur_release = loc.timed.get_current()
+                if cur_release < 0:
+                    continue
+                sorted_grouped_items = sorted_grouped_items[loc.timed.first - 1: cur_release]
+            grouped_items[k] = sorted_grouped_items
         data.append(interleave_all(list(grouped_items.values())))
     return interleave_all(data)
 
