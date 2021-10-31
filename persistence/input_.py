@@ -19,16 +19,13 @@ class Timed:
     def get_current(self) -> int:
         if self.start > datetime.now():
             return -1
-        i: int = self.first + self.amount - 1
         now: datetime = datetime.now()
         cur: datetime = self.start
         diff: timedelta = timedelta(seconds=self.cron.next(cur, default_utc=False))
-        # TODO: do this in O(1)
-        while cur + diff < now:
-            cur += diff
-            diff = timedelta(seconds=self.cron.next(cur, default_utc=False))
-            i += self.amount
-        return i
+        i: int = self.first + self.amount - 1 + (self.amount if cur + diff < now else 0)
+        cur += diff
+        diff = timedelta(seconds=self.cron.next(cur, default_utc=False))
+        return i + self.amount * max((now - cur) // diff, 0) - 1
 
 
 class Location:
