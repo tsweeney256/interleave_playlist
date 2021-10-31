@@ -19,7 +19,7 @@ class Timed:
     def get_current(self) -> int:
         if self.start > datetime.now():
             return -1
-        i: int = self.first
+        i: int = self.first + self.amount - 1
         now: datetime = datetime.now()
         cur: datetime = self.start
         diff: timedelta = timedelta(seconds=self.cron.next(cur, default_utc=False))
