@@ -102,7 +102,7 @@ def _get_input(input_file: str):
             if not os.path.exists(loc['name']):
                 raise LocationNotFound(loc['name'])
             _validate_whitelist(loc)
-            _validate_blacklist(i)
+            _validate_blacklist(loc)
             _validate_regex(loc)
             _validate_timed(loc)
 

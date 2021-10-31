@@ -218,7 +218,8 @@ class PlaylistWindow(QWidget):
             for i in self.playlist_dict.values():
                 if i not in self.duration_cache:
                     media_info = MediaInfo.parse(i)
-                    d = media_info.video_tracks[0].duration
+                    # sometimes this is a str???
+                    d = int(float(media_info.video_tracks[0].duration))
                     self.duration_cache[i] = d
                 else:
                     d = self.duration_cache[i]
