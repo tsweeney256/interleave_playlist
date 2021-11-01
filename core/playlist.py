@@ -39,7 +39,7 @@ def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
             if 'group' in match_dict:
                 group = grouped_items.setdefault(path.basename(match.group('group')), list())
             else:
-                group = grouped_items.setdefault('all', list())
+                group = grouped_items.setdefault('', list())
             group.append(item)
         for k, v in grouped_items.items():
             sorted_grouped_items = sorted(v)
