@@ -29,10 +29,8 @@ from interface import open_with_default_application, _create_playlist_dict, _get
     _get_duration_str
 from persistence import settings, input_, state
 
-_WATCHED_COLOR = (QBrush(QColor.fromRgb(255, 121, 121))
-                  if not settings.get_dark_mode() else
-                  QBrush(QColor.fromRgb(77, 12, 12)))
-
+_LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
+_DARK_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(77, 12, 12))
 _TOTAL_SHOWS_TEXT =    'Total Shows:    {}'
 _SELECTED_SHOWS_TEXT = 'Selected Shows: {}'
 _TOTAL_RUNTIME =       'Total Runtime:    {}'
@@ -155,12 +153,12 @@ class PlaylistWindow(QWidget):
                         tmp.write(line.strip() + '\n')
                 tmp.writelines('\n'.join(
                     map(lambda i: i.text(),
-                        filter(lambda i: i.background() != _WATCHED_COLOR,  # lol
+                        filter(lambda i: i.background() != self._get_watched_color(),  # lol
                                self.item_list.selectedItems()))))
         os.replace(_get_temp_file_name(), input_.get_watched_file_name())
 
         for item in self.item_list.selectedItems():
-            item.setBackground(_WATCHED_COLOR)
+            item.setBackground(self._get_watched_color())
 
     @Slot()
     def unmark_watched(self):
@@ -277,6 +275,13 @@ class PlaylistWindow(QWidget):
         color1 = _hidden_list.item(0).background()
         color2 = _hidden_list.item(1).background()
         return color1, color2
+
+    @staticmethod
+    def _get_watched_color():
+
+        return (_LIGHT_MODE_WATCHED_COLOR
+                if not settings.get_dark_mode() else
+                _DARK_MODE_WATCHED_COLOR)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self._runtime_thread_stop = True
