@@ -67,6 +67,6 @@ def _matches_blacklist(s: str, blacklist: list[str]):
     if blacklist is None:
         return False
     for black in blacklist:
-        if black in s:
+        if black and black in s:
             return True
     return False
