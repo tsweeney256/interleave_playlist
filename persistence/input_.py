@@ -24,22 +24,26 @@ from persistence import state
 
 
 class Timed:
-    def __init__(self, start: datetime, cron: CronTab, first: int, amount: int):
+    def __init__(self, start: datetime, cron: CronTab, first: int,
+                 amount: int, start_at_cron: bool):
         self.start = start
         self.cron = cron
-        self.first = first if first is not None and first > 0 else 1
+        self.first = (first if first is not None and first > 0 else 1) - 1
         self.amount = amount if amount is not None and amount > 0 else 1
+        self.start_at_cron = start_at_cron
 
     def get_current(self) -> int:
         if self.start > datetime.now():
             return -1
         now: datetime = datetime.now()
-        cur: datetime = self.start
-        diff: timedelta = timedelta(seconds=self.cron.next(cur, default_utc=False))
-        i: int = self.first + self.amount - 1 + (self.amount if cur + diff < now else 0)
-        cur += diff
-        diff = timedelta(seconds=self.cron.next(cur, default_utc=False))
-        return i + self.amount * max((now - cur) // diff, 0) - 1
+        initial: int = self.first + (self.amount if not self.start_at_cron else 0)
+        first_diff = timedelta(seconds=self.cron.next(self.start, default_utc=False))
+        first_cron_amount: int = self.amount if self.start + first_diff < now else 0
+        if first_cron_amount == 0 and self.start_at_cron:
+            return -1
+        diff = timedelta(seconds=self.cron.next(self.start + first_diff, default_utc=False))
+        cron_amount = self.amount * max((now - (self.start + diff)) // diff, 0)
+        return initial + first_cron_amount + cron_amount - 1
 
 
 class Location:
@@ -71,6 +75,7 @@ def get_locations() -> list[Location]:
                 CronTab(timed_yml['cron']),
                 timed_yml.get('first'),
                 timed_yml.get('amount'),
+                timed_yml.get('start-at-cron'),
             )
         else:
             timed = None
