@@ -81,4 +81,4 @@ def interleave_all(groups: list[list[str]]) -> list[str]:
             else:
                 i += 1
         sorted_groups.add(interleave(a, b))
-    return sorted_groups[0]
+    return sorted_groups[0] if len(sorted_groups) > 0 else []

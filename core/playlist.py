@@ -49,7 +49,8 @@ def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
                     continue
                 sorted_grouped_items = sorted_grouped_items[loc.timed.first - 1: cur_release + 1]
             grouped_items[k] = sorted_grouped_items
-        data.append(interleave_all(list(grouped_items.values())))
+        if len(grouped_items) > 0:
+            data.append(interleave_all(list(grouped_items.values())))
     return interleave_all(data)
 
 
