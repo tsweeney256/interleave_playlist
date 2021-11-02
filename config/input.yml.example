@@ -1,3 +1,4 @@
+# all input parameters are optional unless labeled as mandatory
 # items must contain these strings to be included in the playlist
 whitelist:
   - '.mkv'
@@ -5,15 +6,21 @@ whitelist:
 # items must not contain these strings to be included in the playlist
 blacklist:
   - 'something I do not want to see'
-# whitelist by regex and group items with (?P<group>)
+# whitelist by regex and optionally group items with (?P<group>)
 regex: '^(?:\[.+\]|\(.+\))?\s*(?P<group>.+)\s*-\s*[0-9]+.+(?:\.mp4|\.mkv)$'
+# default priority level to reference, lower value is higher priority
+priority: 100
+# list of locations to interleave (mandatory)
 locations:
+  # path of the location (mandatory)
   - name: '/directory/to/my/show/Foo'
   - name: '/directory/to/my/other/show/Bar'
     # override global whitelist defined above
     whitelist:
       - '.webm'
       - '.opus'
+    # prioritize this location over the default
+    priority: 50
     # override global blacklist defined above
     blacklist:
       - 'something I do not want to see'
@@ -26,7 +33,11 @@ locations:
     blacklist:
       - '' # this will disable global blacklist defined above
     regex: '' # this will disable global regex defined above
+    # prioritize this location less than the default
+    priority: 200
   - name: '/directory/for/something/else'
+    # prioritize this location the most
+    priority: 0
     timed:
       start: '2021-10-31'  # start adding files into the playlist at this date
       cron: '0 3 * * TUE'  # do it every Tuesday at 3am

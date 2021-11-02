@@ -14,6 +14,7 @@
 
 import os
 import re
+import sys
 from datetime import datetime, timedelta
 
 import yaml
@@ -48,12 +49,13 @@ class Timed:
 
 class Location:
     def __init__(self, name: str, whitelist: list[str], blacklist: list[str],
-                 regex: str, timed: Timed):
+                 regex: str, timed: Timed, priority: int):
         self.name = name
         self.whitelist = whitelist
         self.blacklist = blacklist
         self.regex = regex
         self.timed = timed
+        self.priority = priority if priority is not None else sys.maxsize
 
 
 class InvalidInputFile(Exception):
@@ -85,7 +87,8 @@ def get_locations() -> list[Location]:
                 loc['whitelist'] if 'whitelist' in loc else input_.get('whitelist'),
                 loc['blacklist'] if 'blacklist' in loc else input_.get('blacklist'),
                 loc['regex'] if 'regex' in loc else input_.get('regex'),
-                timed
+                timed,
+                loc['priority'] if 'priority' in loc else input_.get('priority')
             )
         )
     return locations
@@ -102,29 +105,33 @@ def get_watched_file_name():
 def _get_input(input_file: str):
     try:
         with open(input_file, 'r') as f:
-            i = yaml.safe_load(f)
-        _validate_whitelist(i)
-        _validate_blacklist(i)
-        _validate_regex(i)
-        if 'locations' not in i:
+            yml = yaml.safe_load(f)
+        overridable_value_validators = [
+            _validate_whitelist,
+            _validate_blacklist,
+            _validate_regex,
+            _validate_priority,
+        ]
+        for validator in overridable_value_validators:
+            validator(yml)
+        if 'locations' not in yml:
             raise InvalidInputFile('Input requires "locations"')
-        if not isinstance(i['locations'], list):
+        if not isinstance(yml['locations'], list):
             raise InvalidInputFile('"locations" must be a list')
-        for loc in i['locations']:
+        for loc in yml['locations']:
             if 'name' not in loc:
                 raise InvalidInputFile("Locations must have names")
             if not isinstance(loc['name'], str):
                 raise InvalidInputFile("Location names must be strings")
             if not os.path.exists(loc['name']):
                 raise LocationNotFound(loc['name'])
-            _validate_whitelist(loc)
-            _validate_blacklist(loc)
-            _validate_regex(loc)
+            for validator in overridable_value_validators:
+                validator(loc)
             _validate_timed(loc)
 
     except ParserError as e:
         raise InvalidInputFile("Unable to parse input file") from e
-    return i
+    return yml
 
 
 def _validate_wb_list(d: dict, wb_list: str):
@@ -172,3 +179,8 @@ def _validate_timed(d: dict):
             raise InvalidInputFile('timed.first must be an integer')
         if 'amount' in d['timed'] and not isinstance(d['timed']['amount'], int):
             raise InvalidInputFile('timed.amount must be an integer')
+
+
+def _validate_priority(d: dict):
+    if 'priority' in d and not isinstance(d['priority'], int):
+        raise InvalidInputFile('priority must be an integer')
