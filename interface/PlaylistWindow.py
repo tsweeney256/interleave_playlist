@@ -232,10 +232,10 @@ class PlaylistWindow(QWidget):
             self._get_selected_runtime()
 
     def _get_total_runtime(self):
-        duration = 0
         self.total_runtime_label.setText(_TOTAL_RUNTIME.format('...'))
         self._running_runtime_thread = True
         while True:
+            duration = 0
             for i in self.playlist_dict.values():
                 if self._runtime_thread_stop:
                     return
