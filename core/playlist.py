@@ -15,9 +15,11 @@
 import re
 from itertools import groupby
 from os import path, listdir
+from re import Pattern
+from typing import Iterator
 
 from core.interleave import interleave_all
-from persistence.input_ import Location
+from persistence.input_ import Location, Timed
 
 
 def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
@@ -33,24 +35,23 @@ def _get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
     data = []
     for loc in locations:
         regex_str = loc.regex if loc.regex is not None else ''
-        regex = re.compile(regex_str)
-        items = filter(
-            lambda i: (path.basename(i) not in watched_list
+        regex: Pattern = re.compile(regex_str)
+        loc_list = list(map(lambda i: loc.name + '/' + i, sorted(listdir(loc.name))))
+        timed_slice = _timed_slice(loc.timed, loc_list) if loc.timed else loc_list
+        items = list(filter(
+            lambda i: (i in timed_slice
+                       and path.basename(i) not in watched_list
                        and _matches_whitelist(i, loc.whitelist)
                        and not _matches_blacklist(i, loc.blacklist)
                        and regex.match(i)),
-            map(lambda i: loc.name + '/' + i, listdir(loc.name)))
+            loc_list))
         grouped_items = _group_items_by_regex(items, regex)
-        for k, v in grouped_items.items():
-            sorted_items = sorted(v)
-            sorted_items = _slice_groups_by_timed(loc.timed, sorted_items)
-            grouped_items[k] = sorted_items
         if len(grouped_items) > 0:
             data.append(interleave_all(list(grouped_items.values())))
     return interleave_all(data)
 
 
-def _group_items_by_regex(items, regex):
+def _group_items_by_regex(items: Iterator[str], regex: Pattern):
     grouped_items = {}
     for item in items:
         match = regex.match(item)
@@ -63,13 +64,13 @@ def _group_items_by_regex(items, regex):
     return grouped_items
 
 
-def _slice_groups_by_timed(timed, items):
+def _timed_slice(timed: Timed, loc_list: list[str]):
     if timed is None:
-        return items
-    cur_release = min(timed.get_current(), len(items))
+        return loc_list
+    cur_release = min(timed.get_current(), len(loc_list))
     if cur_release < 0:
         return []
-    return items[timed.first: cur_release + 1]
+    return loc_list[timed.first: cur_release + 1]
 
 
 def _matches_whitelist(s: str, whitelist: list[str]):
