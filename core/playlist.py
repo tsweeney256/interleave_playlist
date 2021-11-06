@@ -17,7 +17,8 @@ from copy import copy
 from itertools import groupby
 from os import path, listdir
 from re import Pattern
-from typing import Iterable, ItemsView
+
+from natsort import natsorted, ns
 
 from core.interleave import interleave_all
 from persistence.input_ import Location, Timed, Group
@@ -60,7 +61,7 @@ def _group_items_by_regex(loc: Location) -> dict[Group, list[str]]:
     grouped_items: dict[Group, list[str]] = {}
     group_dict = {group.name: group for group in loc.groups}
     paths = list(map(lambda i: loc.default_group.name + '/' + i,
-                     sorted(listdir(loc.default_group.name))))
+                     natsorted(listdir(loc.default_group.name), alg=ns.IGNORECASE)))
     for p in paths:
         match = regex.match(p)
         if not match:

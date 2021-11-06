@@ -4,3 +4,4 @@ sortedcontainers~=2.4.0
 pymediainfo~=5.1.0
 numpy~=1.21.3
 crontab~=0.23.0
+natsort~=8.0.0
