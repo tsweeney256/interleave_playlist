@@ -13,58 +13,74 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from copy import copy
 from itertools import groupby
 from os import path, listdir
 from re import Pattern
-from typing import Iterator
+from typing import Iterable, ItemsView
 
 from core.interleave import interleave_all
-from persistence.input_ import Location, Timed
+from persistence.input_ import Location, Timed, Group
+
+LocationGroups = dict[Group, list[str]]
 
 
-def get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
-    def _key(i): return i.priority
-    priority_locations = {k: list(v) for k, v in groupby(sorted(locations, key=_key), _key)}
+def get_playlist(locations: list[Location], watched_list: list[str]) -> list[str]:
+    location_groups: dict[Group, list[str]] = {}
+    for loc in locations:
+        location_groups.update(_group_items_by_regex(loc))
+
+    def _key(i): return i[0].priority
+    priority_location_groups: dict[int, LocationGroups] = {
+        k: dict(v) for k, v in groupby(sorted(location_groups.items(), key=_key), _key)
+    }
     data = []
-    for locations in priority_locations.values():
-        data += _get_playlist(locations, watched_list)
+    for lg in priority_location_groups.values():
+        data += _get_playlist(lg, watched_list)
     return data
 
 
-def _get_playlist(locations: list[Location], watched_list: list[str]) -> iter:
-    data = []
-    for loc in locations:
-        regex_str = loc.regex if loc.regex is not None else ''
-        regex: Pattern = re.compile(regex_str)
-        loc_list = list(map(lambda i: loc.name + '/' + i, sorted(listdir(loc.name))))
-        timed_slice = _timed_slice(loc.timed, loc_list) if loc.timed else loc_list
+def _get_playlist(location_groups: LocationGroups, watched_list: list[str]) -> list[str]:
+    data: list[list[str]] = []
+    for group, locations in location_groups.items():
+        timed_slice = _timed_slice(group.timed, locations) if group.timed else locations
         items = list(filter(
             lambda i: (i in timed_slice
                        and path.basename(i) not in watched_list
-                       and _matches_whitelist(i, loc.whitelist)
-                       and not _matches_blacklist(i, loc.blacklist)
-                       and regex.match(i)),
-            loc_list))
-        grouped_items = _group_items_by_regex(items, regex)
-        if len(grouped_items) > 0:
-            data.append(interleave_all(list(grouped_items.values())))
+                       and _matches_whitelist(i, group.whitelist)
+                       and not _matches_blacklist(i, group.blacklist)),
+            locations))
+        data.append(items)
     return interleave_all(data)
 
 
-def _group_items_by_regex(items: Iterator[str], regex: Pattern):
-    grouped_items = {}
-    for item in items:
-        match = regex.match(item)
+def _group_items_by_regex(loc: Location) -> dict[Group, list[str]]:
+    regex_str: str = loc.regex if loc.regex is not None else ''
+    regex: Pattern = re.compile(regex_str)
+    grouped_items: dict[Group, list[str]] = {}
+    group_dict = {group.name: group for group in loc.groups}
+    paths = list(map(lambda i: loc.default_group.name + '/' + i,
+                     sorted(listdir(loc.default_group.name))))
+    for p in paths:
+        match = regex.match(p)
+        if not match:
+            continue
         match_dict = match.groupdict()
         if 'group' in match_dict:
-            group = grouped_items.setdefault(path.basename(match.group('group')), list())
+            group_name = path.basename(match.group('group'))
+            group = _get_from_dict_key_superset(group_name, group_dict)
+            if group is None:
+                group = copy(loc.default_group)
+                group.name = group_name
+                group_dict[group_name] = group
+            group = grouped_items.setdefault(group, list())
         else:
-            group = grouped_items.setdefault('', list())
-        group.append(item)
+            group = grouped_items.setdefault(loc.default_group, list())
+        group.append(p)
     return grouped_items
 
 
-def _timed_slice(timed: Timed, loc_list: list[str]):
+def _timed_slice(timed: Timed, loc_list: list[str]) -> list[str]:
     if timed is None:
         return loc_list
     cur_release = min(timed.get_current(), len(loc_list))
@@ -73,7 +89,7 @@ def _timed_slice(timed: Timed, loc_list: list[str]):
     return loc_list[timed.first: cur_release + 1]
 
 
-def _matches_whitelist(s: str, whitelist: list[str]):
+def _matches_whitelist(s: str, whitelist: list[str]) -> bool:
     if whitelist is None:
         return True
     for white in whitelist:
@@ -82,10 +98,16 @@ def _matches_whitelist(s: str, whitelist: list[str]):
     return False
 
 
-def _matches_blacklist(s: str, blacklist: list[str]):
+def _matches_blacklist(s: str, blacklist: list[str]) -> bool:
     if blacklist is None:
         return False
     for black in blacklist:
         if black and black in s:
             return True
     return False
+
+
+def _get_from_dict_key_superset(super_key: str, d: dict[str, any]) -> any:
+    for k, v in d.items():
+        if k in super_key:
+            return v

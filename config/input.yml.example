@@ -1,4 +1,5 @@
 # all input parameters are optional unless labeled as mandatory
+
 # items must contain these strings to be included in the playlist
 whitelist:
   - '.mkv'
@@ -9,6 +10,8 @@ blacklist:
 # whitelist by regex and optionally group items with (?P<group>)
 regex: '^(?:\[.+\]|\(.+\))?\s*(?P<group>.+)\s*-\s*[0-9]+.+(?:\.mp4|\.mkv)$'
 # default priority level to reference, lower value is higher priority
+# without setting this global priority, any location or group priority number will always
+# take priority of any other location or group that doesn't set its own
 priority: 100
 # list of locations to interleave (mandatory)
 locations:
@@ -27,6 +30,13 @@ locations:
       - 'boring show'
     # override global regex defined above
     regex: '^(?:\[.+\]|\(.+\))?\s*(?P<group>.+)\s*-\s*(?:[0-9]+).+$'
+    groups:
+        # override the options for the group name identified by the regex
+        # name is a subset of the full group name for convenience
+      - name: 'Show I really want to watch'
+        priority: 10
+      - name: "Show I'm putting off"
+        priority: 200
   - name: '/directory/somewhere/completely/different/Baz'
     whitelist:
       - '' # this will disable global whitelist defined above

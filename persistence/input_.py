@@ -47,15 +47,21 @@ class Timed:
         return initial + first_cron_amount + cron_amount - 1
 
 
-class Location:
-    def __init__(self, name: str, whitelist: list[str], blacklist: list[str],
-                 regex: str, timed: Timed, priority: int):
+class Group:
+    def __init__(self, name: str, priority: int, whitelist: list[str], blacklist: list[str],
+                 timed: Timed):
         self.name = name
+        self.priority = priority if priority is not None else sys.maxsize
         self.whitelist = whitelist
         self.blacklist = blacklist
-        self.regex = regex
         self.timed = timed
-        self.priority = priority if priority is not None else sys.maxsize
+
+
+class Location:
+    def __init__(self, default_group: Group, regex: str, groups: list[Group]):
+        self.default_group = default_group
+        self.regex = regex
+        self.groups = groups if groups is not None else []
 
 
 class InvalidInputFile(Exception):
@@ -70,25 +76,17 @@ def get_locations() -> list[Location]:
     input_: dict = _get_input(state.get_last_input_file())
     locations = []
     for loc in input_['locations']:
-        if loc.get('timed'):
-            timed_yml: dict = loc['timed']
-            timed = Timed(
-                datetime.fromisoformat(timed_yml['start']),
-                CronTab(timed_yml['cron']),
-                timed_yml.get('first'),
-                timed_yml.get('amount'),
-                timed_yml.get('start-at-cron'),
-            )
-        else:
-            timed = None
         locations.append(
             Location(
-                loc['name'],
-                loc['whitelist'] if 'whitelist' in loc else input_.get('whitelist'),
-                loc['blacklist'] if 'blacklist' in loc else input_.get('blacklist'),
+                Group(
+                    loc['name'],
+                    loc['priority'] if 'priority' in loc else input_.get('priority'),
+                    loc['whitelist'] if 'whitelist' in loc else input_.get('whitelist'),
+                    loc['blacklist'] if 'blacklist' in loc else input_.get('blacklist'),
+                    _get_timed(loc['timed']) if 'timed' in loc else None,
+                ),
                 loc['regex'] if 'regex' in loc else input_.get('regex'),
-                timed,
-                loc['priority'] if 'priority' in loc else input_.get('priority')
+                _get_group_list(loc['groups']) if 'groups' in loc else []
             )
         )
     return locations
@@ -102,32 +100,51 @@ def get_watched_file_name():
     return fn
 
 
+def _get_group_list(groups: list[dict[str, any]]):
+    data = []
+    for g in groups:
+        data.append(Group(
+            g['name'],
+            g.get('priority'),
+            g.get('whitelist'),
+            g.get('blacklist'),
+            _get_timed(g['timed']) if 'timed' in g else None
+        ))
+    return data
+
+
+def _get_timed(d: dict[str, any]):
+    return Timed(
+        datetime.fromisoformat(d['start']),
+        CronTab(d['cron']),
+        d.get('first'),
+        d.get('amount'),
+        d.get('start-at-cron'),
+    )
+
+
 def _get_input(input_file: str):
     try:
         with open(input_file, 'r') as f:
             yml = yaml.safe_load(f)
-        overridable_value_validators = [
-            _validate_whitelist,
-            _validate_blacklist,
-            _validate_regex,
-            _validate_priority,
-        ]
-        for validator in overridable_value_validators:
-            validator(yml)
+        _validate_group(yml)
         if 'locations' not in yml:
             raise InvalidInputFile('Input requires "locations"')
         if not isinstance(yml['locations'], list):
             raise InvalidInputFile('"locations" must be a list')
         for loc in yml['locations']:
             if 'name' not in loc:
-                raise InvalidInputFile("Locations must have names")
+                raise InvalidInputFile('Locations must have names')
             if not isinstance(loc['name'], str):
-                raise InvalidInputFile("Location names must be strings")
+                raise InvalidInputFile('Location names must be strings')
             if not os.path.exists(loc['name']):
                 raise LocationNotFound(loc['name'])
-            for validator in overridable_value_validators:
-                validator(loc)
+            _validate_group(loc)
             _validate_timed(loc)
+            if 'groups' in loc:
+                if not isinstance(loc['groups'], list):
+                    raise InvalidInputFile('groups must be a list')
+                _validate_groups(loc['groups'])
 
     except ParserError as e:
         raise InvalidInputFile("Unable to parse input file") from e
@@ -184,3 +201,19 @@ def _validate_timed(d: dict):
 def _validate_priority(d: dict):
     if 'priority' in d and not isinstance(d['priority'], int):
         raise InvalidInputFile('priority must be an integer')
+
+
+def _validate_group(group: dict):
+    validators = [
+        _validate_whitelist,
+        _validate_blacklist,
+        _validate_regex,
+        _validate_priority,
+    ]
+    for validator in validators:
+        validator(group)
+
+
+def _validate_groups(groups: list[dict]):
+    for group in groups:
+        _validate_group(group)
