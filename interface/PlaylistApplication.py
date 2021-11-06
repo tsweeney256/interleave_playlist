@@ -14,8 +14,9 @@
 
 import os.path
 import sys
+from traceback import format_exception
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 from interface.PlaylistWindow import PlaylistWindow
 from persistence.settings import get_dark_mode
@@ -35,3 +36,13 @@ class PlaylistApplication(QApplication):
                 _style = f.read()
                 self.setStyleSheet(_style)
         sys.exit(self.exec())
+
+
+def excepthook(cls, exception, traceback):
+    QMessageBox(text="Encountered an unhandled exception. This is a bug.\n"
+                     "Please file a bug report so that this can be fixed\n\n{}"
+                .format(''.join(format_exception(cls, exception, traceback))),
+                icon=QMessageBox.Warning).exec()
+
+
+sys.excepthook = excepthook
