@@ -53,3 +53,4 @@ locations:
       cron: '0 3 * * TUE'  # do it every Tuesday at 3am
       first: 16            # starting at the 16th file, alphabetically
       amount: 2            # include 2 files every time the cron point is reached
+      start-at-cron: false # start right at 2021-10-31, even though it's not a Tuesday (default: f)
