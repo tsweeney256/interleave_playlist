@@ -63,7 +63,7 @@ def _group_items_by_regex(loc: Location) -> dict[Group, list[str]]:
     paths = list(map(lambda i: loc.default_group.name + '/' + i,
                      natsorted(listdir(loc.default_group.name), alg=ns.IGNORECASE)))
     for p in paths:
-        match = regex.match(p)
+        match = regex.match(path.basename(p))
         if not match:
             continue
         match_dict = match.groupdict()
