@@ -51,7 +51,8 @@ def _get_playlist(location_groups: LocationGroups, watched_list: list[str]) -> l
                        and _matches_whitelist(i, group.whitelist)
                        and not _matches_blacklist(i, group.blacklist)),
             locations))
-        data.append(items)
+        if items:
+            data.append(items)
     return interleave_all(data)
 
 
