@@ -15,7 +15,6 @@
 import sys
 from math import nan, isnan, floor
 
-import numpy as np
 from sortedcontainers import SortedList
 
 _MARGIN = 10e-6
@@ -33,6 +32,7 @@ def _get_every(larger_len: int, smaller_len: int) -> float:
 
 # This is actually 5x slower than my "SIMD style for loop" using no SIMD lol
 def interleave_simd(a: list[str], b: list[str]) -> list[str]:
+    import numpy as np
     smaller, larger = sorted([a, b], key=lambda ab: len(ab))
     if not smaller:
         return larger
