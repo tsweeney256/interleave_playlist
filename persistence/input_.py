@@ -27,23 +27,25 @@ from persistence import state
 class Timed:
     def __init__(self, start: datetime, cron: CronTab, first: int,
                  amount: int, start_at_cron: bool):
-        self.start = start
+        self.start = (start.astimezone()
+                      if start.tzinfo is None else
+                      start)
         self.cron = cron
         self.first = (first if first is not None and first > 0 else 1) - 1
         self.amount = amount if amount is not None and amount > 0 else 1
         self.start_at_cron = start_at_cron
 
     def get_current(self) -> int:
-        if self.start > datetime.now():
+        now: datetime = datetime.now().astimezone()
+        if self.start > now:
             return -1
-        now: datetime = datetime.now()
         initial: int = self.first + (self.amount if not self.start_at_cron else 0)
         first_diff = timedelta(seconds=self.cron.next(self.start, default_utc=False))
         first_cron_amount: int = self.amount if self.start + first_diff < now else 0
         if first_cron_amount == 0 and self.start_at_cron:
             return -1
         diff = timedelta(seconds=self.cron.next(self.start + first_diff, default_utc=False))
-        cron_amount = self.amount * max((now - (self.start + diff)) // diff, 0)
+        cron_amount = self.amount * max((now - (self.start + first_diff)) // diff, 0)
         return initial + first_cron_amount + cron_amount - 1
 
 
