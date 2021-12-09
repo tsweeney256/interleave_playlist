@@ -38,6 +38,9 @@ locations:
       - name: "Show I'm putting off"
         priority: 200
   - name: '/directory/somewhere/completely/different/Baz'
+    addtional:
+      - '/additional/directory/that/appends/its/contents/to/the/one/above'
+      - '/yet/another/additional/directory'
     whitelist:
       - '' # this will disable global whitelist defined above
     blacklist:
