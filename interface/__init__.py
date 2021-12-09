@@ -38,7 +38,7 @@ def _create_playlist_dict() -> dict[str, str]:
     try:
         with open(input_.get_watched_file_name(), 'r') as f:
             watched_list = [line.strip() for line in f]
-        playlist = list(get_playlist(input_.get_locations(), watched_list))
+        playlist = get_playlist(input_.get_locations(), watched_list)
         return dict(zip(map(os.path.basename, playlist), playlist))
     except FileNotFoundError:
         QMessageBox(text="Input yml file not found: {}\n\n"

@@ -61,8 +61,12 @@ def _group_items_by_regex(loc: Location) -> dict[Group, list[str]]:
     regex: Pattern = re.compile(regex_str)
     grouped_items: dict[Group, list[str]] = {}
     group_dict = {group.name: group for group in loc.groups}
-    paths = list(map(lambda i: loc.default_group.name + '/' + i,
-                     natsorted(listdir(loc.default_group.name), alg=ns.IGNORECASE)))
+
+    paths = [(loc.name, i) for i in listdir(loc.name)]
+    for a in loc.additional:
+        paths += [(a, i) for i in listdir(a)]
+    paths = list(map(lambda i: path.join(i[0], i[1]),
+                     natsorted(paths, key=lambda i: i[1], alg=ns.IGNORECASE)))
     for p in paths:
         match = regex.match(path.basename(p))
         if not match:

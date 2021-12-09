@@ -60,7 +60,10 @@ class Group:
 
 
 class Location:
-    def __init__(self, default_group: Group, regex: str, groups: list[Group]):
+    def __init__(self, name: str, additional: list[str], default_group: Group, regex: str,
+                 groups: list[Group]):
+        self.name = name
+        self.additional = additional
         self.default_group = default_group
         self.regex = regex
         self.groups = groups if groups is not None else []
@@ -80,6 +83,8 @@ def get_locations() -> list[Location]:
     for loc in input_['locations']:
         locations.append(
             Location(
+                loc['name'],
+                loc['additional'] if 'additional' in loc else [],
                 Group(
                     loc['name'],
                     loc['priority'] if 'priority' in loc else input_.get('priority'),
@@ -147,6 +152,12 @@ def _get_input(input_file: str):
                 if not isinstance(loc['groups'], list):
                     raise InvalidInputFile('groups must be a list')
                 _validate_groups(loc['groups'])
+            if 'additional' in loc:
+                if not isinstance(loc['additional'], list):
+                    raise InvalidInputFile('"additional" must be a list')
+                for i in loc['additional']:
+                    if not isinstance(i, str):
+                        raise InvalidInputFile('"additional" entries must be strings')
 
     except ParserError as e:
         raise InvalidInputFile("Unable to parse input file") from e
