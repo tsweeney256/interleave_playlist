@@ -15,8 +15,6 @@
 import sys
 from math import nan, isnan, floor
 
-from sortedcontainers import SortedList
-
 _MARGIN = 10e-6
 
 
@@ -67,7 +65,7 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
 
 # Sort by minimum group size difference
 def interleave_all(groups: list[list[str]]) -> list[str]:
-    sorted_groups = SortedList(groups, key=lambda l: len(l))
+    sorted_groups = sorted(groups, key=lambda l: len(l))
     while len(sorted_groups) > 1:
         min_diff: int = sys.maxsize
         min_i: int = -1
@@ -84,5 +82,11 @@ def interleave_all(groups: list[list[str]]) -> list[str]:
                 a = interleave(a, sorted_groups.pop(i))
             else:
                 i += 1
-        sorted_groups.add(interleave(a, b))
+        interleaved = interleave(a, b)
+        for i in range(len(sorted_groups) + 1):
+            if i == len(sorted_groups):
+                sorted_groups.append(interleaved)
+            if len(sorted_groups[i]) > len(interleaved):
+                sorted_groups.insert(i, interleaved)
+                break
     return sorted_groups[0] if len(sorted_groups) > 0 else []
