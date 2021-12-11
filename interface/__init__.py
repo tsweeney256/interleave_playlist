@@ -11,7 +11,6 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import os
 import platform
 import subprocess
@@ -20,11 +19,12 @@ from math import log10, ceil
 from PySide6.QtWidgets import QMessageBox
 
 import persistence
-from core.playlist import get_playlist
-# https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
+from core.playlist import get_playlist, FileGroup
 from persistence import input_
+from persistence.watched import get_watched
 
 
+# https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
 def open_with_default_application(filepath: str):
     if platform.system() == 'Darwin':       # macOS
         subprocess.call(('open', filepath))
@@ -34,12 +34,9 @@ def open_with_default_application(filepath: str):
         subprocess.call(('xdg-open', filepath))
 
 
-def _create_playlist_dict() -> dict[str, str]:
+def _create_playlist() -> list[FileGroup]:
     try:
-        with open(input_.get_watched_file_name(), 'r') as f:
-            watched_list = [line.strip() for line in f]
-        playlist = get_playlist(input_.get_locations(), watched_list)
-        return dict(zip(map(os.path.basename, playlist), playlist))
+        return get_playlist(input_.get_locations(), get_watched())
     except FileNotFoundError:
         QMessageBox(text="Input yml file not found: {}\n\n"
                          "Please create or find file and open it"
@@ -53,7 +50,7 @@ def _create_playlist_dict() -> dict[str, str]:
         QMessageBox(text="Location from input file not found. Please fix it and try again\n{}\n{}"
                     .format(e, persistence.get_last_input_file()),
                     icon=QMessageBox.Warning).exec()
-    return {}
+    return []
 
 
 def _get_temp_file_name():
