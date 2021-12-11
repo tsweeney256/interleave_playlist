@@ -14,7 +14,9 @@
 
 import sys
 from math import nan, isnan, floor
+from typing import TypeVar
 
+T = TypeVar('T')
 _MARGIN = 10e-6
 
 
@@ -29,7 +31,7 @@ def _get_every(larger_len: int, smaller_len: int) -> float:
 
 
 # This is actually 5x slower than my "SIMD style for loop" using no SIMD lol
-def interleave_simd(a: list[str], b: list[str]) -> list[str]:
+def interleave_simd(a: list[T], b: list[T]) -> list[T]:
     import numpy as np
     smaller, larger = sorted([a, b], key=lambda ab: len(ab))
     if not smaller:
@@ -46,13 +48,13 @@ def interleave_simd(a: list[str], b: list[str]) -> list[str]:
 
 
 # Written in SIMD style just for fun. No SIMD actually used
-def interleave(a: list[str], b: list[str]) -> list[str]:
+def interleave(a: list[T], b: list[T]) -> list[T]:
     smaller, larger = sorted([a, b], key=lambda ab: len(ab))
     if not smaller:
         return larger
     every: float = _get_every(len(larger), len(smaller))
     total_len: int = len(larger) + len(smaller)
-    result: list[str] = [""] * total_len
+    result: list[T] = [None] * total_len
     for i in range(total_len):
         use_smaller: bool = 1 > (i + floor(every) + _MARGIN) % every
         smaller_idx: int = min(len(smaller), int((i + floor(every) - 1 + _MARGIN) / every))
@@ -64,7 +66,7 @@ def interleave(a: list[str], b: list[str]) -> list[str]:
 
 
 # Sort by minimum group size difference
-def interleave_all(groups: list[list[str]]) -> list[str]:
+def interleave_all(groups: list[list[T]]) -> list[T]:
     sorted_groups = sorted(groups, key=lambda l: len(l))
     while len(sorted_groups) > 1:
         min_diff: int = sys.maxsize
@@ -74,8 +76,8 @@ def interleave_all(groups: list[list[str]]) -> list[str]:
             if min_diff > diff:
                 min_diff = diff
                 min_i = i
-        a: list[str] = sorted_groups.pop(min_i)  # smaller or equal
-        b: list[str] = sorted_groups.pop(min_i)
+        a: list[T] = sorted_groups.pop(min_i)  # smaller or equal
+        b: list[T] = sorted_groups.pop(min_i)
         i = 0
         while i < len(sorted_groups):  # interleave smaller groups to reduce size diff
             if abs(len(sorted_groups[i]) + len(a) - len(b)) <= abs(len(a) - len(b)):
