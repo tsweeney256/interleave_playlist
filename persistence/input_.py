@@ -35,6 +35,9 @@ class Timed:
         self.amount = amount if amount is not None and amount > 0 else 1
         self.start_at_cron = start_at_cron
 
+    def __repr__(self):
+        return str(self.__dict__)
+
     def get_current(self) -> int:
         now: datetime = datetime.now().astimezone()
         if self.start > now:
@@ -58,6 +61,9 @@ class Group:
         self.blacklist = blacklist
         self.timed = timed
 
+    def __repr__(self):
+        return str(self.__dict__)
+
 
 class Location:
     def __init__(self, name: str, additional: list[str], default_group: Group, regex: str,
@@ -67,6 +73,9 @@ class Location:
         self.default_group = default_group
         self.regex = regex
         self.groups = groups if groups is not None else []
+
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 class InvalidInputFile(Exception):
