@@ -56,7 +56,15 @@ def _get_playlist(location_groups: LocationGroups, watched_list: list[FileGroup]
             locations)]
         if items:
             data.append(items)
-    return interleave_all(data)
+    if not data:
+        return []
+    # Need to do some convoluted nonsense to remove alphabetical biasing in the playlist.
+    # Need to make sure the playlist is ordered by least recently watched in a way
+    # that doesn't interfere with the quality of the interleaving.
+    masked: list[list[tuple[int, int]]] = _mask_data(data)
+    masked_playlist: list[tuple[int, int]] = interleave_all(masked)
+    sorted_group: list[list[FileGroup]] = _sort_data_by_least_recently_watched(data, watched_list)
+    return _unmask_playlist(masked_playlist, sorted_group)
 
 
 def _group_items_by_regex(loc: Location) -> dict[Group, list[str]]:
@@ -120,3 +128,59 @@ def _get_from_dict_key_superset(super_key: str, d: dict[str, any]) -> any:
     for k, v in d.items():
         if k in super_key:
             return v
+
+
+def _get_watched_groups_lru(watched_list: list[FileGroup]):
+    groups: list[str] = []
+    for i in reversed(watched_list):
+        if not i[1] in groups:
+            groups.append(i[1])
+    groups.reverse()
+    return groups
+
+
+def _mask_data(data: list[list[FileGroup]]) -> list[list[tuple[int, int]]]:
+    masked: list[list[tuple[int, int]]] = []
+    group_idx: dict[int, int] = {}
+    for group in data:
+        masked_group: list[tuple[int, int]] = []
+        masked.append(masked_group)
+        idx = group_idx.setdefault(len(group), 0)
+        for _ in group:
+            masked_group.append((idx, len(group)))
+        group_idx[len(group)] = idx + 1
+    return masked
+
+
+def _sort_data_by_least_recently_watched(data: list[list[FileGroup]],
+                                         watched_list: list[FileGroup]) -> list[list[FileGroup]]:
+    lru_groups: list[str] = _get_watched_groups_lru(watched_list)
+    ideal_group_sorting: list[list[FileGroup]] = []
+    for i, d in enumerate(data):
+        if d[0][1] not in lru_groups:
+            ideal_group_sorting.append(d)
+    for group in lru_groups:
+        for i, d in enumerate(data):
+            if d[0][1] == group:
+                ideal_group_sorting.append(d)
+    return ideal_group_sorting
+
+
+def _unmask_playlist(masked_playlist: list[tuple[int, int]], data: list[list[FileGroup]]) \
+        -> list[FileGroup]:
+    playlist: list[FileGroup] = []
+    data_size_dict: dict[int, list[list[FileGroup]]] = {}
+    group_len_group_idx_dict: dict[int, dict[int, int]] = {}
+    group_file_idx_dict: dict[tuple[int, int], int] = {}
+    for group in data:
+        sized_data: list[list[FileGroup]] = data_size_dict.setdefault(len(group), [])
+        sized_data.append(group)
+    for masked_group in masked_playlist:
+        group_idx, group_len = masked_group
+        group_idx_dict = group_len_group_idx_dict.setdefault(group_len, {})
+        mapped_group_idx = group_idx_dict.setdefault(group_idx, len(group_idx_dict))
+        group_file_idx = group_file_idx_dict.setdefault(masked_group, 0)
+        group_file_idx_dict[masked_group] = group_file_idx + 1
+
+        playlist.append(data_size_dict[group_len][mapped_group_idx][group_file_idx])
+    return playlist
