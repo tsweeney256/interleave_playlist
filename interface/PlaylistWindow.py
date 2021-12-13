@@ -16,7 +16,6 @@ import math
 import os
 import subprocess
 import threading
-from os import path
 
 from PySide6.QtCore import Slot, QEvent, Qt
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
@@ -24,10 +23,11 @@ from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemVi
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout
 from pymediainfo import MediaInfo
 
-from core.playlist import get_playlist
-from interface import open_with_default_application, _create_playlist_dict, _get_temp_file_name, \
-    _get_duration_str
+from core.playlist import FileGroup
+from interface import open_with_default_application, _create_playlist, _get_duration_str
+from interface.PlaylistWindowItem import PlaylistWindowItem
 from persistence import settings, input_, state
+from persistence.watched import add_watched, remove_watched
 
 _LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
 _DARK_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(77, 12, 12))
@@ -56,7 +56,7 @@ class PlaylistWindow(QWidget):
         self.total_selected_label = QLabel()
         self.total_selected_label.setFont(label_font)
 
-        self.playlist_dict: dict[str, str] = {}
+        self.playlist: dict[str, str] = {}
         self.item_list: QListWidget = self._create_item_list()
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
@@ -136,42 +136,28 @@ class PlaylistWindow(QWidget):
 
     def _play(self):
         def _impl():
-            subprocess.run([settings.get_play_command()]
-                           + [self.playlist_dict[i.text()] for i in self.item_list.selectedItems()])
-        if self.playlist_dict is not None:
+            files = [i.getValue()[0] for i in self.item_list.selectedItems()]
+            subprocess.run([settings.get_play_command()] + files)
+        if self.playlist is not None:
             thread = threading.Thread(target=_impl)
             thread.start()
 
     # O(1) memory, just cause
     @Slot()
     def mark_watched(self):
-        full_playlist = list(map(path.basename, get_playlist(input_.get_locations(), [])))
-        with open(input_.get_watched_file_name(), 'r') as f:
-            with open(_get_temp_file_name(), 'w') as tmp:
-                for line in f:
-                    if line.strip() != '' and line.strip() in full_playlist:
-                        tmp.write(line.strip() + '\n')
-                tmp.writelines('\n'.join(
-                    map(lambda i: i.text(),
-                        filter(lambda i: i.background() != self._get_watched_color(),  # lol
-                               self.item_list.selectedItems()))))
-        os.replace(_get_temp_file_name(), input_.get_watched_file_name())
-
+        selected_values: list[FileGroup] = [
+            i.getValue() for i in self.item_list.selectedItems()
+        ]
+        add_watched(selected_values)
         for item in self.item_list.selectedItems():
             item.setBackground(self._get_watched_color())
 
     @Slot()
     def unmark_watched(self):
-        full_playlist = list(map(path.basename, get_playlist(input_.get_locations(), [])))
-        with open(input_.get_watched_file_name(), 'r') as f:
-            with open(_get_temp_file_name(), 'w') as tmp:
-                for line in f:
-                    if (line.strip() not in map(lambda i: i.text(), self.item_list.selectedItems())
-                            and line.strip() != ''
-                            and line.strip() in full_playlist):
-                        tmp.write(line)
-        os.replace(_get_temp_file_name(), input_.get_watched_file_name())
-
+        selected_values: list[FileGroup] = [
+            i.getValue() for i in self.item_list.selectedItems()
+        ]
+        remove_watched(selected_values)
         for i in range(len(self.item_list.selectedItems())):
             color = self._row_color1 if i % 2 == 0 else self._row_color2
             self.item_list.selectedItems()[i].setBackground(color)
@@ -188,10 +174,13 @@ class PlaylistWindow(QWidget):
 
     def _refresh(self, item_list: QListWidget):
         item_list.clear()
-        self.playlist_dict = _create_playlist_dict()
-        if self.playlist_dict is not None:
-            item_list.addItems(self.playlist_dict.keys())
-        self.total_shows_label.setText(_TOTAL_SHOWS_TEXT.format(len(self.playlist_dict)))
+        self.playlist = _create_playlist()
+        if self.playlist is not None:
+            for item in self.playlist:
+                item_list.addItem(
+                    PlaylistWindowItem(value=item)
+                )
+        self.total_shows_label.setText(_TOTAL_SHOWS_TEXT.format(len(self.playlist)))
         self._selection_change(0)
 
     @Slot()
@@ -224,8 +213,8 @@ class PlaylistWindow(QWidget):
         self.total_selected_label.setText(
             _SELECTED_SHOWS_TEXT.format(
                 str(num_selected).rjust(math.ceil(
-                    math.log10(len(self.playlist_dict))
-                    if len(self.playlist_dict) > 0 else
+                    math.log10(len(self.playlist))
+                    if len(self.playlist) > 0 else
                     1
                 ))))
         if self.durations_loaded:
@@ -236,7 +225,7 @@ class PlaylistWindow(QWidget):
         self._running_runtime_thread = True
         while True:
             duration = 0
-            for i in self.playlist_dict.values():
+            for i in (item[0] for item in self.playlist):
                 if self._runtime_thread_stop:
                     return
                 if i not in self.duration_cache:
@@ -262,7 +251,7 @@ class PlaylistWindow(QWidget):
         duration = 0
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         for i in self.item_list.selectedItems():
-            duration += self.duration_cache[self.playlist_dict[i.text()]]
+            duration += self.duration_cache[i.getValue()[0]]
         self.selected_runtime_label.setText(
             _SELECTED_RUNTIME.format(_get_duration_str(duration, self._total_duration)))
 
