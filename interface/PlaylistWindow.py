@@ -158,9 +158,9 @@ class PlaylistWindow(QWidget):
             i.getValue() for i in self.item_list.selectedItems()
         ]
         remove_watched(selected_values)
-        for i in range(len(self.item_list.selectedItems())):
+        for i, item in enumerate(self.item_list.selectedItems()):
             color = self._row_color1 if i % 2 == 0 else self._row_color2
-            self.item_list.selectedItems()[i].setBackground(color)
+            item.setBackground(color)
 
     @Slot()
     def refresh(self):

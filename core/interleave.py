@@ -71,8 +71,8 @@ def interleave_all(groups: list[list[T]]) -> list[T]:
     while len(sorted_groups) > 1:
         min_diff: int = sys.maxsize
         min_i: int = -1
-        for i in range(len(sorted_groups) - 1):
-            diff: int = abs(len(sorted_groups[i]) - len(sorted_groups[i+1]))
+        for i, (left, right) in enumerate(zip(sorted_groups, sorted_groups[1:])):
+            diff: int = abs(len(left) - len(right))
             if min_diff > diff:
                 min_diff = diff
                 min_i = i
@@ -85,10 +85,11 @@ def interleave_all(groups: list[list[T]]) -> list[T]:
             else:
                 i += 1
         interleaved = interleave(a, b)
-        for i in range(len(sorted_groups) + 1):
-            if i == len(sorted_groups):
-                sorted_groups.append(interleaved)
-            if len(sorted_groups[i]) > len(interleaved):
+        len_before_insert = len(sorted_groups)
+        for i, elem in enumerate(sorted_groups):
+            if len(elem) > len(interleaved):
                 sorted_groups.insert(i, interleaved)
                 break
+        if len_before_insert == len(sorted_groups):
+            sorted_groups.append(interleaved)
     return sorted_groups[0] if len(sorted_groups) > 0 else []
