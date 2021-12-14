@@ -23,23 +23,27 @@ _CACHED_FILE = None
 
 
 def get_font_size() -> int:
-    return _get_settings()['font-size']
+    return _get_settings('font-size', 12)
 
 
 def get_play_command() -> str:
-    return _get_settings()['play-command']
+    return _get_settings('play-command', 'mpv')
 
 
 def get_dark_mode() -> bool:
-    return _get_settings()['dark-mode']
+    return _get_settings('dark-mode', False)
 
 
-def _get_settings():
+def get_max_watched_remembered() -> int:
+    return _get_settings('max-watched-remembered', 100)
+
+
+def _get_settings(option, default):
     global _CACHED_FILE
     if _CACHED_FILE is None:
         with open(_SETTINGS_FILE, 'r') as f:
             _CACHED_FILE = yaml.safe_load(f)
-    return _CACHED_FILE
+    return _CACHED_FILE[option] if option in _CACHED_FILE else default
 
 
 def _create_settings_file():
@@ -48,4 +52,5 @@ def _create_settings_file():
             f.write("""### This settings file is recreated with defaults if deleted ###
 font-size: 12
 play-command: mpv
-dark-mode: false""")
+dark-mode: false
+max-watched-remembered: 100""")

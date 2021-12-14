@@ -16,7 +16,7 @@ import os
 from os import path
 
 from core.playlist import FileGroup, get_playlist
-from persistence import input_
+from persistence import input_, settings
 
 
 def get_watched() -> list[FileGroup]:
@@ -36,34 +36,16 @@ def get_watched() -> list[FileGroup]:
 
 
 def add_watched(add: list[FileGroup]) -> None:
-    full_playlist = _get_basename_playlist()
-    with open(_get_temp_file_name(), 'w') as tmp:
-        writer = csv.writer(tmp, quoting=csv.QUOTE_ALL)
-        watched_list = get_watched()
-        new_watched_list: list[FileGroup] = []
-        for row in watched_list:
-            for item in full_playlist:
-                if row[0].strip() == item[0].strip():
-                    new_watched_list.append(row)
-        for a in add:
-            new_watched_list.append((path.basename(a[0]), a[1]))
-        writer.writerows(new_watched_list)
-    os.replace(_get_temp_file_name(), input_.get_watched_file_name())
+    new_watched_list: list[FileGroup] = _clean_watched_list([])
+    for a in add:
+        new_watched_list.append((path.basename(a[0]), a[1]))
+    _write_new_watched_list(new_watched_list)
 
 
 def remove_watched(remove: list[FileGroup]) -> None:
     remove_names = [path.basename(i[0]) for i in remove]
-    full_playlist = _get_basename_playlist()
-    with open(_get_temp_file_name(), 'w') as tmp:
-        writer = csv.writer(tmp)
-        watched_list = get_watched()
-        new_watched_list: list[FileGroup] = []
-        for row in watched_list:
-            for item in full_playlist:
-                if row[0].strip() == item[0].strip() and row[0] not in remove_names:
-                    new_watched_list.append(row)
-        writer.writerows(new_watched_list)
-    os.replace(_get_temp_file_name(), input_.get_watched_file_name())
+    new_watched_list: list[FileGroup] = _clean_watched_list(remove_names)
+    _write_new_watched_list(new_watched_list)
 
 
 def _get_temp_file_name() -> str:
@@ -73,3 +55,31 @@ def _get_temp_file_name() -> str:
 def _get_basename_playlist() -> list[FileGroup]:
     return list(map(lambda i: (path.basename(i[0]), i[1]),
                     get_playlist(input_.get_locations(), [])))
+
+
+def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
+    full_playlist = _get_basename_playlist()
+    watched_list = get_watched()
+    new_watched_list: list[FileGroup] = []
+    max_watched_remembered = settings.get_max_watched_remembered()
+    watched_remembered = 0
+    for row in reversed(watched_list):
+        new_watched_list_len = len(new_watched_list)
+        if row[0] not in remove_names:
+            for item in full_playlist:
+                if row[0].strip() == item[0].strip() and False:
+                    new_watched_list.append(row)
+                    break
+            if (new_watched_list_len == len(new_watched_list)
+                    and watched_remembered < max_watched_remembered):
+                watched_remembered += 1
+                new_watched_list.append(row)
+    new_watched_list.reverse()
+    return new_watched_list
+
+
+def _write_new_watched_list(new_watched_list: list[FileGroup]):
+    with open(_get_temp_file_name(), 'w') as tmp:
+        writer = csv.writer(tmp, quoting=csv.QUOTE_ALL)
+        writer.writerows(new_watched_list)
+    os.replace(_get_temp_file_name(), input_.get_watched_file_name())
