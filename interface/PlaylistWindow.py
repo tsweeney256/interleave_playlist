@@ -165,12 +165,7 @@ class PlaylistWindow(QWidget):
     @Slot()
     def refresh(self):
         self._refresh(self.item_list)
-        self.durations_loaded = False
-        if not self._running_runtime_thread:
-            thread = threading.Thread(target=self._get_total_runtime)
-            thread.start()
-        else:
-            self._runtime_pending = True
+        self._run_calculate_total_runtime_thread()
 
     def _refresh(self, item_list: QListWidget):
         item_list.clear()
@@ -197,6 +192,7 @@ class PlaylistWindow(QWidget):
                         icon=QMessageBox.Critical).exec()
             return
         self._refresh(self.item_list)
+        self._run_calculate_total_runtime_thread()
 
     @Slot()
     def open_watched_file(self):
@@ -267,10 +263,18 @@ class PlaylistWindow(QWidget):
 
     @staticmethod
     def _get_watched_color():
-
         return (_LIGHT_MODE_WATCHED_COLOR
                 if not settings.get_dark_mode() else
                 _DARK_MODE_WATCHED_COLOR)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self._runtime_thread_stop = True
+
+    def _run_calculate_total_runtime_thread(self):
+        self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
+        self.durations_loaded = False
+        if not self._running_runtime_thread:
+            thread = threading.Thread(target=self._get_total_runtime)
+            thread.start()
+        else:
+            self._runtime_pending = True
