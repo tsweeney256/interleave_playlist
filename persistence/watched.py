@@ -67,7 +67,7 @@ def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
         new_watched_list_len = len(new_watched_list)
         if row[0] not in remove_names:
             for item in full_playlist:
-                if row[0].strip() == item[0].strip() and False:
+                if row[0].strip() == item[0].strip():
                     new_watched_list.append(row)
                     break
             if (new_watched_list_len == len(new_watched_list)
