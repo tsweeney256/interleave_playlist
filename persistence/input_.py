@@ -129,7 +129,7 @@ def drop_groups(location_groups: Iterable[tuple[str, str]]) -> None:
             continue
         group_name = location_group[1]
         blacklist: list[str] = location.setdefault('blacklist', [])
-        blacklist.extend(group_name)
+        blacklist.append(group_name.strip())
     yaml = YAML()
     yaml.dump(input_, Path(state.get_last_input_file()))
 
