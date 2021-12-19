@@ -6,3 +6,4 @@ state.json
 __pycache__/
 .idea/
 *~
+scratch.py
