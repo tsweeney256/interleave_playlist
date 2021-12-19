@@ -14,7 +14,7 @@
 
 import os
 
-import yaml
+from ruamel.yaml import YAML
 
 import util
 
@@ -42,7 +42,8 @@ def _get_settings(option, default):
     global _CACHED_FILE
     if _CACHED_FILE is None:
         with open(_SETTINGS_FILE, 'r') as f:
-            _CACHED_FILE = yaml.safe_load(f)
+            yaml = YAML()
+            _CACHED_FILE = yaml.load(f)
     return _CACHED_FILE[option] if option in _CACHED_FILE else default
 
 

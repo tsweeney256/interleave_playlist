@@ -17,9 +17,8 @@ import re
 import sys
 from datetime import datetime, timedelta
 
-import yaml
 from crontab import CronTab
-from yaml.parser import ParserError
+from ruamel.yaml import YAML, YAMLError
 
 from persistence import state
 
@@ -142,7 +141,8 @@ def _get_timed(d: dict[str, any]):
 def _get_input(input_file: str):
     try:
         with open(input_file, 'r') as f:
-            yml = yaml.safe_load(f)
+            yaml = YAML()
+            yml = yaml.load(f)
         _validate_group(yml)
         if 'locations' not in yml:
             raise InvalidInputFile('Input requires "locations"')
@@ -168,7 +168,7 @@ def _get_input(input_file: str):
                     if not isinstance(i, str):
                         raise InvalidInputFile('"additional" entries must be strings')
 
-    except ParserError as e:
+    except YAMLError as e:
         raise InvalidInputFile("Unable to parse input file") from e
     return yml
 
