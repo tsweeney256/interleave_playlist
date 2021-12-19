@@ -15,7 +15,9 @@
 import os
 import re
 import sys
+from collections import Iterable
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
@@ -115,6 +117,21 @@ def get_watched_file_name():
         with open(fn, 'w'):
             pass
     return fn
+
+
+def drop_groups(location_groups: Iterable[tuple[str, str]]) -> None:
+    input_ = _get_input(state.get_last_input_file())
+    for location_group in location_groups:
+        location_name = location_group[0]
+        location = next(filter(lambda i: i['name'] == location_name, input_['locations']))
+        if len(location_group) < 2:
+            location['disabled'] = True
+            continue
+        group_name = location_group[1]
+        blacklist: list[str] = location.setdefault('blacklist', [])
+        blacklist.extend(group_name)
+    yaml = YAML()
+    yaml.dump(input_, Path(state.get_last_input_file()))
 
 
 def _get_group_list(groups: list[dict[str, any]]):

@@ -104,6 +104,7 @@ class PlaylistWindow(QWidget):
             'Play': self.play,
             'Mark Watched': self.mark_watched,
             'Unmark Watched': self.unmark_watched,
+            'Drop Group': self.drop_groups,
             'Refresh': self.refresh,
             'Open Input File': self.open_input,
             'Open Watched File': self.open_watched_file,
@@ -161,6 +162,18 @@ class PlaylistWindow(QWidget):
         for i, item in enumerate(self.item_list.selectedItems()):
             color = self._row_color1 if i % 2 == 0 else self._row_color2
             item.setBackground(color)
+
+    @Slot()
+    def drop_groups(self):
+        selected_values: list[FileGroup] = [
+            i.getValue() for i in self.item_list.selectedItems()
+        ]
+        groups = set()
+        for value in selected_values:
+            if len(value) > 1:
+                # hacky for now
+                groups.add(tuple(value[1].split('_____')))
+        input_.drop_groups(groups)
 
     @Slot()
     def refresh(self):
