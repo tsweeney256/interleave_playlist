@@ -89,6 +89,8 @@ def get_locations() -> list[Location]:
     input_: dict = _get_input(state.get_last_input_file())
     locations = []
     for loc in input_['locations']:
+        if 'disabled' in loc and loc['disabled'] is True:
+            continue
         locations.append(
             Location(
                 loc['name'],
@@ -155,6 +157,8 @@ def _get_input(input_file: str):
                 raise InvalidInputFile('Location names must be strings')
             if not os.path.exists(loc['name']):
                 raise LocationNotFound(loc['name'])
+            if 'disabled' in loc and not isinstance(loc['disabled'], bool):
+                raise InvalidInputFile('"disabled" must be a boolean')
             _validate_group(loc)
             _validate_timed(loc)
             if 'groups' in loc:
