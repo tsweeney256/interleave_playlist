@@ -28,6 +28,7 @@ locations:
     blacklist:
       - 'something I do not want to see'
       - 'boring show'
+    disabled: False # Not disabled. This is the default
     # override global regex defined above
     regex: '^(?:\[.+\]|\(.+\))?\s*(?P<group>.+)\s*-\s*(?:[0-9]+).+$'
     groups:
