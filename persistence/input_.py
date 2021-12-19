@@ -127,9 +127,10 @@ def drop_groups(location_groups: Iterable[tuple[str, str]]) -> None:
         if len(location_group) < 2:
             location['disabled'] = True
             continue
-        group_name = location_group[1]
+        group_name = location_group[1].strip()
         blacklist: list[str] = location.setdefault('blacklist', [])
-        blacklist.append(group_name.strip())
+        if group_name not in blacklist:
+            blacklist.append(group_name)
     yaml = YAML()
     yaml.dump(input_, Path(state.get_last_input_file()))
 
