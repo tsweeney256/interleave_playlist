@@ -43,6 +43,7 @@ def _get_settings(option, default):
     if _CACHED_FILE is None:
         with open(_SETTINGS_FILE, 'r') as f:
             yaml = YAML()
+            yaml.preserve_quotes = True
             _CACHED_FILE = yaml.load(f)
     return _CACHED_FILE[option] if option in _CACHED_FILE else default
 
