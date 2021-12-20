@@ -17,10 +17,10 @@ import os
 import subprocess
 import threading
 
-from PySide6.QtCore import Slot, QEvent, Qt
+from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
-    QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout
+    QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar
 from pymediainfo import MediaInfo
 
 from core.playlist import FileGroup
@@ -37,6 +37,47 @@ _TOTAL_RUNTIME =       'Total Runtime:    {}'
 _SELECTED_RUNTIME =    'Selected Runtime: {}'
 
 
+class RuntimeCalculationThread(QThread):
+    value_updated = Signal(int)
+    completed = Signal(dict)
+
+    def __init__(self, playlist: dict[str, str], duration_cache=None):
+        super(RuntimeCalculationThread, self).__init__()
+        if duration_cache is None:
+            duration_cache = {}
+        self.running = False
+        self.stop = False
+        self.playlist = playlist.copy()
+        self.duration_cache: dict[str, int] = ({}
+                                               if duration_cache is None else
+                                               duration_cache.copy())
+        self.pending_playlist = None
+
+    def __del__(self):
+        self.wait()
+
+    def set_pending_playlist(self, playlist: dict[str, str]):
+        self.pending_playlist = playlist.copy()
+
+    def run(self):
+        self.running = True
+        while True:
+            for i, elem in enumerate(item[0] for item in self.playlist):
+                if self.stop:
+                    return
+                if elem not in self.duration_cache:
+                    media_info = MediaInfo.parse(elem)
+                    self.duration_cache[elem] = int(float(media_info.video_tracks[0].duration))
+                    self.value_updated.emit(i+1)
+            if not self.pending_playlist:
+                break
+            else:
+                self.playlist = self.pending_playlist
+                self.pending_playlist = None
+        self.completed.emit(self.duration_cache)
+        self.running = False
+
+
 class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -44,9 +85,6 @@ class PlaylistWindow(QWidget):
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
         self.duration_cache = {}
         self.durations_loaded = False
-        self._runtime_pending = False
-        self._runtime_thread_stop = False
-        self._total_duration = 0
 
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         label_font.setPointSize(16)
@@ -61,13 +99,15 @@ class PlaylistWindow(QWidget):
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
         self.total_runtime_label.setFont(label_font)
+        self.total_runtime_progress = QProgressBar()
+        self.total_runtime_progress.setMaximum(len(self.playlist))
 
         self.selected_runtime_label = QLabel(_SELECTED_RUNTIME.format('...'))
         self.selected_runtime_label.setFont(label_font)
         self.item_list.selectAll()
 
-        thread = threading.Thread(target=self._get_total_runtime)
-        thread.start()
+        self.runtime_thread = None
+        self._run_calculate_total_runtime_thread()
 
         label_layout = QGridLayout()
         label_layout.addWidget(self.total_shows_label,      0, 0)
@@ -79,6 +119,7 @@ class PlaylistWindow(QWidget):
         list_layout.addWidget(self.item_list)
 
         layout = QVBoxLayout(self)
+        layout.addWidget(self.total_runtime_progress)
         layout.addLayout(label_layout)
         layout.addLayout(self._create_button_layout())
         layout.addLayout(list_layout)
@@ -217,6 +258,21 @@ class PlaylistWindow(QWidget):
     def selection_change(self):
         self._selection_change(len(self.item_list.selectedItems()))
 
+    @Slot()
+    def update_total_runtime_progress_bar(self, value):
+        self.total_runtime_progress.setMaximum(len(self.runtime_thread.playlist))
+        self.total_runtime_progress.setValue(value)
+
+    @Slot()
+    def total_runtime_thread_completed(self, duration_cache: dict[str, int]):
+        self.duration_cache = duration_cache
+        total_duration = sum(duration_cache.values())
+        self.total_runtime_label.setText(
+            _TOTAL_RUNTIME.format(_get_duration_str(total_duration, total_duration)))
+        self._get_selected_runtime()
+        self.total_runtime_progress.hide()
+        self.durations_loaded = True
+
     def _selection_change(self, num_selected: int):
         self.total_selected_label.setText(
             _SELECTED_SHOWS_TEXT.format(
@@ -228,40 +284,13 @@ class PlaylistWindow(QWidget):
         if self.durations_loaded:
             self._get_selected_runtime()
 
-    def _get_total_runtime(self):
-        self.total_runtime_label.setText(_TOTAL_RUNTIME.format('...'))
-        self._running_runtime_thread = True
-        while True:
-            duration = 0
-            for i in (item[0] for item in self.playlist):
-                if self._runtime_thread_stop:
-                    return
-                if i not in self.duration_cache:
-                    media_info = MediaInfo.parse(i)
-                    # sometimes this is a str???
-                    d = int(float(media_info.video_tracks[0].duration))
-                    self.duration_cache[i] = d
-                else:
-                    d = self.duration_cache[i]
-                duration += d
-            if not self._runtime_pending:
-                break
-            else:
-                self._runtime_pending = False
-        self._total_duration = duration
-        self._running_runtime_thread = False
-        self.total_runtime_label.setText(
-            _TOTAL_RUNTIME.format(_get_duration_str(duration, duration)))
-        self.durations_loaded = True
-        self._get_selected_runtime()
-
     def _get_selected_runtime(self):
-        duration = 0
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
-        for i in self.item_list.selectedItems():
-            duration += self.duration_cache[i.getValue()[0]]
+        duration = sum([self.duration_cache[i.getValue()[0]]
+                        for i in self.item_list.selectedItems()])
+        total_duration = sum(self.duration_cache.values())
         self.selected_runtime_label.setText(
-            _SELECTED_RUNTIME.format(_get_duration_str(duration, self._total_duration)))
+            _SELECTED_RUNTIME.format(_get_duration_str(duration, total_duration)))
 
     @staticmethod
     def _get_standard_row_colors():
@@ -280,13 +309,18 @@ class PlaylistWindow(QWidget):
                 _DARK_MODE_WATCHED_COLOR)
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        self._runtime_thread_stop = True
+        self.runtime_thread.stop = True
 
     def _run_calculate_total_runtime_thread(self):
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         self.durations_loaded = False
-        if not self._running_runtime_thread:
-            thread = threading.Thread(target=self._get_total_runtime)
-            thread.start()
+        if self.runtime_thread is None or self.runtime_thread.isFinished():
+            self.total_runtime_progress.show()
+            self.total_runtime_label.setText(_TOTAL_RUNTIME.format('...'))
+            self.runtime_thread = RuntimeCalculationThread(self.playlist, self.duration_cache)
+            self.runtime_thread.value_updated.connect(self.update_total_runtime_progress_bar)
+            self.runtime_thread.completed.connect(self.total_runtime_thread_completed)
+            self.total_runtime_progress.setValue(0)
+            self.runtime_thread.start()
         else:
-            self._runtime_pending = True
+            self.runtime_thread.set_pending_playlist(self.playlist)
