@@ -143,7 +143,6 @@ class PlaylistWindow(QWidget):
             thread = threading.Thread(target=_impl)
             thread.start()
 
-    # O(1) memory, just cause
     @Slot()
     def mark_watched(self):
         selected_values: list[FileGroup] = [
