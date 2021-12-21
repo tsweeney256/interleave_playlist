@@ -61,7 +61,7 @@ def _get_duration_str(ms: int, override_ms: int):
     hours, remainder = divmod(ms, 1000 * 60 * 60)
     minutes, remainder = divmod(remainder, 1000 * 60)
     seconds, remainder = divmod(remainder, 1000)
-    hours_override = ms / (1000 * 60 * 60)
+    hours_override = override_ms / (1000 * 60 * 60)
     hours_len = 2 if hours_override <= 0 else max(ceil(log10(hours_override)), 2)
     hours_fmt = '{' + ':0{}d'.format(hours_len) + '}'
     return (hours_fmt + ':{:02d}:{:02d}').format(hours, minutes, seconds)
