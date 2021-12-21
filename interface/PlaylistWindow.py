@@ -118,6 +118,7 @@ class PlaylistWindow(QWidget):
         self.alphabetical_radio = QRadioButton("Alphabetical")
         self.alphabetical_radio.toggled.connect(self.alphabetical_sort)
         self.last_modified_radio = QRadioButton("Last Modified")
+        self.last_modified_radio.toggled.connect(self.last_modified_sort)
         self.lru_radio = QRadioButton("Least Recently Watched")
 
         total_layout = QVBoxLayout()
@@ -310,6 +311,11 @@ class PlaylistWindow(QWidget):
     @Slot()
     def alphabetical_sort(self):
         self.sort = natsort.natsort_key
+        self._refresh(self.item_list)
+
+    @Slot()
+    def last_modified_sort(self):
+        self.sort = lambda x: os.path.getmtime(x[0])
         self._refresh(self.item_list)
 
     def _selection_change(self, num_selected: int):
