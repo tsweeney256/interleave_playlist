@@ -20,7 +20,8 @@ import threading
 from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
-    QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar
+    QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
+    QGroupBox
 from pymediainfo import MediaInfo
 
 from core.playlist import FileGroup
@@ -87,7 +88,7 @@ class PlaylistWindow(QWidget):
         self.durations_loaded = False
 
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        label_font.setPointSize(16)
+        label_font.setPointSize(settings.get_font_size() * 1.25)
         self.total_shows_label = QLabel()
         self.total_shows_label.setFont(label_font)
 
@@ -109,11 +110,35 @@ class PlaylistWindow(QWidget):
         self.runtime_thread = None
         self._run_calculate_total_runtime_thread()
 
-        label_layout = QGridLayout()
-        label_layout.addWidget(self.total_shows_label,      0, 0)
-        label_layout.addWidget(self.total_selected_label,   1, 0)
-        label_layout.addWidget(self.total_runtime_label,    0, 1)
-        label_layout.addWidget(self.selected_runtime_label, 1, 1)
+        self.interleave_radio = QRadioButton("Interleave")
+        self.interleave_radio.toggle()
+        self.alphabetical_radio = QRadioButton("Alphabetical")
+        self.last_modified_radio = QRadioButton("Last Modified")
+        self.lru_radio = QRadioButton("Least Recently Watched")
+
+        total_layout = QVBoxLayout()
+        total_group = QGroupBox("Stats")
+        total_group.setLayout(total_layout)
+        total_layout.addWidget(self.total_shows_label)
+        total_layout.addWidget(self.total_selected_label)
+        runtime_layout = QVBoxLayout()
+        runtime_group = QGroupBox(" ")
+        runtime_group.setLayout(runtime_layout)
+        runtime_layout.addWidget(self.total_runtime_label)
+        runtime_layout.addWidget(self.selected_runtime_label)
+        label_layout = QHBoxLayout()
+        label_layout.addWidget(total_group)
+        label_layout.addWidget(runtime_group)
+
+        radio_group = QGroupBox("Sort")
+        radio_layout = QGridLayout()
+        radio_layout.addWidget(self.interleave_radio,    0, 0)
+        radio_layout.addWidget(self.alphabetical_radio,  1, 0)
+        radio_layout.addWidget(self.last_modified_radio, 0, 1)
+        radio_layout.addWidget(self.lru_radio,           1, 1)
+        radio_group.setLayout(radio_layout)
+
+        label_layout.addWidget(radio_group)
 
         list_layout = QVBoxLayout()
         list_layout.addWidget(self.item_list)
