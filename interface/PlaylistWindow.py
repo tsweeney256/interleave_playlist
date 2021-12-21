@@ -11,7 +11,7 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import itertools
 import math
 import os
 import subprocess
@@ -22,7 +22,7 @@ from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
-    QGroupBox
+    QGroupBox, QCheckBox
 from pymediainfo import MediaInfo
 
 from core.playlist import FileGroup
@@ -87,8 +87,10 @@ class PlaylistWindow(QWidget):
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
         self.duration_cache = {}
         self.durations_loaded = False
-        self.sort = lambda x: False
+        counter = itertools.count()
+        self.sort = lambda x: next(counter)
 
+        self.reversed_checkbox = QCheckBox("Reversed")
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         label_font.setPointSize(settings.get_font_size() * 1.25)
         self.total_shows_label = QLabel()
@@ -119,7 +121,7 @@ class PlaylistWindow(QWidget):
         self.alphabetical_radio.toggled.connect(self.alphabetical_sort)
         self.last_modified_radio = QRadioButton("Last Modified")
         self.last_modified_radio.toggled.connect(self.last_modified_sort)
-        self.lru_radio = QRadioButton("Least Recently Watched")
+        self.reversed_checkbox.toggled.connect(self.reverse_sort)
 
         total_layout = QVBoxLayout()
         total_group = QGroupBox("Stats")
@@ -140,7 +142,7 @@ class PlaylistWindow(QWidget):
         radio_layout.addWidget(self.interleave_radio,    0, 0)
         radio_layout.addWidget(self.alphabetical_radio,  1, 0)
         radio_layout.addWidget(self.last_modified_radio, 0, 1)
-        radio_layout.addWidget(self.lru_radio,           1, 1)
+        radio_layout.addWidget(self.reversed_checkbox,   1, 1)
         radio_group.setLayout(radio_layout)
 
         label_layout.addWidget(radio_group)
@@ -254,7 +256,9 @@ class PlaylistWindow(QWidget):
         item_list.clear()
         self.playlist = _create_playlist()
         if self.playlist is not None:
-            for item in sorted(self.playlist, key=self.sort):
+            for item in sorted(self.playlist,
+                               key=self.sort,
+                               reverse=self.reversed_checkbox.isChecked()):
                 item_list.addItem(
                     PlaylistWindowItem(value=item)
                 )
@@ -305,7 +309,8 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def interleave_sort(self):
-        self.sort = lambda x: False
+        counter = itertools.count()
+        self.sort = lambda x: next(counter)
         self._refresh(self.item_list)
 
     @Slot()
@@ -316,6 +321,10 @@ class PlaylistWindow(QWidget):
     @Slot()
     def last_modified_sort(self):
         self.sort = lambda x: os.path.getmtime(x[0])
+        self._refresh(self.item_list)
+
+    @Slot()
+    def reverse_sort(self):
         self._refresh(self.item_list)
 
     def _selection_change(self, num_selected: int):
