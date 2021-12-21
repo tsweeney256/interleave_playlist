@@ -17,6 +17,7 @@ import os
 import subprocess
 import threading
 
+import natsort
 from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
@@ -308,7 +309,7 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def alphabetical_sort(self):
-        self.sort = lambda x: x
+        self.sort = natsort.natsort_key
         self._refresh(self.item_list)
 
     def _selection_change(self, num_selected: int):
