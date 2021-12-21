@@ -86,6 +86,7 @@ class PlaylistWindow(QWidget):
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
         self.duration_cache = {}
         self.durations_loaded = False
+        self.sort = lambda x: False
 
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         label_font.setPointSize(settings.get_font_size() * 1.25)
@@ -112,7 +113,9 @@ class PlaylistWindow(QWidget):
 
         self.interleave_radio = QRadioButton("Interleave")
         self.interleave_radio.toggle()
+        self.interleave_radio.toggled.connect(self.interleave_sort)
         self.alphabetical_radio = QRadioButton("Alphabetical")
+        self.alphabetical_radio.toggled.connect(self.alphabetical_sort)
         self.last_modified_radio = QRadioButton("Last Modified")
         self.lru_radio = QRadioButton("Least Recently Watched")
 
@@ -249,7 +252,7 @@ class PlaylistWindow(QWidget):
         item_list.clear()
         self.playlist = _create_playlist()
         if self.playlist is not None:
-            for item in self.playlist:
+            for item in sorted(self.playlist, key=self.sort):
                 item_list.addItem(
                     PlaylistWindowItem(value=item)
                 )
@@ -297,6 +300,16 @@ class PlaylistWindow(QWidget):
         self._get_selected_runtime()
         self.total_runtime_progress.hide()
         self.durations_loaded = True
+
+    @Slot()
+    def interleave_sort(self):
+        self.sort = lambda x: False
+        self._refresh(self.item_list)
+
+    @Slot()
+    def alphabetical_sort(self):
+        self.sort = lambda x: x
+        self._refresh(self.item_list)
 
     def _selection_change(self, num_selected: int):
         self.total_selected_label.setText(
