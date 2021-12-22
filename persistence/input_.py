@@ -15,7 +15,7 @@
 import os
 import re
 import sys
-from collections import Iterable
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 from pathlib import Path
 
