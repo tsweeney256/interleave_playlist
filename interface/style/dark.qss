@@ -33,3 +33,11 @@ QScrollBar::sub-line:vertical {
     subcontrol-position: top;
     subcontrol-origin: margin;
 }
+
+QProgressBar {
+    text-align: center
+}
+
+QProgressBar::chunk {
+    background: #444444;
+}
