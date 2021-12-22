@@ -1,6 +1,8 @@
 * {
     color: #cdcdcd;
     background-color: #282828;
+    selection-background-color: #332222;
+    selection-color: #cdcdcd;
 }
 
 QPushButton {
