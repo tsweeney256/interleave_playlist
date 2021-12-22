@@ -124,18 +124,18 @@ class PlaylistWindow(QWidget):
         self.reversed_checkbox.toggled.connect(self.reverse_sort)
 
         total_layout = QVBoxLayout()
-        total_group = QGroupBox("Stats")
-        total_group.setLayout(total_layout)
+        stats_group = QGroupBox("Stats")
         total_layout.addWidget(self.total_shows_label)
         total_layout.addWidget(self.total_selected_label)
         runtime_layout = QVBoxLayout()
-        runtime_group = QGroupBox(" ")
-        runtime_group.setLayout(runtime_layout)
         runtime_layout.addWidget(self.total_runtime_label)
         runtime_layout.addWidget(self.selected_runtime_label)
+        stats_layout = QHBoxLayout()
+        stats_layout.addLayout(total_layout)
+        stats_layout.addLayout(runtime_layout)
+        stats_group.setLayout(stats_layout)
         label_layout = QHBoxLayout()
-        label_layout.addWidget(total_group)
-        label_layout.addWidget(runtime_group)
+        label_layout.addWidget(stats_group, 4)
 
         radio_group = QGroupBox("Sort")
         radio_layout = QGridLayout()
@@ -145,7 +145,7 @@ class PlaylistWindow(QWidget):
         radio_layout.addWidget(self.reversed_checkbox,   1, 1)
         radio_group.setLayout(radio_layout)
 
-        label_layout.addWidget(radio_group)
+        label_layout.addWidget(radio_group, 2)
 
         list_layout = QVBoxLayout()
         list_layout.addWidget(self.item_list)
