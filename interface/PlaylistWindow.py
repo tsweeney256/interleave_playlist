@@ -177,8 +177,8 @@ class PlaylistWindow(QWidget):
             'Play': self.play,
             'Mark Watched': self.mark_watched,
             'Unmark Watched': self.unmark_watched,
-            'Drop Shows': self.drop_groups,
             'Refresh': self.refresh,
+            'Drop Shows': self.drop_groups,
             'Open Input File': self.open_input,
             'Open Watched File': self.open_watched_file,
         }
