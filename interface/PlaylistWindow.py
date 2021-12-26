@@ -73,9 +73,8 @@ class RuntimeCalculationThread(QThread):
                     self.value_updated.emit(i+1)
             if not self.pending_playlist:
                 break
-            else:
-                self.playlist = self.pending_playlist
-                self.pending_playlist = None
+            self.playlist = self.pending_playlist
+            self.pending_playlist = None
         self.completed.emit(self.duration_cache)
         self.running = False
 
@@ -368,13 +367,13 @@ class PlaylistWindow(QWidget):
     def _run_calculate_total_runtime_thread(self):
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         self.durations_loaded = False
-        if self.runtime_thread is None or self.runtime_thread.isFinished():
-            self.total_runtime_progress.show()
-            self.total_runtime_label.setText(_TOTAL_RUNTIME.format('...'))
-            self.runtime_thread = RuntimeCalculationThread(self.playlist, self.duration_cache)
-            self.runtime_thread.value_updated.connect(self.update_total_runtime_progress_bar)
-            self.runtime_thread.completed.connect(self.total_runtime_thread_completed)
-            self.total_runtime_progress.setValue(0)
-            self.runtime_thread.start()
-        else:
+        if self.runtime_thread is not None and not self.runtime_thread.isFinished():
             self.runtime_thread.set_pending_playlist(self.playlist)
+            return
+        self.total_runtime_progress.show()
+        self.total_runtime_label.setText(_TOTAL_RUNTIME.format('...'))
+        self.runtime_thread = RuntimeCalculationThread(self.playlist, self.duration_cache)
+        self.runtime_thread.value_updated.connect(self.update_total_runtime_progress_bar)
+        self.runtime_thread.completed.connect(self.total_runtime_thread_completed)
+        self.total_runtime_progress.setValue(0)
+        self.runtime_thread.start()

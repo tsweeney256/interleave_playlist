@@ -90,10 +90,10 @@ def _group_items_by_regex(loc: Location) -> dict[Group, list[str]]:
                 group = copy(loc.default_group)
                 group.name = group_name
                 group_dict[group_name] = group
-            group = grouped_items.setdefault(group, list())
         else:
-            group = grouped_items.setdefault(loc.default_group, list())
-        group.append(p)
+            group = loc.default_group
+        group_members = grouped_items.setdefault(group, list())
+        group_members.append(p)
     return grouped_items
 
 
