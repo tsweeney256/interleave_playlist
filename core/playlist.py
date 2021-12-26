@@ -22,6 +22,7 @@ from re import Pattern
 from natsort import natsorted, ns
 
 from core.interleave import interleave_all
+from persistence import settings
 from persistence.input_ import Location, Timed, Group
 
 LocationGroups = dict[Group, list[str]]
@@ -54,7 +55,7 @@ def _get_playlist(location_groups: LocationGroups, watched_list: list[FileGroup]
                        and path.basename(i) not in watched_names
                        and _matches_whitelist(i, group.whitelist)
                        and not _matches_blacklist(i, group.blacklist)
-                       and isfile(i)),
+                       and (not settings.get_exclude_directories() or isfile(i))),
             locations)]
         if items:
             data.append(items)

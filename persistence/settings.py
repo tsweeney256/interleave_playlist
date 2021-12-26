@@ -39,6 +39,10 @@ def get_max_watched_remembered() -> int:
     return _get_settings('max-watched-remembered')
 
 
+def get_exclude_directories() -> bool:
+    return _get_settings('exclude-directories')
+
+
 def _get_settings(option):
     global _CACHED_FILE
     if _CACHED_FILE is None:
@@ -60,7 +64,8 @@ def _get_default_settings() -> dict[str, any]:
         'font-size': 12,
         'play-command': 'mpv',
         'dark-mode': False,
-        'max-watched-remembered': 100
+        'max-watched-remembered': 100,
+        'exclude-directories': True
     }
 
 
