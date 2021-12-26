@@ -79,8 +79,13 @@ class RuntimeCalculationThread(QThread):
                 if self.stop:
                     return
                 if elem not in self.duration_cache:
-                    media_info = MediaInfo.parse(elem)
-                    duration: int = int(float(media_info.video_tracks[0].duration))
+                    duration: int = 0
+                    if os.path.isfile(elem):
+                        media_info = MediaInfo.parse(elem)
+                        if len(media_info.video_tracks) > 0:
+                            duration = int(float(media_info.video_tracks[0].duration))
+                        elif len(media_info.audio_tracks) > 0:
+                            duration = int(float(media_info.audio_tracks[0].duration))
                     self.duration_cache[elem] = duration
                     self.value_updated.emit(i+1)
                 total_duration += self.duration_cache[elem]
