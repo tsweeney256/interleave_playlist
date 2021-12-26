@@ -16,6 +16,7 @@ import re
 from copy import copy
 from itertools import groupby
 from os import path, listdir
+from os.path import isfile
 from re import Pattern
 
 from natsort import natsorted, ns
@@ -52,7 +53,8 @@ def _get_playlist(location_groups: LocationGroups, watched_list: list[FileGroup]
             lambda i: (i in timed_slice
                        and path.basename(i) not in watched_names
                        and _matches_whitelist(i, group.whitelist)
-                       and not _matches_blacklist(i, group.blacklist)),
+                       and not _matches_blacklist(i, group.blacklist)
+                       and isfile(i)),
             locations)]
         if items:
             data.append(items)
