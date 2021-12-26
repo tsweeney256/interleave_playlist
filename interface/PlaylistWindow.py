@@ -16,6 +16,7 @@ import math
 import os
 import subprocess
 import threading
+from typing import Optional
 
 import natsort
 from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread
@@ -41,19 +42,20 @@ _SELECTED_RUNTIME =    'Selected Runtime: {}'
 
 class RuntimeCalculationThread(QThread):
     value_updated = Signal(int)
-    completed = Signal(dict)
+    completed = Signal(dict, int)
+    error = Signal(BaseException)
 
-    def __init__(self, playlist: dict[str, str], duration_cache=None):
+    def __init__(self, playlist: dict[str, str], duration_cache: Optional[dict[str, int]] = None):
         super(RuntimeCalculationThread, self).__init__()
         if duration_cache is None:
             duration_cache = {}
-        self.running = False
-        self.stop = False
-        self.playlist = playlist.copy()
+        self.running: bool = False
+        self.stop: bool = False
+        self.playlist: dict[str, str] = playlist.copy()
         self.duration_cache: dict[str, int] = ({}
                                                if duration_cache is None else
                                                duration_cache.copy())
-        self.pending_playlist = None
+        self.pending_playlist: Optional[dict[str, str]] = None
 
     def __del__(self):
         self.wait()
@@ -63,20 +65,30 @@ class RuntimeCalculationThread(QThread):
 
     def run(self):
         self.running = True
+        try:
+            self._run()
+        except BaseException as e:
+            self.error.emit(e)
+        finally:
+            self.running = False
+
+    def _run(self):
         while True:
+            total_duration = 0
             for i, elem in enumerate(item[0] for item in self.playlist):
                 if self.stop:
                     return
                 if elem not in self.duration_cache:
                     media_info = MediaInfo.parse(elem)
-                    self.duration_cache[elem] = int(float(media_info.video_tracks[0].duration))
+                    duration: int = int(float(media_info.video_tracks[0].duration))
+                    self.duration_cache[elem] = duration
                     self.value_updated.emit(i+1)
+                total_duration += self.duration_cache[elem]
             if not self.pending_playlist:
                 break
             self.playlist = self.pending_playlist
             self.pending_playlist = None
-        self.completed.emit(self.duration_cache)
-        self.running = False
+        self.completed.emit(self.duration_cache, total_duration)
 
 
 class PlaylistWindow(QWidget):
@@ -111,6 +123,7 @@ class PlaylistWindow(QWidget):
         self.item_list.selectAll()
 
         self.runtime_thread = None
+        self.total_duration: int = 0
         self._run_calculate_total_runtime_thread()
 
         self.interleave_radio = QRadioButton("Interleave")
@@ -297,14 +310,18 @@ class PlaylistWindow(QWidget):
         self.total_runtime_progress.setValue(value)
 
     @Slot()
-    def total_runtime_thread_completed(self, duration_cache: dict[str, int]):
+    def total_runtime_thread_completed(self, duration_cache: dict[str, int], total_duration: int):
         self.duration_cache = duration_cache
-        total_duration = sum(duration_cache.values())
+        self.total_duration = total_duration
         self.total_runtime_label.setText(
             _TOTAL_RUNTIME.format(_get_duration_str(total_duration, total_duration)))
+        self.durations_loaded = True
         self._get_selected_runtime()
         self.total_runtime_progress.hide()
-        self.durations_loaded = True
+
+    @Slot()
+    def total_runtime_thread_error(self, exception: BaseException):
+        raise exception
 
     @Slot()
     def interleave_sort(self):
@@ -334,16 +351,16 @@ class PlaylistWindow(QWidget):
                     if len(self.playlist) > 0 else
                     1
                 ))))
-        if self.durations_loaded:
-            self._get_selected_runtime()
+        self._get_selected_runtime()
 
     def _get_selected_runtime(self):
+        if not self.durations_loaded:
+            return
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         duration = sum([self.duration_cache[i.getValue()[0]]
                         for i in self.item_list.selectedItems()])
-        total_duration = sum(self.duration_cache.values())
         self.selected_runtime_label.setText(
-            _SELECTED_RUNTIME.format(_get_duration_str(duration, total_duration)))
+            _SELECTED_RUNTIME.format(_get_duration_str(duration, self.total_duration)))
 
     @staticmethod
     def _get_standard_row_colors():
@@ -370,10 +387,11 @@ class PlaylistWindow(QWidget):
         if self.runtime_thread is not None and not self.runtime_thread.isFinished():
             self.runtime_thread.set_pending_playlist(self.playlist)
             return
+        self.total_runtime_progress.setValue(0)
         self.total_runtime_progress.show()
         self.total_runtime_label.setText(_TOTAL_RUNTIME.format('...'))
         self.runtime_thread = RuntimeCalculationThread(self.playlist, self.duration_cache)
         self.runtime_thread.value_updated.connect(self.update_total_runtime_progress_bar)
         self.runtime_thread.completed.connect(self.total_runtime_thread_completed)
-        self.total_runtime_progress.setValue(0)
+        self.runtime_thread.error.connect(self.total_runtime_thread_error)
         self.runtime_thread.start()
