@@ -100,6 +100,7 @@ class PlaylistWindow(QWidget):
     def __init__(self):
         super().__init__()
 
+        self._warned_about_mediainfo_missing = False
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
         self.duration_cache = {}
         self.durations_loaded = False
@@ -122,6 +123,7 @@ class PlaylistWindow(QWidget):
         self.total_runtime_label.setFont(label_font)
         self.total_runtime_progress = QProgressBar()
         self.total_runtime_progress.setMaximum(len(self.playlist))
+        self.total_runtime_progress.hide()
 
         self.selected_runtime_label = QLabel(_SELECTED_RUNTIME.format('...'))
         self.selected_runtime_label.setFont(label_font)
@@ -384,11 +386,19 @@ class PlaylistWindow(QWidget):
                 _DARK_MODE_WATCHED_COLOR)
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        self.runtime_thread.stop = True
+        if self.runtime_thread is not None:
+            self.runtime_thread.stop = True
 
     def _run_calculate_total_runtime_thread(self):
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         self.durations_loaded = False
+        if not MediaInfo.can_parse():
+            if not self._warned_about_mediainfo_missing:
+                self._warned_about_mediainfo_missing = True
+                QMessageBox(text="libmediainfo not found. Will be unable to calculate "
+                                 "runtimes unless installed",
+                            icon=QMessageBox.Warning).exec()
+            return
         if self.runtime_thread is not None and not self.runtime_thread.isFinished():
             self.runtime_thread.set_pending_playlist(self.playlist)
             return
