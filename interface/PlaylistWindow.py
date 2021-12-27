@@ -260,11 +260,21 @@ class PlaylistWindow(QWidget):
             i.getValue() for i in self.item_list.selectedItems()
         ]
         groups = set()
+        groups_str = set()
         for value in selected_values:
             if len(value) > 1:
                 # hacky for now
-                groups.add(tuple(value[1].split('_____')))
-        input_.drop_groups(groups)
+                split = value[1].split('_____')
+                groups.add(tuple(split))
+                groups_str.add(split[1] if len(split) > 1 else split[0])
+        msg_box = QMessageBox(text="You are about to drop the following groups. "
+                                   "Do you wish to continue?\n    {}"
+                                   .format('\n    '.join(groups_str)),
+                              icon=QMessageBox.Question)
+        msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        reply = msg_box.exec()
+        if reply == QMessageBox.Ok:
+            input_.drop_groups(groups)
 
     @Slot()
     def refresh(self):
