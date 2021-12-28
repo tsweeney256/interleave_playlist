@@ -193,17 +193,19 @@ class PlaylistWindow(QWidget):
     def _create_button_layout(self):
         button_layout = QHBoxLayout()
         buttons = {
-            'Play': self.play,
-            'Mark Watched': self.mark_watched,
-            'Unmark Watched': self.unmark_watched,
-            'Refresh': self.refresh,
-            'Drop Shows': self.drop_groups,
-            'Open Input File': self.open_input,
-            'Open Watched File': self.open_watched_file,
+            'Play': (self.play, 'Enter'),
+            'Mark Watched': (self.mark_watched, 'Ctrl-W'),
+            'Unmark Watched': (self.unmark_watched, 'Ctrl-U'),
+            'Refresh': (self.refresh, 'F5'),
+            'Drop Shows': (self.drop_groups, 'Ctrl-Shift-D'),
+            'Open Input File': (self.open_input, 'Ctrl-O'),
+            'Open Watched File': (self.open_watched_file, 'Ctrl-Shift-O'),
         }
         for key, value in buttons.items():
             button = QPushButton(key)
-            button.clicked.connect(value)
+            button.clicked.connect(value[0])
+            if value[1] is not None:
+                button.setToolTip(value[1])
             button_layout.addWidget(button)
         return button_layout
 
