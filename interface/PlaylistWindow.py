@@ -215,6 +215,7 @@ class PlaylistWindow(QWidget):
                 Qt.ControlModifier + Qt.Key_W: self.mark_watched,
                 Qt.ControlModifier + Qt.Key_U: self.unmark_watched,
                 Qt.NoModifier + Qt.Key_F5: self.refresh,
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_D: self.drop_groups,
                 Qt.ControlModifier + Qt.Key_O: self.open_input,
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_O: self.open_watched_file
             }
