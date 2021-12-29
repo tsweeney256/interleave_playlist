@@ -134,13 +134,17 @@ class PlaylistWindow(QWidget):
         self._run_calculate_total_runtime_thread()
 
         self.interleave_radio = QRadioButton("Interleave")
+        self.interleave_radio.setToolTip('Ctrl+Shift+I')
         self.interleave_radio.toggle()
         self.interleave_radio.toggled.connect(self.interleave_sort)
         self.alphabetical_radio = QRadioButton("Alphabetical")
+        self.alphabetical_radio.setToolTip('Ctrl+Shift+A')
         self.alphabetical_radio.toggled.connect(self.alphabetical_sort)
         self.last_modified_radio = QRadioButton("Last Modified")
+        self.last_modified_radio.setToolTip('Ctrl+Shift+M')
         self.last_modified_radio.toggled.connect(self.last_modified_sort)
         self.reversed_checkbox.toggled.connect(self.reverse_sort)
+        self.reversed_checkbox.setToolTip('Ctrl+Shift+R')
 
         total_layout = QVBoxLayout()
         stats_group = QGroupBox("Stats")
@@ -219,7 +223,11 @@ class PlaylistWindow(QWidget):
                 Qt.NoModifier + Qt.Key_F5: self.refresh,
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_D: self.drop_groups,
                 Qt.ControlModifier + Qt.Key_O: self.open_input,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_O: self.open_watched_file
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_O: self.open_watched_file,
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_I: self.interleave_radio.toggle,
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_A: self.alphabetical_radio.toggle,
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_M: self.last_modified_radio.toggle,
+                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_R: self.reversed_checkbox.toggle,
             }
             if event.keyCombination().toCombined() in switch:
                 switch[event.keyCombination().toCombined()]()
