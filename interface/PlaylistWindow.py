@@ -101,6 +101,7 @@ class PlaylistWindow(QWidget):
         super().__init__()
 
         self._warned_about_mediainfo_missing = False
+        self.selection_dependent_buttons: list[QPushButton] = []
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
         self.duration_cache = {}
         self.durations_loaded = False
@@ -197,19 +198,21 @@ class PlaylistWindow(QWidget):
     def _create_button_layout(self):
         button_layout = QHBoxLayout()
         buttons = [
-            ('Play', self.play, 'Enter'),
-            ('Mark Watched', self.mark_watched, 'Ctrl-W'),
-            ('Unmark Watched', self.unmark_watched, 'Ctrl-U'),
-            ('Refresh', self.refresh, 'F5'),
-            ('Drop Shows', self.drop_groups, 'Ctrl-Shift-D'),
-            ('Open Input File', self.open_input, 'Ctrl-O'),
-            ('Open Watched File', self.open_watched_file, 'Ctrl-Shift-O'),
+            ('Play', self.play, 'Enter', True),
+            ('Mark Watched', self.mark_watched, 'Ctrl-W', True),
+            ('Unmark Watched', self.unmark_watched, 'Ctrl-U', True),
+            ('Refresh', self.refresh, 'F5', False),
+            ('Drop Shows', self.drop_groups, 'Ctrl-Shift-D', True),
+            ('Open Input File', self.open_input, 'Ctrl-O', False),
+            ('Open Watched File', self.open_watched_file, 'Ctrl-Shift-O', False),
         ]
-        for name, func, tooltip in buttons:
+        for name, func, tooltip, selection_dependent in buttons:
             button = QPushButton(name)
             button.clicked.connect(func)
             if tooltip is not None:
                 button.setToolTip(tooltip)
+            if selection_dependent:
+                self.selection_dependent_buttons.append(button)
             button_layout.addWidget(button)
         return button_layout
 
@@ -395,6 +398,13 @@ class PlaylistWindow(QWidget):
                     1
                 ))))
         self._get_selected_runtime()
+
+        if num_selected > 0:
+            enabled = True
+        else:
+            enabled = False
+        for btn in self.selection_dependent_buttons:
+            btn.setEnabled(enabled)
 
     def _get_selected_runtime(self):
         if not self.durations_loaded:
