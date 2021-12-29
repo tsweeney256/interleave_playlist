@@ -201,8 +201,8 @@ class PlaylistWindow(QWidget):
             ('Play', self.play, 'Enter', True),
             ('Mark Watched', self.mark_watched, 'Ctrl-W', True),
             ('Unmark Watched', self.unmark_watched, 'Ctrl-U', True),
-            ('Refresh', self.refresh, 'F5', False),
             ('Drop Shows', self.drop_groups, 'Ctrl-Shift-D', True),
+            ('Refresh', self.refresh, 'F5', False),
             ('Open Input File', self.open_input, 'Ctrl-O', False),
             ('Open Watched File', self.open_watched_file, 'Ctrl-Shift-O', False),
         ]
