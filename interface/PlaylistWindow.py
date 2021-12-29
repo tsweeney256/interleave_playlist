@@ -119,6 +119,7 @@ class PlaylistWindow(QWidget):
 
         self.playlist: dict[str, str] = {}
         self.item_list: QListWidget = self._create_item_list()
+        self._refresh()
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
         self.total_runtime_label.setFont(label_font)
@@ -192,7 +193,6 @@ class PlaylistWindow(QWidget):
         item_list.doubleClicked.connect(self.play)
         item_list.itemSelectionChanged.connect(self.selection_change)
         item_list.installEventFilter(self)
-        self._refresh(item_list)
         return item_list
 
     def _create_button_layout(self):
@@ -298,22 +298,24 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def refresh(self):
-        self._refresh(self.item_list)
+        self._refresh()
         self._run_calculate_total_runtime_thread()
         self.item_list.setFocus()
 
-    def _refresh(self, item_list: QListWidget):
-        item_list.clear()
+    def _refresh(self):
+        self.item_list.clear()
         self.playlist = _create_playlist()
         if self.playlist is not None:
             for item in sorted(self.playlist,
                                key=self.sort,
                                reverse=self.reversed_checkbox.isChecked()):
-                item_list.addItem(
+                self.item_list.addItem(
                     PlaylistWindowItem(value=item)
                 )
         self.total_shows_label.setText(_TOTAL_SHOWS_TEXT.format(len(self.playlist)))
         self._selection_change(0)
+        if self.item_list.count() > 0:
+            self.item_list.setCurrentItem(self.item_list.item(0))
 
     @Slot()
     def open_input(self):
@@ -329,7 +331,7 @@ class PlaylistWindow(QWidget):
                                  '{}'.format(file_name),
                             icon=QMessageBox.Critical).exec()
                 return
-            self._refresh(self.item_list)
+            self._refresh()
             self._run_calculate_total_runtime_thread()
         finally:
             self.item_list.setFocus()
@@ -369,24 +371,24 @@ class PlaylistWindow(QWidget):
     def interleave_sort(self):
         counter = itertools.count()
         self.sort = lambda x: next(counter)
-        self._refresh(self.item_list)
+        self._refresh()
         self.item_list.setFocus()
 
     @Slot()
     def alphabetical_sort(self):
         self.sort = natsort.natsort_key
-        self._refresh(self.item_list)
+        self._refresh()
         self.item_list.setFocus()
 
     @Slot()
     def last_modified_sort(self):
         self.sort = lambda x: os.path.getmtime(x[0])
-        self._refresh(self.item_list)
+        self._refresh()
         self.item_list.setFocus()
 
     @Slot()
     def reverse_sort(self):
-        self._refresh(self.item_list)
+        self._refresh()
         self.item_list.setFocus()
 
     def _selection_change(self, num_selected: int):
