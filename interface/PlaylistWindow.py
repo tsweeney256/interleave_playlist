@@ -119,7 +119,6 @@ class PlaylistWindow(QWidget):
 
         self.playlist: dict[str, str] = {}
         self.item_list: QListWidget = self._create_item_list()
-        self._refresh()
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
         self.total_runtime_label.setFont(label_font)
@@ -133,7 +132,6 @@ class PlaylistWindow(QWidget):
 
         self.runtime_thread = None
         self.total_duration: int = 0
-        self._run_calculate_total_runtime_thread()
 
         self.interleave_radio = QRadioButton("Interleave")
         self.interleave_radio.setToolTip('Ctrl+Shift+I')
@@ -181,7 +179,7 @@ class PlaylistWindow(QWidget):
         layout.addLayout(self._create_button_layout())
         layout.addLayout(list_layout)
 
-        self.item_list.setFocus()
+        self.refresh_widgets()
 
     def _create_item_list(self):
         item_list = QListWidget()
@@ -327,12 +325,11 @@ class PlaylistWindow(QWidget):
             try:
                 state.set_last_input_file(file_name)
             except input_.InvalidInputFile:
-                QMessageBox(text='Error: Attempted to open invalid settings yaml file\n\n'
+                QMessageBox(text='Error: Attempted to open invalid input yaml file\n\n'
                                  '{}'.format(file_name),
                             icon=QMessageBox.Critical).exec()
                 return
-            self._refresh()
-            self._run_calculate_total_runtime_thread()
+            self.refresh_widgets()
         finally:
             self.item_list.setFocus()
 
@@ -400,13 +397,8 @@ class PlaylistWindow(QWidget):
                     1
                 ))))
         self._get_selected_runtime()
-
-        if num_selected > 0:
-            enabled = True
-        else:
-            enabled = False
         for btn in self.selection_dependent_buttons:
-            btn.setEnabled(enabled)
+            btn.setEnabled(num_selected > 0)
 
     def _get_selected_runtime(self):
         if not self.durations_loaded:
@@ -459,3 +451,16 @@ class PlaylistWindow(QWidget):
         self.runtime_thread.completed.connect(self.total_runtime_thread_completed)
         self.runtime_thread.error.connect(self.total_runtime_thread_error)
         self.runtime_thread.start()
+
+    def refresh_widgets(self):
+        if self.runtime_thread is not None:
+            self.runtime_thread.stop = True
+            self.runtime_thread.wait(10 * 1000)
+            self.runtime_thread = None
+            self.durations_loaded = False
+            self.duration_cache = None
+        self._refresh()
+        for button in self.selection_dependent_buttons:
+            button.setEnabled(len(self.item_list.selectedItems()) > 0)
+        self.item_list.setFocus()
+        self._run_calculate_total_runtime_thread()
