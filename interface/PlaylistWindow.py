@@ -401,6 +401,7 @@ class PlaylistWindow(QWidget):
     def closeEvent(self, event: QCloseEvent) -> None:
         if self.runtime_thread is not None:
             self.runtime_thread.stop = True
+            self.runtime_thread.wait(10 * 1000)
 
     def _run_calculate_total_runtime_thread(self):
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
