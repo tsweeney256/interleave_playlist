@@ -273,6 +273,8 @@ class PlaylistWindow(QWidget):
         selected_values: list[FileGroup] = [
             i.getValue() for i in self.item_list.selectedItems()
         ]
+        if len(selected_values) == 0:
+            return
         groups = set()
         groups_str = set()
         for value in selected_values:
