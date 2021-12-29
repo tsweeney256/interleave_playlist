@@ -237,6 +237,7 @@ class PlaylistWindow(QWidget):
     @Slot()
     def play(self):
         self._play()
+        self.item_list.setFocus()
 
     def _play(self):
         def _impl():
@@ -254,6 +255,7 @@ class PlaylistWindow(QWidget):
         add_watched(selected_values)
         for item in self.item_list.selectedItems():
             item.setBackground(self._get_watched_color())
+        self.item_list.setFocus()
 
     @Slot()
     def unmark_watched(self):
@@ -264,6 +266,7 @@ class PlaylistWindow(QWidget):
         for i, item in enumerate(self.item_list.selectedItems()):
             color = self._row_color1 if i % 2 == 0 else self._row_color2
             item.setBackground(color)
+        self.item_list.setFocus()
 
     @Slot()
     def drop_groups(self):
@@ -286,11 +289,13 @@ class PlaylistWindow(QWidget):
         reply = msg_box.exec()
         if reply == QMessageBox.Ok:
             input_.drop_groups(groups)
+        self.item_list.setFocus()
 
     @Slot()
     def refresh(self):
         self._refresh(self.item_list)
         self._run_calculate_total_runtime_thread()
+        self.item_list.setFocus()
 
     def _refresh(self, item_list: QListWidget):
         item_list.clear()
@@ -307,19 +312,22 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def open_input(self):
-        file_name: str = QFileDialog.getOpenFileName(
-            self, 'Open yaml', os.path.expanduser('~'), 'yaml files (*.yml *.yaml)')[0]
-        if file_name.strip() == '':
-            return
         try:
-            state.set_last_input_file(file_name)
-        except input_.InvalidInputFile:
-            QMessageBox(text='Error: Attempted to open invalid settings yaml file\n\n'
-                             '{}'.format(file_name),
-                        icon=QMessageBox.Critical).exec()
-            return
-        self._refresh(self.item_list)
-        self._run_calculate_total_runtime_thread()
+            file_name: str = QFileDialog.getOpenFileName(
+                self, 'Open yaml', os.path.expanduser('~'), 'yaml files (*.yml *.yaml)')[0]
+            if file_name.strip() == '':
+                return
+            try:
+                state.set_last_input_file(file_name)
+            except input_.InvalidInputFile:
+                QMessageBox(text='Error: Attempted to open invalid settings yaml file\n\n'
+                                 '{}'.format(file_name),
+                            icon=QMessageBox.Critical).exec()
+                return
+            self._refresh(self.item_list)
+            self._run_calculate_total_runtime_thread()
+        finally:
+            self.item_list.setFocus()
 
     @Slot()
     def open_watched_file(self):
@@ -327,6 +335,7 @@ class PlaylistWindow(QWidget):
             open_with_default_application(input_.get_watched_file_name())
         thread = threading.Thread(target=_impl)
         thread.start()
+        self.item_list.setFocus()
 
     @Slot()
     def selection_change(self):
@@ -356,20 +365,24 @@ class PlaylistWindow(QWidget):
         counter = itertools.count()
         self.sort = lambda x: next(counter)
         self._refresh(self.item_list)
+        self.item_list.setFocus()
 
     @Slot()
     def alphabetical_sort(self):
         self.sort = natsort.natsort_key
         self._refresh(self.item_list)
+        self.item_list.setFocus()
 
     @Slot()
     def last_modified_sort(self):
         self.sort = lambda x: os.path.getmtime(x[0])
         self._refresh(self.item_list)
+        self.item_list.setFocus()
 
     @Slot()
     def reverse_sort(self):
         self._refresh(self.item_list)
+        self.item_list.setFocus()
 
     def _selection_change(self, num_selected: int):
         self.total_selected_label.setText(
