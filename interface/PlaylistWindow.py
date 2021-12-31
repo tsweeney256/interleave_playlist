@@ -180,6 +180,7 @@ class PlaylistWindow(QWidget):
         layout.addLayout(list_layout)
 
         self.refresh_widgets()
+        self.item_list.selectAll()
 
     def _create_item_list(self):
         item_list = QListWidget()
