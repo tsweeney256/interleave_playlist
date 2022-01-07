@@ -1,7 +1,7 @@
 * {
     color: #cdcdcd;
     background-color: #282828;
-    selection-background-color: #332222;
+    selection-background-color: #502222;
     selection-color: #cdcdcd;
 }
 
