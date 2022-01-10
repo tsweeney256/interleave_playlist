@@ -329,7 +329,7 @@ class PlaylistWindow(QWidget):
                                  '{}'.format(file_name),
                             icon=QMessageBox.Critical).exec()
                 return
-            self.refresh_widgets()
+            self.refresh_widgets(stop_runtime_thread=True)
         finally:
             self.item_list.setFocus()
 
@@ -452,8 +452,8 @@ class PlaylistWindow(QWidget):
         self.runtime_thread.error.connect(self.total_runtime_thread_error)
         self.runtime_thread.start()
 
-    def refresh_widgets(self):
-        if self.runtime_thread is not None:
+    def refresh_widgets(self, stop_runtime_thread: bool = False):
+        if self.runtime_thread is not None and stop_runtime_thread:
             self.runtime_thread.stop = True
             self.runtime_thread.wait(10 * 1000)
             self.runtime_thread = None
