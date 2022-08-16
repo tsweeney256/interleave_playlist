@@ -93,19 +93,20 @@ def get_locations() -> list[Location]:
     for loc in input_['locations']:
         if 'disabled' in loc and loc['disabled'] is True:
             continue
+        options = [loc, input_]
         locations.append(
             Location(
                 loc['name'],
                 loc['additional'] if 'additional' in loc else [],
                 Group(
                     loc['name'],
-                    loc['priority'] if 'priority' in loc else input_.get('priority'),
-                    loc['whitelist'] if 'whitelist' in loc else input_.get('whitelist'),
-                    loc['blacklist'] if 'blacklist' in loc else input_.get('blacklist'),
+                    _nested_get('priority', options),
+                    _nested_get('whitelist', options),
+                    _nested_get('blacklist', options),
                     _get_timed(loc['timed']) if 'timed' in loc else None,
                 ),
-                loc['regex'] if 'regex' in loc else input_.get('regex'),
-                _get_group_list(loc['groups']) if 'groups' in loc else []
+                _nested_get('regex', options),
+                _get_group_list(loc['groups'], options) if 'groups' in loc else []
             )
         )
     return locations
@@ -135,15 +136,15 @@ def drop_groups(location_groups: Iterable[tuple[str, str]]) -> None:
     yaml.dump(input_, Path(state.get_last_input_file()))
 
 
-def _get_group_list(groups: list[dict[str, any]]):
+def _get_group_list(groups: list[dict[str, any]], options: list[dict[str, any]]):
     data = []
     for g in groups:
         data.append(Group(
             g['name'],
-            g.get('priority'),
-            g.get('whitelist'),
-            g.get('blacklist'),
-            _get_timed(g['timed']) if 'timed' in g else None
+            _nested_get('priority', options),
+            _nested_get('whitelist', options),
+            _nested_get('blacklist', options),
+            _nested_get('timed', options),
         ))
     return data
 
@@ -262,3 +263,9 @@ def _validate_group(group: dict):
 def _validate_groups(groups: list[dict]):
     for group in groups:
         _validate_group(group)
+
+
+def _nested_get(key: str, options: list[dict[str, any]]):
+    for option in options:
+        if key in option:
+            return option.get(key)
