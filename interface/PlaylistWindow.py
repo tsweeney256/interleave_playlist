@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
-    QGroupBox, QCheckBox
+    QGroupBox, QCheckBox, QLineEdit
 from pymediainfo import MediaInfo
 
 from core.playlist import FileGroup
@@ -108,7 +108,6 @@ class PlaylistWindow(QWidget):
         counter = itertools.count()
         self.sort = lambda x: next(counter)
 
-        self.reversed_checkbox = QCheckBox("Reversed")
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         label_font.setPointSize(settings.get_font_size() * 1.25)
         self.total_shows_label = QLabel()
@@ -133,6 +132,13 @@ class PlaylistWindow(QWidget):
         self.runtime_thread = None
         self.total_duration: int = 0
 
+        search_label = QLabel("Search ")
+        self.search_bar = QLineEdit()
+        self.setToolTip("Ctrl+F")
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(search_label)
+        search_layout.addWidget(self.search_bar)
+
         self.interleave_radio = QRadioButton("Interleave")
         self.interleave_radio.setToolTip('Ctrl+Shift+I')
         self.interleave_radio.toggle()
@@ -143,6 +149,7 @@ class PlaylistWindow(QWidget):
         self.last_modified_radio = QRadioButton("Last Modified")
         self.last_modified_radio.setToolTip('Ctrl+Shift+M')
         self.last_modified_radio.toggled.connect(self.last_modified_sort)
+        self.reversed_checkbox = QCheckBox("Reversed")
         self.reversed_checkbox.toggled.connect(self.reverse_sort)
         self.reversed_checkbox.setToolTip('Ctrl+Shift+R')
 
@@ -160,12 +167,13 @@ class PlaylistWindow(QWidget):
         label_layout = QHBoxLayout()
         label_layout.addWidget(stats_group, 4)
 
-        radio_group = QGroupBox("Sort")
+        radio_group = QGroupBox("Search && Sort")
         radio_layout = QGridLayout()
         radio_layout.addWidget(self.interleave_radio,    0, 0)
         radio_layout.addWidget(self.alphabetical_radio,  1, 0)
         radio_layout.addWidget(self.last_modified_radio, 0, 1)
         radio_layout.addWidget(self.reversed_checkbox,   1, 1)
+        radio_layout.addLayout(search_layout, 2, 0, 1, 2)
         radio_group.setLayout(radio_layout)
 
         label_layout.addWidget(radio_group, 2)
@@ -230,6 +238,7 @@ class PlaylistWindow(QWidget):
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_A: self.alphabetical_radio.toggle,
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_M: self.last_modified_radio.toggle,
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_R: self.reversed_checkbox.toggle,
+                Qt.ControlModifier + Qt.Key_F: self.focus_search_bar
             }
             if event.keyCombination().toCombined() in switch:
                 switch[event.keyCombination().toCombined()]()
@@ -387,6 +396,9 @@ class PlaylistWindow(QWidget):
     def reverse_sort(self):
         self._refresh()
         self.item_list.setFocus()
+
+    def focus_search_bar(self):
+        self.search_bar.setFocus()
 
     def _selection_change(self, num_selected: int):
         self.total_selected_label.setText(
