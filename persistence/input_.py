@@ -136,9 +136,10 @@ def drop_groups(location_groups: Iterable[tuple[str, str]]) -> None:
     yaml.dump(input_, Path(state.get_last_input_file()))
 
 
-def _get_group_list(groups: list[dict[str, any]], options: list[dict[str, any]]):
+def _get_group_list(groups: list[dict[str, any]], additional_options: list[dict[str, any]]):
     data = []
     for g in groups:
+        options = [g, *additional_options]
         data.append(Group(
             g['name'],
             _nested_get('priority', options),
