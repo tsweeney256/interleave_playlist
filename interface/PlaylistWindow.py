@@ -139,7 +139,7 @@ class PlaylistWindow(QWidget):
         self.search_bar = QLineEdit()
         self.search_bar.textEdited.connect(self.search_bar_text_edited)
         self.search_bar.editingFinished.connect(self.search_bar_editing_finished)
-        self.setToolTip("Ctrl+F")
+        self.search_bar.setToolTip("Ctrl+F")
         search_layout = QHBoxLayout()
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_bar)
