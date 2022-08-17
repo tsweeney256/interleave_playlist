@@ -435,6 +435,7 @@ class PlaylistWindow(QWidget):
 
     def _focus_search_bar(self):
         self.search_bar.setFocus()
+        self.search_bar.selectAll()
 
     def _selection_change(self, num_selected: int):
         self.total_selected_label.setText(
