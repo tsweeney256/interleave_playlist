@@ -178,7 +178,7 @@ class PlaylistWindow(QWidget):
         radio_layout.addWidget(self.alphabetical_radio,  1, 0)
         radio_layout.addWidget(self.last_modified_radio, 0, 1)
         radio_layout.addWidget(self.reversed_checkbox,   1, 1)
-        radio_layout.addLayout(search_layout, 2, 0, 1, 2)
+        radio_layout.addLayout(search_layout,            2, 0, 1, 2)
         radio_group.setLayout(radio_layout)
 
         label_layout.addWidget(radio_group, 2)
