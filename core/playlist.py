@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,9 @@ LocationGroups = dict[Group, list[str]]
 FileGroup = tuple[str, str]
 
 
-def get_playlist(locations: list[Location], watched_list: list[FileGroup]) -> list[FileGroup]:
+def get_playlist(locations: list[Location],
+                 watched_list: list[FileGroup],
+                 search_filter: str = "") -> list[FileGroup]:
     location_groups: LocationGroups = {}
     for loc in locations:
         location_groups.update(_group_items_by_regex(loc))
@@ -40,18 +42,20 @@ def get_playlist(locations: list[Location], watched_list: list[FileGroup]) -> li
     }
     data: list[FileGroup] = []
     for lg in priority_location_groups.values():
-        data += _get_playlist(lg, watched_list)
+        data += _get_playlist(lg, watched_list, search_filter)
     return data
 
 
-def _get_playlist(location_groups: LocationGroups, watched_list: list[FileGroup]) \
-        -> list[FileGroup]:
+def _get_playlist(location_groups: LocationGroups,
+                  watched_list: list[FileGroup],
+                  search_filter: str = "") -> list[FileGroup]:
     data: list[list[FileGroup]] = []
     watched_names = [i[0] for i in watched_list]
     for group, locations in location_groups.items():
         timed_slice = _timed_slice(group.timed, locations) if group.timed else locations
         items = [(loc, group.name) for loc in filter(
             lambda i: (i in timed_slice
+                       and search_filter.upper() in path.basename(i).upper()
                        and path.basename(i) not in watched_names
                        and _matches_whitelist(i, group.whitelist)
                        and not _matches_blacklist(i, group.blacklist)

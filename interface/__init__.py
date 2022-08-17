@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -34,9 +34,9 @@ def open_with_default_application(filepath: str):
         subprocess.call(('xdg-open', filepath))
 
 
-def _create_playlist() -> list[FileGroup]:
+def _create_playlist(search_filter: str = "") -> list[FileGroup]:
     try:
-        return get_playlist(input_.get_locations(), get_watched())
+        return get_playlist(input_.get_locations(), get_watched(), search_filter)
     except FileNotFoundError:
         QMessageBox(text="Input yml file not found: {}\n\n"
                          "Please create or find file and open it"

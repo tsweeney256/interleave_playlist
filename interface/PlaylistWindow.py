@@ -138,6 +138,7 @@ class PlaylistWindow(QWidget):
         search_label = QLabel("Search ")
         self.search_bar = QLineEdit()
         self.search_bar.textEdited.connect(self.search_bar_text_edited)
+        self.search_bar.editingFinished.connect(self.search_bar_editing_finished)
         self.setToolTip("Ctrl+F")
         search_layout = QHBoxLayout()
         search_layout.addWidget(search_label)
@@ -315,7 +316,7 @@ class PlaylistWindow(QWidget):
 
     def _refresh(self):
         self.item_list.clear()
-        self.playlist = _create_playlist()
+        self.playlist = _create_playlist(self.search_bar.text())
         if self.playlist is not None:
             for item in sorted(self.playlist,
                                key=self.sort,
@@ -416,9 +417,18 @@ class PlaylistWindow(QWidget):
         except SearchBarThreadAlreadyDeadException:
             self._init_search_bar_thread(text)
 
+    @Slot()
+    def search_bar_editing_finished(self):
+        self.refresh()
+
+    @Slot()
+    def search_bar_thread_completed(self, text: str):
+        self.refresh()
+
     def _init_search_bar_thread(self, text: str):
         self.search_bar_thread = SearchBarThread(text, 500)
         self.search_bar_thread.error.connect(self.search_bar_thread_error)
+        self.search_bar_thread.completed.connect(self.search_bar_thread_completed)
         self.search_bar_thread.start()
 
     def _focus_search_bar(self):
