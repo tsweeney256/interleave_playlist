@@ -420,10 +420,12 @@ class PlaylistWindow(QWidget):
     @Slot()
     def search_bar_editing_finished(self):
         self.refresh()
+        # we don't want focus back here. we're finished
 
     @Slot()
     def search_bar_thread_completed(self, text: str):
         self.refresh()
+        self.search_bar.setFocus()
 
     def _init_search_bar_thread(self, text: str):
         self.search_bar_thread = SearchBarThread(text, 500)
