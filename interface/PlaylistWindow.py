@@ -29,6 +29,7 @@ from pymediainfo import MediaInfo
 from core.playlist import FileGroup
 from interface import open_with_default_application, _create_playlist, _get_duration_str
 from interface.PlaylistWindowItem import PlaylistWindowItem
+from interface.SearchBarThread import SearchBarThread, SearchBarThreadAlreadyDeadException
 from persistence import settings, input_, state
 from persistence.watched import add_watched, remove_watched
 
@@ -108,6 +109,8 @@ class PlaylistWindow(QWidget):
         counter = itertools.count()
         self.sort = lambda x: next(counter)
 
+        self.search_bar_thread = None
+
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         label_font.setPointSize(settings.get_font_size() * 1.25)
         self.total_shows_label = QLabel()
@@ -134,6 +137,7 @@ class PlaylistWindow(QWidget):
 
         search_label = QLabel("Search ")
         self.search_bar = QLineEdit()
+        self.search_bar.textEdited.connect(self.search_bar_text_edited)
         self.setToolTip("Ctrl+F")
         search_layout = QHBoxLayout()
         search_layout.addWidget(search_label)
@@ -238,7 +242,7 @@ class PlaylistWindow(QWidget):
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_A: self.alphabetical_radio.toggle,
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_M: self.last_modified_radio.toggle,
                 Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_R: self.reversed_checkbox.toggle,
-                Qt.ControlModifier + Qt.Key_F: self.focus_search_bar
+                Qt.ControlModifier + Qt.Key_F: self._focus_search_bar
             }
             if event.keyCombination().toCombined() in switch:
                 switch[event.keyCombination().toCombined()]()
@@ -374,6 +378,10 @@ class PlaylistWindow(QWidget):
         raise exception
 
     @Slot()
+    def search_bar_thread_error(self, exception: BaseException):
+        raise exception
+
+    @Slot()
     def interleave_sort(self):
         counter = itertools.count()
         self.sort = lambda x: next(counter)
@@ -397,7 +405,23 @@ class PlaylistWindow(QWidget):
         self._refresh()
         self.item_list.setFocus()
 
-    def focus_search_bar(self):
+    @Slot()
+    def search_bar_text_edited(self, text: str):
+        if self.search_bar_thread is None:
+            self._init_search_bar_thread(text)
+            return
+        try:
+            self.search_bar_thread.search_value = text
+            return
+        except SearchBarThreadAlreadyDeadException:
+            self._init_search_bar_thread(text)
+
+    def _init_search_bar_thread(self, text: str):
+        self.search_bar_thread = SearchBarThread(text, 500)
+        self.search_bar_thread.error.connect(self.search_bar_thread_error)
+        self.search_bar_thread.start()
+
+    def _focus_search_bar(self):
         self.search_bar.setFocus()
 
     def _selection_change(self, num_selected: int):
