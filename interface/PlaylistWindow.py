@@ -383,26 +383,34 @@ class PlaylistWindow(QWidget):
         raise exception
 
     @Slot()
-    def interleave_sort(self):
+    def interleave_sort(self, checked: bool):
+        if not checked:
+            return
         counter = itertools.count()
         self.sort = lambda x: next(counter)
         self._refresh()
         self.item_list.setFocus()
 
     @Slot()
-    def alphabetical_sort(self):
+    def alphabetical_sort(self, checked: bool):
+        if not checked:
+            return
         self.sort = natsort.natsort_key
         self._refresh()
         self.item_list.setFocus()
 
     @Slot()
-    def last_modified_sort(self):
+    def last_modified_sort(self, checked: bool):
+        if not checked:
+            return
         self.sort = lambda x: os.path.getmtime(x[0])
         self._refresh()
         self.item_list.setFocus()
 
     @Slot()
-    def reverse_sort(self):
+    def reverse_sort(self, checked: bool):
+        if not checked:
+            return
         self._refresh()
         self.item_list.setFocus()
 
