@@ -409,8 +409,6 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def reverse_sort(self, checked: bool):
-        if not checked:
-            return
         self._refresh()
         self.item_list.setFocus()
 
