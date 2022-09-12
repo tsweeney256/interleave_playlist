@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from math import nan, isnan, floor
+from math import nan, isnan, floor, ceil
 from typing import TypeVar
 
 T = TypeVar('T')
@@ -30,6 +30,7 @@ def _get_every(larger_len: int, smaller_len: int) -> float:
     return ratio if not isnan(ratio) else larger_len
 
 
+# This is not being maintained
 # This is actually 5x slower than my "SIMD style for loop" using no SIMD lol
 def interleave_simd(a: list[T], b: list[T]) -> list[T]:
     import numpy as np
@@ -56,8 +57,9 @@ def interleave(a: list[T], b: list[T]) -> list[T]:
     total_len: int = len(larger) + len(smaller)
     result: list[T] = [None] * total_len
     for i in range(total_len):
-        use_smaller: bool = 1 > (i + floor(every) + _MARGIN) % every
-        smaller_idx: int = min(len(smaller), int((i + floor(every) - 1 + _MARGIN) / every))
+        i_mod = ceil(i + every / 2)  # make smaller start in middle, not first
+        use_smaller: bool = 1 > (i_mod + floor(every) + _MARGIN) % every
+        smaller_idx: int = int((i_mod + floor(every) - 1 + _MARGIN) / every) - 1
         larger_idx: int = i - smaller_idx
         arr: list[str] = smaller if use_smaller else larger
         idx: int = smaller_idx if use_smaller else larger_idx
