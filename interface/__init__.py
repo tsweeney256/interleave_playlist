@@ -19,7 +19,7 @@ from math import log10, ceil
 from PySide6.QtWidgets import QMessageBox
 
 import persistence
-from core.playlist import get_playlist, FileGroup
+from core.playlist import get_playlist, PlaylistEntry
 from persistence import input_
 from persistence.watched import get_watched
 
@@ -34,7 +34,7 @@ def open_with_default_application(filepath: str):
         subprocess.call(('xdg-open', filepath))
 
 
-def _create_playlist(search_filter: str = "") -> list[FileGroup]:
+def _create_playlist(search_filter: str = "") -> list[PlaylistEntry]:
     try:
         return get_playlist(input_.get_locations(), get_watched(), search_filter)
     except FileNotFoundError:

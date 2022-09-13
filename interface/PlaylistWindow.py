@@ -26,7 +26,7 @@ from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemVi
     QGroupBox, QCheckBox, QLineEdit
 from pymediainfo import MediaInfo
 
-from core.playlist import FileGroup
+from core.playlist import PlaylistEntry
 from interface import open_with_default_application, _create_playlist, _get_duration_str
 from interface.PlaylistWindowItem import PlaylistWindowItem
 from interface.SearchBarThread import SearchBarThread, SearchBarThreadAlreadyDeadException
@@ -46,13 +46,15 @@ class RuntimeCalculationThread(QThread):
     completed = Signal(dict, int)
     error = Signal(BaseException)
 
-    def __init__(self, playlist: dict[str, str], duration_cache: Optional[dict[str, int]] = None):
+    def __init__(self,
+                 playlist: dict[PlaylistEntry],
+                 duration_cache: Optional[dict[str, int]] = None):
         super(RuntimeCalculationThread, self).__init__()
         if duration_cache is None:
             duration_cache = {}
         self.running: bool = False
         self.stop: bool = False
-        self.playlist: dict[str, str] = playlist.copy()
+        self.playlist: dict[PlaylistEntry] = playlist.copy()
         self.duration_cache: dict[str, int] = ({}
                                                if duration_cache is None else
                                                duration_cache.copy())
@@ -61,7 +63,7 @@ class RuntimeCalculationThread(QThread):
     def __del__(self):
         self.wait()
 
-    def set_pending_playlist(self, playlist: dict[str, str]):
+    def set_pending_playlist(self, playlist: dict[PlaylistEntry]):
         self.pending_playlist = playlist.copy()
 
     def run(self):
@@ -76,7 +78,7 @@ class RuntimeCalculationThread(QThread):
     def _run(self):
         while True:
             total_duration = 0
-            for i, elem in enumerate(item[0] for item in self.playlist):
+            for i, elem in enumerate(item.filename for item in self.playlist):
                 if self.stop:
                     return
                 if elem not in self.duration_cache:
@@ -119,7 +121,7 @@ class PlaylistWindow(QWidget):
         self.total_selected_label = QLabel()
         self.total_selected_label.setFont(label_font)
 
-        self.playlist: dict[str, str] = {}
+        self.playlist: dict[PlaylistEntry] = {}
         self.item_list: QListWidget = self._create_item_list()
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))
@@ -257,7 +259,7 @@ class PlaylistWindow(QWidget):
 
     def _play(self):
         def _impl():
-            files = [i.getValue()[0] for i in self.item_list.selectedItems()]
+            files = [i.getValue().filename for i in self.item_list.selectedItems()]
             subprocess.run([settings.get_play_command()] + files)
         if self.playlist is not None:
             thread = threading.Thread(target=_impl)
@@ -265,7 +267,7 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def mark_watched(self):
-        selected_values: list[FileGroup] = [
+        selected_values: list[PlaylistEntry] = [
             i.getValue() for i in self.item_list.selectedItems()
         ]
         add_watched(selected_values)
@@ -275,7 +277,7 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def unmark_watched(self):
-        selected_values: list[FileGroup] = [
+        selected_values: list[PlaylistEntry] = [
             i.getValue() for i in self.item_list.selectedItems()
         ]
         remove_watched(selected_values)
@@ -286,7 +288,7 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def drop_groups(self):
-        selected_values: list[FileGroup] = [
+        selected_values: list[PlaylistEntry] = [
             i.getValue() for i in self.item_list.selectedItems()
         ]
         if len(selected_values) == 0:
@@ -294,11 +296,10 @@ class PlaylistWindow(QWidget):
         groups = set()
         groups_str = set()
         for value in selected_values:
-            if len(value) > 1:
-                # hacky for now
-                split = value[1].split('_____')
-                groups.add(tuple(split))
-                groups_str.add(split[1] if len(split) > 1 else split[0])
+            # hacky for now
+            split = value.group.name.split('_____')
+            groups.add(tuple(split))
+            groups_str.add(split[1] if len(split) > 1 else split[0])
         msg_box = QMessageBox(text="You are about to drop the following groups. "
                                    "Do you wish to continue?\n    {}"
                                    .format('\n    '.join(groups_str)),
@@ -395,7 +396,7 @@ class PlaylistWindow(QWidget):
     def alphabetical_sort(self, checked: bool):
         if not checked:
             return
-        self.sort = natsort.natsort_key
+        self.sort = natsort.natsort_keygen(lambda i: os.path.basename(i.filename))
         self._refresh()
         self.item_list.setFocus()
 
@@ -403,7 +404,7 @@ class PlaylistWindow(QWidget):
     def last_modified_sort(self, checked: bool):
         if not checked:
             return
-        self.sort = lambda x: os.path.getmtime(x[0])
+        self.sort = lambda x: os.path.getmtime(x.filename)
         self._refresh()
         self.item_list.setFocus()
 
@@ -459,7 +460,7 @@ class PlaylistWindow(QWidget):
         if not self.durations_loaded:
             return
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
-        duration = sum([self.duration_cache[i.getValue()[0]]
+        duration = sum([self.duration_cache[i.getValue().filename]
                         for i in self.item_list.selectedItems()])
         self.selected_runtime_label.setText(
             _SELECTED_RUNTIME.format(_get_duration_str(duration, self.total_duration)))

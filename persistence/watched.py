@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@ import csv
 import os
 from os import path
 
-from core.playlist import FileGroup, get_playlist
+from core.playlist import FileGroup, get_playlist, PlaylistEntry
 from persistence import input_, settings
 
 
@@ -35,15 +35,15 @@ def get_watched() -> list[FileGroup]:
         return watched_list
 
 
-def add_watched(add: list[FileGroup]) -> None:
+def add_watched(add: list[PlaylistEntry]) -> None:
     new_watched_list: list[FileGroup] = _clean_watched_list([])
     for a in add:
-        new_watched_list.append((path.basename(a[0]), a[1]))
+        new_watched_list.append((path.basename(a.filename), a.group.name))
     _write_new_watched_list(new_watched_list)
 
 
-def remove_watched(remove: list[FileGroup]) -> None:
-    remove_names = [path.basename(i[0]) for i in remove]
+def remove_watched(remove: list[PlaylistEntry]) -> None:
+    remove_names = [path.basename(i.filename) for i in remove]
     new_watched_list: list[FileGroup] = _clean_watched_list(remove_names)
     _write_new_watched_list(new_watched_list)
 
@@ -52,9 +52,8 @@ def _get_temp_file_name() -> str:
     return input_.get_watched_file_name() + '.tmp'
 
 
-def _get_basename_playlist() -> list[FileGroup]:
-    return list(map(lambda i: (path.basename(i[0]), i[1]),
-                    get_playlist(input_.get_locations(), [])))
+def _get_basename_playlist() -> list[PlaylistEntry]:
+    return [i for i in get_playlist(input_.get_locations(), [])]
 
 
 def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
@@ -67,7 +66,7 @@ def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
         new_watched_list_len = len(new_watched_list)
         if row[0] not in remove_names:
             for item in full_playlist:
-                if row[0].strip() == item[0].strip():
+                if row[0].strip() == os.path.basename(item.filename).strip():
                     new_watched_list.append(row)
                     break
             if (new_watched_list_len == len(new_watched_list)

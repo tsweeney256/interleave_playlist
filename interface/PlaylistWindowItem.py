@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,19 +15,19 @@ from os import path
 
 from PySide6.QtWidgets import QListWidgetItem
 
-from core.playlist import FileGroup
+from core.playlist import PlaylistEntry
 
 _USER_TYPE: int = 1001
 
 
 class PlaylistWindowItem(QListWidgetItem):
 
-    def __init__(self, *args, value: FileGroup, **kwargs):
+    def __init__(self, *args, value: PlaylistEntry, **kwargs):
         super().__init__(*args, type=_USER_TYPE, **kwargs)
-        self.value: FileGroup = value
-        self.setText(path.basename(value[0]))
+        self.value: PlaylistEntry = value
+        self.setText(path.basename(value.filename))
 
-    def setValue(self, value: FileGroup):
+    def setValue(self, value: PlaylistEntry):
         self.value = value
 
     def getValue(self):
