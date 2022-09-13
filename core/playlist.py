@@ -14,7 +14,6 @@
 
 import re
 from copy import copy
-from dataclasses import dataclass
 from itertools import groupby
 from os import path, listdir
 from os.path import isfile
@@ -22,17 +21,9 @@ from re import Pattern
 
 from natsort import natsorted, ns
 
+from core import PlaylistEntry
 from core.interleave import interleave_all
-from persistence import settings
-from persistence.input_ import Location, Timed, Group
-
-
-@dataclass
-class PlaylistEntry:
-    filename: str
-    location: Location
-    group: Group
-
+from persistence import Group, Location, Timed, settings
 
 FilePathsByGroup = dict[Group, list[str]]
 FileGroup = tuple[str, str]
@@ -101,12 +92,13 @@ def _group_items_by_regex(loc: Location) -> PlaylistEntriesByGroup:
             continue
         match_dict = match.groupdict()
         if 'group' in match_dict:
-            group_name = loc.default_group.name + '_____' + path.basename(match.group('group'))
+            group_name = path.basename(match.group('group')).strip()
             group = _get_from_dict_key_superset(group_name, group_dict)
             if group is None:
                 group = copy(loc.default_group)
-                group.name = group_name
                 group_dict[group_name] = group
+            # Overwrite name so we always use the full name
+            group.name = group_name
         else:
             group = loc.default_group
         group_members = grouped_items.setdefault(group, list())

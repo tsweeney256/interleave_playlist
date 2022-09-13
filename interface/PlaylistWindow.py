@@ -30,7 +30,8 @@ from core.playlist import PlaylistEntry
 from interface import open_with_default_application, _create_playlist, _get_duration_str
 from interface.PlaylistWindowItem import PlaylistWindowItem
 from interface.SearchBarThread import SearchBarThread, SearchBarThreadAlreadyDeadException
-from persistence import settings, input_, state
+from persistence import settings, input_
+from persistence.input_ import set_last_input_file
 from persistence.watched import add_watched, remove_watched
 
 _LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
@@ -288,18 +289,12 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def drop_groups(self):
-        selected_values: list[PlaylistEntry] = [
+        selected_entries: list[PlaylistEntry] = [
             i.getValue() for i in self.item_list.selectedItems()
         ]
-        if len(selected_values) == 0:
+        if len(selected_entries) == 0:
             return
-        groups = set()
-        groups_str = set()
-        for value in selected_values:
-            # hacky for now
-            split = value.group.name.split('_____')
-            groups.add(tuple(split))
-            groups_str.add(split[1] if len(split) > 1 else split[0])
+        groups_str = [entry.group.name for entry in selected_entries]
         msg_box = QMessageBox(text="You are about to drop the following groups. "
                                    "Do you wish to continue?\n    {}"
                                    .format('\n    '.join(groups_str)),
@@ -307,7 +302,7 @@ class PlaylistWindow(QWidget):
         msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         reply = msg_box.exec()
         if reply == QMessageBox.Ok:
-            input_.drop_groups(groups)
+            input_.drop_groups(selected_entries)
         self.item_list.setFocus()
 
     @Slot()
@@ -338,7 +333,7 @@ class PlaylistWindow(QWidget):
             if file_name.strip() == '':
                 return
             try:
-                state.set_last_input_file(file_name)
+                set_last_input_file(file_name)
             except input_.InvalidInputFile:
                 QMessageBox(text='Error: Attempted to open invalid input yaml file\n\n'
                                  '{}'.format(file_name),

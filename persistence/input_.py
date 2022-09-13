@@ -11,72 +11,18 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import json
 import os
 import re
-import sys
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
 
-from persistence import state
-
-
-class Timed:
-    def __init__(self, start: datetime, cron: CronTab, first: int,
-                 amount: int, start_at_cron: bool):
-        self.start = (start.astimezone()
-                      if start.tzinfo is None else
-                      start)
-        self.cron = cron
-        self.first = (first if first is not None and first > 0 else 1) - 1
-        self.amount = amount if amount is not None and amount > 0 else 1
-        self.start_at_cron = start_at_cron
-
-    def __repr__(self):
-        return str(self.__dict__)
-
-    def get_current(self) -> int:
-        now: datetime = datetime.now().astimezone()
-        if self.start > now:
-            return -1
-        initial: int = self.first + (self.amount if not self.start_at_cron else 0)
-        first_diff = timedelta(seconds=self.cron.next(self.start, default_utc=False))
-        first_cron_amount: int = self.amount if self.start + first_diff < now else 0
-        if first_cron_amount == 0 and self.start_at_cron:
-            return -1
-        diff = timedelta(seconds=self.cron.next(self.start + first_diff, default_utc=False))
-        cron_amount = self.amount * max((now - (self.start + first_diff)) // diff, 0)
-        return initial + first_cron_amount + cron_amount - 1
-
-
-class Group:
-    def __init__(self, name: str, priority: int, whitelist: list[str], blacklist: list[str],
-                 timed: Timed):
-        self.name = name
-        self.priority = priority if priority is not None else sys.maxsize
-        self.whitelist = whitelist
-        self.blacklist = blacklist
-        self.timed = timed
-
-    def __repr__(self):
-        return str(self.__dict__)
-
-
-class Location:
-    def __init__(self, name: str, additional: list[str], default_group: Group, regex: str,
-                 groups: list[Group]):
-        self.name = name
-        self.additional = additional
-        self.default_group = default_group
-        self.regex = regex
-        self.groups = groups if groups is not None else []
-
-    def __repr__(self):
-        return str(self.__dict__)
+from core import PlaylistEntry
+from persistence import Location, Group, Timed, _STATE_FILE
 
 
 class InvalidInputFile(Exception):
@@ -88,7 +34,7 @@ class LocationNotFound(Exception):
 
 
 def get_locations() -> list[Location]:
-    input_: dict = _get_input(state.get_last_input_file())
+    input_: dict = _get_input(get_last_input_file())
     locations = []
     for loc in input_['locations']:
         if 'disabled' in loc and loc['disabled'] is True:
@@ -113,27 +59,26 @@ def get_locations() -> list[Location]:
 
 
 def get_watched_file_name():
-    fn = state.get_last_input_file() + '.watched.txt'
+    fn = get_last_input_file() + '.watched.txt'
     if not os.path.exists(fn):
         with open(fn, 'w'):
             pass
     return fn
 
 
-def drop_groups(location_groups: Iterable[tuple[str, str]]) -> None:
-    input_ = _get_input(state.get_last_input_file())
-    for location_group in location_groups:
-        location_name = location_group[0]
-        location = next(filter(lambda i: i['name'] == location_name, input_['locations']))
-        if len(location_group) < 2:
+def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
+    input_ = _get_input(get_last_input_file())
+    for entry in entries:
+        location = next(filter(lambda i: i['name'] == entry.location.name, input_['locations']))
+        if entry.group.name == entry.location.name:
             location['disabled'] = True
             continue
-        group_name = location_group[1].strip()
+        group_name = entry.group.name
         blacklist: list[str] = location.setdefault('blacklist', [])
         if group_name not in blacklist:
             blacklist.append(group_name)
     yaml = YAML()
-    yaml.dump(input_, Path(state.get_last_input_file()))
+    yaml.dump(input_, Path(get_last_input_file()))
 
 
 def _get_group_list(groups: list[dict[str, any]], additional_options: list[dict[str, any]]):
@@ -270,3 +215,24 @@ def _nested_get(key: str, options: list[dict[str, any]]):
     for option in options:
         if key in option:
             return option.get(key)
+
+
+def get_last_input_file() -> str:
+    return _get_state()['last-input-file']
+
+
+def set_last_input_file(input_file: str):
+    _get_input(input_file)  # ensure that the input can be read
+    _set_state('last-input-file', input_file)
+
+
+def _get_state():
+    with open(_STATE_FILE, 'r') as f:
+        return json.load(f)
+
+
+def _set_state(key: str, val: any):
+    state = _get_state()
+    state[key] = val
+    with open(_STATE_FILE, 'w') as f:
+        return json.dump(state, f)
