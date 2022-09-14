@@ -13,6 +13,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from crontab import CronTab
@@ -75,6 +76,22 @@ class Location:
 
     def __repr__(self):
         return str(self.__dict__)
+
+
+@dataclass
+class ManualSeason:
+    name: str
+    episode_count: int
+
+
+@dataclass
+class ManualRule:
+    name: str
+    group: Group
+    command: str
+    episode_scheme: str
+    variables: dict[str, str]
+    seasons: list[ManualSeason]
 
 
 def _create_state_file():
