@@ -24,6 +24,7 @@ from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
     QGroupBox, QCheckBox, QLineEdit
+from natsort import natsorted
 from pymediainfo import MediaInfo
 
 from core.playlist import PlaylistEntry
@@ -294,10 +295,12 @@ class PlaylistWindow(QWidget):
         ]
         if len(selected_entries) == 0:
             return
-        groups_str = [entry.group.name for entry in selected_entries]
+        groups_str = set()
+        for entry in selected_entries:
+            groups_str.add(entry.group.name)
         msg_box = QMessageBox(text="You are about to drop the following groups. "
                                    "Do you wish to continue?\n    {}"
-                                   .format('\n    '.join(groups_str)),
+                                   .format('\n    '.join(natsorted(groups_str))),
                               icon=QMessageBox.Question)
         msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         reply = msg_box.exec()
