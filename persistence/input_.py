@@ -112,35 +112,104 @@ def _get_input(input_file: str):
             yaml.preserve_quotes = True
             yml = yaml.load(f)
         _validate_group(yml)
-        if 'locations' not in yml:
-            raise InvalidInputFile('Input requires "locations"')
-        if not isinstance(yml['locations'], list):
-            raise InvalidInputFile('"locations" must be a list')
-        for loc in yml['locations']:
-            if 'name' not in loc:
-                raise InvalidInputFile('Locations must have names')
-            if not isinstance(loc['name'], str):
-                raise InvalidInputFile('Location names must be strings')
-            if not os.path.exists(loc['name']):
-                raise LocationNotFound(loc['name'])
-            if 'disabled' in loc and not isinstance(loc['disabled'], bool):
-                raise InvalidInputFile('"disabled" must be a boolean')
-            _validate_group(loc)
-            _validate_timed(loc)
-            if 'groups' in loc:
-                if not isinstance(loc['groups'], list):
-                    raise InvalidInputFile('groups must be a list')
-                _validate_groups(loc['groups'])
-            if 'additional' in loc:
-                if not isinstance(loc['additional'], list):
-                    raise InvalidInputFile('"additional" must be a list')
-                for i in loc['additional']:
-                    if not isinstance(i, str):
-                        raise InvalidInputFile('"additional" entries must be strings')
-
+        if 'locations' not in yml and 'manual' not in yml:
+            raise InvalidInputFile('Input requires "locations" or "manual"')
+        if 'locations' in yml:
+            _validate_locations(yml['locations'])
+        if 'manual' in yml:
+            _validate_manual(yml['manual'])
     except YAMLError as e:
         raise InvalidInputFile("Unable to parse input file") from e
     return yml
+
+
+def _validate_locations(locations):
+    if not isinstance(locations, list):
+        raise InvalidInputFile('"locations" must be a list')
+    for loc in locations:
+        _validate_name(loc, "Location")
+        if not os.path.exists(loc['name']):
+            raise LocationNotFound(loc['name'])
+        _validate_disabled(loc)
+        _validate_group(loc)
+        _validate_timed(loc)
+        if 'groups' in loc:
+            if not isinstance(loc['groups'], list):
+                raise InvalidInputFile('groups must be a list')
+            _validate_groups(loc['groups'])
+        if 'additional' in loc:
+            if not isinstance(loc['additional'], list):
+                raise InvalidInputFile('"additional" must be a list')
+            for i in loc['additional']:
+                if not isinstance(i, str):
+                    raise InvalidInputFile('"additional" entries must be strings')
+
+
+def _validate_manual(manual):
+    if not isinstance(manual, list):
+        raise InvalidInputFile('"manual" must be a list')
+    for m in manual:
+        _validate_name(m, "Manual rule")
+        _validate_disabled(m)
+        _validate_group(m)
+        _validate_timed(m)
+        _validate_command(m)
+        _validate_variables(m)
+        _validate_episode_scheme(m)
+        _validate_seasons(m)
+
+
+def _validate_season(d: dict):
+    _validate_name(d, "season")
+    if 'episode-count' not in d:
+        raise InvalidInputFile('seasons must have an "episode-count"')
+    if not isinstance(d['episode-count'], int):
+        raise InvalidInputFile('"episode-count" must be an integer')
+
+
+def _validate_seasons(d: dict):
+    if 'seasons' not in d:
+        return
+    seasons = d['seasons']
+    if not isinstance(seasons, list):
+        raise InvalidInputFile('"seasons" must be a list')
+    for season in seasons:
+        _validate_season(season)
+
+
+def _validate_episode_scheme(d: dict):
+    if 'episode-scheme' not in d:
+        raise InvalidInputFile('"manual" rules require "episode-scheme"')
+    if not isinstance(d['episode-scheme'], str):
+        raise InvalidInputFile("'episode-scheme' must be a string")
+
+
+def _validate_variables(d: dict):
+    if 'variables' not in d:
+        return
+    variables = d['variables']
+    if not isinstance(variables, dict):
+        raise InvalidInputFile('"variables" must be a map of string key/values')
+    for k, v in variables.items():
+        if not isinstance(v, str):
+            raise InvalidInputFile(f'"variable" {k} is not a string')
+
+
+def _validate_command(d: dict):
+    if 'command' in d and not isinstance(d['command'], str):
+        raise InvalidInputFile('"command" must be a string')
+
+
+def _validate_name(d: dict, obj_name: str):
+    if 'name' not in d:
+        raise InvalidInputFile(f'{obj_name}s must have names')
+    if not isinstance(d['name'], str):
+        raise InvalidInputFile(f'{obj_name} names must be strings')
+
+
+def _validate_disabled(d: dict):
+    if 'disabled' in d and not isinstance(d['disabled'], bool):
+        raise InvalidInputFile('"disabled" must be a boolean')
 
 
 def _validate_wb_list(d: dict, wb_list: str):
