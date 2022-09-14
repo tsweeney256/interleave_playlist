@@ -11,7 +11,6 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from os import path
 
 from PySide6.QtWidgets import QListWidgetItem
 
@@ -25,7 +24,7 @@ class PlaylistWindowItem(QListWidgetItem):
     def __init__(self, *args, value: PlaylistEntry, **kwargs):
         super().__init__(*args, type=_USER_TYPE, **kwargs)
         self.value: PlaylistEntry = value
-        self.setText(path.basename(value.filename))
+        self.setText(value.short_name)
 
     def setValue(self, value: PlaylistEntry):
         self.value = value

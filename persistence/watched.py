@@ -13,7 +13,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import csv
 import os
-from os import path
 
 from core.playlist import FileGroup, get_playlist, PlaylistEntry
 from persistence import input_, settings
@@ -38,12 +37,12 @@ def get_watched() -> list[FileGroup]:
 def add_watched(add: list[PlaylistEntry]) -> None:
     new_watched_list: list[FileGroup] = _clean_watched_list([])
     for a in add:
-        new_watched_list.append((path.basename(a.filename), a.group.name))
+        new_watched_list.append((a.short_name, a.group.name))
     _write_new_watched_list(new_watched_list)
 
 
 def remove_watched(remove: list[PlaylistEntry]) -> None:
-    remove_names = [path.basename(i.filename) for i in remove]
+    remove_names = [i.short_name for i in remove]
     new_watched_list: list[FileGroup] = _clean_watched_list(remove_names)
     _write_new_watched_list(new_watched_list)
 
@@ -66,7 +65,7 @@ def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
         new_watched_list_len = len(new_watched_list)
         if row[0] not in remove_names:
             for item in full_playlist:
-                if row[0].strip() == os.path.basename(item.filename).strip():
+                if row[0].strip() == item.short_name.strip():
                     new_watched_list.append(row)
                     break
             if (new_watched_list_len == len(new_watched_list)

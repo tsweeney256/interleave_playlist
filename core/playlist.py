@@ -56,11 +56,13 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
         timed_slice = _timed_slice(group.timed, entries) if group.timed else entries
         group_entries = [entry for entry in filter(
             lambda i: (i in timed_slice
-                       and search_filter.upper() in path.basename(i.filename).upper()
-                       and path.basename(i.filename) not in watched_names
-                       and _matches_whitelist(i.filename, group.whitelist)
-                       and not _matches_blacklist(i.filename, group.blacklist)
-                       and (not settings.get_exclude_directories() or isfile(i.filename))),
+                       and search_filter.upper() in i.short_name.upper()
+                       and i.short_name not in watched_names
+                       and _matches_whitelist(i.name, group.whitelist)
+                       and not _matches_blacklist(i.name, group.blacklist)
+                       and (not i.is_file
+                            or not settings.get_exclude_directories()
+                            or isfile(i.name))),
             entries)]
         if group_entries:
             filtered_entries.append(group_entries)
@@ -102,7 +104,7 @@ def _group_items_by_regex(loc: Location) -> PlaylistEntriesByGroup:
         else:
             group = loc.default_group
         group_members = grouped_items.setdefault(group, list())
-        group_members.append(PlaylistEntry(p, loc, group))
+        group_members.append(PlaylistEntry(p, loc.name, group, is_file=True))
     return grouped_items
 
 

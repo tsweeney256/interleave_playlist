@@ -80,20 +80,21 @@ class RuntimeCalculationThread(QThread):
     def _run(self):
         while True:
             total_duration = 0
-            for i, elem in enumerate(item.filename for item in self.playlist):
+            for i, entry in enumerate(item for item in self.playlist):
+                filename = entry.name
                 if self.stop:
                     return
-                if elem not in self.duration_cache:
+                if filename not in self.duration_cache:
                     duration: int = 0
-                    if os.path.isfile(elem):
-                        media_info = MediaInfo.parse(elem)
+                    if entry.is_file and os.path.isfile(filename):
+                        media_info = MediaInfo.parse(filename)
                         if len(media_info.video_tracks) > 0:
                             duration = int(float(media_info.video_tracks[0].duration))
                         elif len(media_info.audio_tracks) > 0:
                             duration = int(float(media_info.audio_tracks[0].duration))
-                    self.duration_cache[elem] = duration
+                    self.duration_cache[filename] = duration
                     self.value_updated.emit(i+1)
-                total_duration += self.duration_cache[elem]
+                total_duration += self.duration_cache[filename]
             if not self.pending_playlist:
                 break
             self.playlist = self.pending_playlist
@@ -261,7 +262,7 @@ class PlaylistWindow(QWidget):
 
     def _play(self):
         def _impl():
-            files = [i.getValue().filename for i in self.item_list.selectedItems()]
+            files = [i.getValue().name for i in self.item_list.selectedItems()]
             subprocess.run([settings.get_play_command()] + files)
         if self.playlist is not None:
             thread = threading.Thread(target=_impl)
@@ -399,7 +400,7 @@ class PlaylistWindow(QWidget):
     def alphabetical_sort(self, checked: bool):
         if not checked:
             return
-        self.sort = natsort.natsort_keygen(lambda i: os.path.basename(i.filename))
+        self.sort = natsort.natsort_keygen(lambda i: i.short_name)
         self._refresh()
         self.item_list.setFocus()
 
@@ -407,7 +408,7 @@ class PlaylistWindow(QWidget):
     def last_modified_sort(self, checked: bool):
         if not checked:
             return
-        self.sort = lambda x: os.path.getmtime(x.filename)
+        self.sort = lambda x: os.path.getmtime(x.name)
         self._refresh()
         self.item_list.setFocus()
 
@@ -463,7 +464,7 @@ class PlaylistWindow(QWidget):
         if not self.durations_loaded:
             return
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
-        duration = sum([self.duration_cache[i.getValue().filename]
+        duration = sum([self.duration_cache[i.getValue().name]
                         for i in self.item_list.selectedItems()])
         self.selected_runtime_label.setText(
             _SELECTED_RUNTIME.format(_get_duration_str(duration, self.total_duration)))

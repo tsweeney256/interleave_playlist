@@ -69,8 +69,8 @@ def get_watched_file_name():
 def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
     input_ = _get_input(get_last_input_file())
     for entry in entries:
-        location = next(filter(lambda i: i['name'] == entry.location.name, input_['locations']))
-        if entry.group.name == entry.location.name:
+        location = next(filter(lambda i: i['name'] == entry.rule_name, input_['locations']))
+        if entry.group.name == entry.rule_name:
             location['disabled'] = True
             continue
         group_name = entry.group.name

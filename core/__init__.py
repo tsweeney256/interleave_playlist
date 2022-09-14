@@ -11,13 +11,21 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os.path
 from dataclasses import dataclass
 
-from persistence import Group, Location
+from persistence import Group
 
 
 @dataclass
 class PlaylistEntry:
-    filename: str
-    location: Location
+    name: str
+    rule_name: str
     group: Group
+    is_file: bool
+
+    @property
+    def short_name(self):
+        if self.is_file:
+            return os.path.basename(self.name)
+        return self.name
