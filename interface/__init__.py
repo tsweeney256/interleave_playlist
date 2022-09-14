@@ -18,7 +18,6 @@ from math import log10, ceil
 
 from PySide6.QtWidgets import QMessageBox
 
-import persistence
 from core.playlist import get_playlist, PlaylistEntry
 from persistence import input_
 from persistence.watched import get_watched
@@ -40,15 +39,15 @@ def _create_playlist(search_filter: str = "") -> list[PlaylistEntry]:
     except FileNotFoundError:
         QMessageBox(text="Input yml file not found: {}\n\n"
                          "Please create or find file and open it"
-                    .format(persistence.get_last_input_file()),
+                    .format(input_.get_last_input_file()),
                     icon=QMessageBox.Warning).exec()
     except input_.InvalidInputFile as e:
         QMessageBox(text="Error reading yml file. Please fix it and try again\n{}\n{}"
-                    .format(e, persistence.get_last_input_file()),
+                    .format(e, input_.get_last_input_file()),
                     icon=QMessageBox.Warning).exec()
     except input_.LocationNotFound as e:
         QMessageBox(text="Location from input file not found. Please fix it and try again\n{}\n{}"
-                    .format(e, persistence.get_last_input_file()),
+                    .format(e, input_.get_last_input_file()),
                     icon=QMessageBox.Warning).exec()
     return []
 
