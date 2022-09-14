@@ -19,7 +19,7 @@ import threading
 from typing import Optional
 
 import natsort
-from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread
+from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread, QDeadlineTimer
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
@@ -196,7 +196,7 @@ class PlaylistWindow(QWidget):
         layout.addLayout(self._create_button_layout())
         layout.addLayout(list_layout)
 
-        self.refresh_widgets()
+        self._refresh()
         self.item_list.selectAll()
 
     def _create_item_list(self):
@@ -310,7 +310,7 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def refresh(self):
-        self.refresh_widgets()
+        self._refresh()
         self.item_list.setFocus()
 
     def _refresh(self):
@@ -324,9 +324,11 @@ class PlaylistWindow(QWidget):
                     PlaylistWindowItem(value=item)
                 )
         self.total_shows_label.setText(_TOTAL_SHOWS_TEXT.format(len(self.playlist)))
-        self._selection_change(0)
+        self.durations_loaded = False
         if self.item_list.count() > 0:
             self.item_list.setCurrentItem(self.item_list.item(0))
+        self._run_calculate_total_runtime_thread()
+        self._refresh_buttons()
 
     @Slot()
     def open_input(self):
@@ -342,7 +344,8 @@ class PlaylistWindow(QWidget):
                                  '{}'.format(file_name),
                             icon=QMessageBox.Critical).exec()
                 return
-            self.refresh_widgets(stop_runtime_thread=True)
+            self._stop_runtime_thread()
+            self._refresh()
         finally:
             self.item_list.setFocus()
 
@@ -506,15 +509,16 @@ class PlaylistWindow(QWidget):
         self.runtime_thread.error.connect(self.total_runtime_thread_error)
         self.runtime_thread.start()
 
-    def refresh_widgets(self, stop_runtime_thread: bool = False):
-        if self.runtime_thread is not None and stop_runtime_thread:
-            self.runtime_thread.stop = True
-            self.runtime_thread.wait(10 * 1000)
-            self.runtime_thread = None
-            self.durations_loaded = False
-            self.duration_cache = None
-        self._refresh()
+    def _stop_runtime_thread(self):
+        if self.runtime_thread is None:
+            return
+
+        self.runtime_thread.stop = True
+        self.runtime_thread.wait(QDeadlineTimer(10 * 1000))
+        self.runtime_thread = None
+        self.durations_loaded = False
+        self.duration_cache = None
+
+    def _refresh_buttons(self):
         for button in self.selection_dependent_buttons:
             button.setEnabled(len(self.item_list.selectedItems()) > 0)
-        self.item_list.setFocus()
-        self._run_calculate_total_runtime_thread()
