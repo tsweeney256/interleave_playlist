@@ -311,7 +311,6 @@ class PlaylistWindow(QWidget):
     @Slot()
     def refresh(self):
         self._refresh()
-        self.item_list.setFocus()
 
     def _refresh(self):
         self.item_list.clear()
@@ -329,6 +328,7 @@ class PlaylistWindow(QWidget):
             self.item_list.setCurrentItem(self.item_list.item(0))
         self._run_calculate_total_runtime_thread()
         self._refresh_buttons()
+        self.item_list.setFocus()
 
     @Slot()
     def open_input(self):
