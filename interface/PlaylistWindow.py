@@ -363,6 +363,8 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def update_total_runtime_progress_bar(self, value):
+        if self.runtime_thread is None:
+            return
         self.total_runtime_progress.setMaximum(len(self.runtime_thread.playlist))
         self.total_runtime_progress.setValue(value)
 
@@ -483,9 +485,7 @@ class PlaylistWindow(QWidget):
                 _DARK_MODE_WATCHED_COLOR)
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if self.runtime_thread is not None:
-            self.runtime_thread.stop = True
-            self.runtime_thread.wait(10 * 1000)
+        self._stop_runtime_thread()
 
     def _run_calculate_total_runtime_thread(self):
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
