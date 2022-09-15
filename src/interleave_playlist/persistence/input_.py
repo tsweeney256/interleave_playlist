@@ -21,8 +21,8 @@ from pathlib import Path
 from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
 
-from src.core import PlaylistEntry
-from src.persistence import Location, Group, Timed, _STATE_FILE
+from interleave_playlist.core import PlaylistEntry
+from interleave_playlist.persistence import Location, Group, Timed, _STATE_FILE
 
 
 class InvalidInputFile(Exception):

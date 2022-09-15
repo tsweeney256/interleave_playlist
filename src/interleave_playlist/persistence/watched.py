@@ -15,8 +15,9 @@ import csv
 import os
 from os import path
 
-from src.core.playlist import FileGroup, get_playlist, PlaylistEntry
-from src.persistence import input_, settings
+from interleave_playlist.core.playlist import FileGroup, get_playlist, PlaylistEntry
+from interleave_playlist.persistence import input_
+from interleave_playlist.persistence import settings
 
 
 def get_watched() -> list[FileGroup]:

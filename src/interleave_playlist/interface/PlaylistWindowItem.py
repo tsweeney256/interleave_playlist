@@ -11,10 +11,24 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from os import path
 
-from interleave_playlist.interface.PlaylistApplication import PlaylistApplication
-from interleave_playlist.persistence import create_needed_files
+from PySide6.QtWidgets import QListWidgetItem
 
-if __name__ == "__main__":
-    create_needed_files()
-    PlaylistApplication([])
+from interleave_playlist.core.playlist import PlaylistEntry
+
+_USER_TYPE: int = 1001
+
+
+class PlaylistWindowItem(QListWidgetItem):
+
+    def __init__(self, *args, value: PlaylistEntry, **kwargs):
+        super().__init__(*args, type=_USER_TYPE, **kwargs)
+        self.value: PlaylistEntry = value
+        self.setText(path.basename(value.filename))
+
+    def setValue(self, value: PlaylistEntry):
+        self.value = value
+
+    def getValue(self):
+        return self.value

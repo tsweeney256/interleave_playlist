@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2022 Thomas Sweeney
+#    Copyright (C) 2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -11,13 +11,7 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dataclasses import dataclass
+from setuptools import setup
 
-from src.persistence import Group, Location
-
-
-@dataclass
-class PlaylistEntry:
-    filename: str
-    location: Location
-    group: Group
+if __name__ == '__main__':
+    setup()

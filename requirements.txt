@@ -1,5 +1,0 @@
-ruamel.yaml~=0.17.17
-PySide6~=6.2.0
-pymediainfo~=5.1.0
-crontab~=0.23.0
-natsort~=8.0.0

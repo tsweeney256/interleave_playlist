@@ -27,13 +27,16 @@ from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemVi
 from natsort import natsorted
 from pymediainfo import MediaInfo
 
-from src.core.playlist import PlaylistEntry
-from src.interface import open_with_default_application, _create_playlist, _get_duration_str
-from src.interface.PlaylistWindowItem import PlaylistWindowItem
-from src.interface.SearchBarThread import SearchBarThread, SearchBarThreadAlreadyDeadException
-from src.persistence import input_, settings
-from src.persistence.input_ import set_last_input_file
-from src.persistence.watched import add_watched, remove_watched
+from interleave_playlist.core.playlist import PlaylistEntry
+from interleave_playlist.interface import open_with_default_application, _create_playlist, \
+    _get_duration_str
+from interleave_playlist.interface.PlaylistWindowItem import PlaylistWindowItem
+from interleave_playlist.interface.SearchBarThread import SearchBarThread, \
+    SearchBarThreadAlreadyDeadException
+from interleave_playlist.persistence import input_
+from interleave_playlist.persistence import settings
+from interleave_playlist.persistence.input_ import set_last_input_file
+from interleave_playlist.persistence.watched import add_watched, remove_watched
 
 _LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
 _DARK_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(77, 12, 12))

@@ -18,9 +18,9 @@ from traceback import format_exception
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
-from src.interface.PlaylistWindow import PlaylistWindow
-from src.persistence.settings import get_dark_mode
-from src.util import SCRIPT_LOC
+from interleave_playlist.interface.PlaylistWindow import PlaylistWindow
+from interleave_playlist.persistence.settings import get_dark_mode
+from interleave_playlist.util import SCRIPT_LOC
 
 
 class PlaylistApplication(QApplication):
@@ -32,7 +32,13 @@ class PlaylistApplication(QApplication):
         playlist_window.show()
         if get_dark_mode():
             with open(os.path.join(
-                    SCRIPT_LOC, 'src', 'interface', 'style', 'dark.qss'), 'r') as f:
+                    SCRIPT_LOC,
+                    'src',
+                    'interleave_playlist',
+                    'interface',
+                    'style',
+                    'dark.qss'
+            ), 'r') as f:
                 _style = f.read()
                 self.setStyleSheet(_style)
         sys.exit(self.exec())

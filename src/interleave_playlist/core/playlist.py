@@ -21,10 +21,10 @@ from re import Pattern
 
 from natsort import natsorted, ns
 
-from src.core import PlaylistEntry
-from src.core.interleave import interleave_all
-from src.persistence import Group, Location, Timed
-from src.persistence import settings
+from interleave_playlist.core import PlaylistEntry
+from interleave_playlist.core.interleave import interleave_all
+from interleave_playlist.persistence import Group, Location, Timed
+from interleave_playlist.persistence import settings
 
 FilePathsByGroup = dict[Group, list[str]]
 FileGroup = tuple[str, str]
