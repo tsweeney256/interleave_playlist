@@ -17,8 +17,8 @@ from datetime import datetime, timedelta
 
 from crontab import CronTab
 
-import util
-from persistence.settings import _create_settings_file
+from src import util
+from src.persistence.settings import _create_settings_file
 
 _STATE_FILE = os.path.join(util.SCRIPT_LOC, 'config', 'state.json')
 

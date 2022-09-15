@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
-import util
+from src import util
 
 _SETTINGS_FILE = os.path.join(util.SCRIPT_LOC, 'config', 'settings.yml')
 _CACHED_FILE = None

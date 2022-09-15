@@ -15,8 +15,8 @@ import csv
 import os
 from os import path
 
-from core.playlist import FileGroup, get_playlist, PlaylistEntry
-from persistence import input_, settings
+from src.core.playlist import FileGroup, get_playlist, PlaylistEntry
+from src.persistence import input_, settings
 
 
 def get_watched() -> list[FileGroup]:

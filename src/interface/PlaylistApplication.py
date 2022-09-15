@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,9 +18,9 @@ from traceback import format_exception
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
-from interface.PlaylistWindow import PlaylistWindow
-from persistence.settings import get_dark_mode
-from util import SCRIPT_LOC
+from src.interface.PlaylistWindow import PlaylistWindow
+from src.persistence.settings import get_dark_mode
+from src.util import SCRIPT_LOC
 
 
 class PlaylistApplication(QApplication):
@@ -32,7 +32,7 @@ class PlaylistApplication(QApplication):
         playlist_window.show()
         if get_dark_mode():
             with open(os.path.join(
-                    SCRIPT_LOC, 'interface', 'style', 'dark.qss'), 'r') as f:
+                    SCRIPT_LOC, 'src', 'interface', 'style', 'dark.qss'), 'r') as f:
                 _style = f.read()
                 self.setStyleSheet(_style)
         sys.exit(self.exec())

@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -12,9 +12,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from interface.PlaylistApplication import PlaylistApplication
-from persistence import create_needed_files
+import os
+import pathlib
+import sys
 
-if __name__ == "__main__":
-    create_needed_files()
-    PlaylistApplication([])
+SCRIPT_LOC = pathlib.Path(*pathlib.Path(os.path.realpath(sys.argv[0])).parts[:-2])

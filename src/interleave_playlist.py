@@ -11,13 +11,10 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dataclasses import dataclass
 
-from persistence import Group, Location
+from interface.PlaylistApplication import PlaylistApplication
+from persistence import create_needed_files
 
-
-@dataclass
-class PlaylistEntry:
-    filename: str
-    location: Location
-    group: Group
+if __name__ == "__main__":
+    create_needed_files()
+    PlaylistApplication([])

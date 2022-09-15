@@ -15,7 +15,7 @@ from os import path
 
 from PySide6.QtWidgets import QListWidgetItem
 
-from core.playlist import PlaylistEntry
+from src.core.playlist import PlaylistEntry
 
 _USER_TYPE: int = 1001
 

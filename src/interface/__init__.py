@@ -18,9 +18,9 @@ from math import log10, ceil
 
 from PySide6.QtWidgets import QMessageBox
 
-from core.playlist import get_playlist, PlaylistEntry
-from persistence import input_
-from persistence.watched import get_watched
+from src.core.playlist import get_playlist, PlaylistEntry
+from src.persistence import input_
+from src.persistence.watched import get_watched
 
 
 # https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
