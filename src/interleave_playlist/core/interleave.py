@@ -21,7 +21,6 @@ _MARGIN = 10e-6
 
 def interleave(a: list[T], b: list[T]) -> list[T]:
     smaller, larger = sorted([a, b], key=lambda ab: len(ab))
-    total_len: int = len(larger) + len(smaller)
     if not smaller:
         return larger
     group_count = len(smaller) + 1
