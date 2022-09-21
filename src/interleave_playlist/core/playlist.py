@@ -54,15 +54,21 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
     filtered_entries: list[list[PlaylistEntry]] = []
     watched_names = [i[0] for i in watched_list]
     for group, entries in entries_by_group.items():
-        timed_slice = _timed_slice(group.timed, entries) if group.timed else entries
+        # Ordering is important! Filter out invalid considerations first
         group_entries = [entry for entry in filter(
-            lambda i: (i in timed_slice
-                       and search_filter.upper() in path.basename(i.filename).upper()
-                       and path.basename(i.filename) not in watched_names
+            lambda i: (search_filter.upper() in path.basename(i.filename).upper()
                        and _matches_whitelist(i.filename, group.whitelist)
                        and not _matches_blacklist(i.filename, group.blacklist)
                        and (not settings.get_exclude_directories() or isfile(i.filename))),
             entries)]
+        # Now that invalid considerations are gone, we can slice by timing considerations
+        # or else invalid considerations will be part of the result, then removed anyway
+        group_entries = _timed_slice(group.timed, group_entries) if group.timed else group_entries
+        # Now that invalid and timed considerations are gone, we can finally remove things
+        # that we've already seen
+        group_entries = [entry for entry in filter(
+            lambda i: path.basename(i.filename) not in watched_names,
+            group_entries)]
         if group_entries:
             filtered_entries.append(group_entries)
     if not filtered_entries:
