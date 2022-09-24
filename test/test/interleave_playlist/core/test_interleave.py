@@ -13,11 +13,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+from _pytest.mark import ParameterSet
 
-from interleave_playlist.core.interleave import interleave
+from interleave_playlist.core.interleave import interleave, interleave_all
+
+InterleaveParameterSet = ParameterSet[list[str], list[str], list[str]]
 
 
-def transform_testdata_definition(a, b, expected, k) -> tuple[list[str], list[str], list[str]]:
+def transform_testdata_definition(a, b, expected, k) -> InterleaveParameterSet:
     return pytest.param(["w"] * a, ["U"] * b, [c for c in expected], id=f'{k=} {(a, b, expected)}')
 
 
@@ -97,7 +100,7 @@ interleave_testdata_definition = [
     (10, 10, "wUwUwUwUwUwUwUwUwUwU"),
 ]
 
-interleave_testdata = []
+interleave_testdata: list[InterleaveParameterSet] = []
 i = 0
 for d in interleave_testdata_definition:
     interleave_testdata.append(t(*d, i))
@@ -106,8 +109,17 @@ for d in interleave_testdata_definition:
         interleave_testdata.append(t(*r(*d), i))
         i += 1
 
+interleave_all_from_interleave_testdata: list[tuple[list[list[str]], str]] \
+    = [([x.values[0], x.values[1]], x.values[2]) for x in interleave_testdata]  # type: ignore
+
 
 @pytest.mark.parametrize("a,b,expected", interleave_testdata)
 def test_interleave(a, b, expected):
     actual = interleave(a, b)
+    assert(actual == expected)
+
+
+@pytest.mark.parametrize("groups,expected", interleave_all_from_interleave_testdata)
+def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected):
+    actual = interleave_all(groups)
     assert(actual == expected)
