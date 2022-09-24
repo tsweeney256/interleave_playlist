@@ -25,7 +25,7 @@ def transform_testdata_definition(input_: list[int], expected: str, k: int, valu
     transformed_input: list[list[str]] = []
     for idx, size in enumerate(input_):
         transformed_input.append([values[idx]] * size)
-    return pytest.param(transformed_input, [c for c in expected], id=f'{k=} {(input_, expected)}')
+    return pytest.param(transformed_input, [c for c in expected], id=f'k[{k}] {(input_, expected)}')
 
 
 def reverse_testdata_arguments(input_: list[int], expected: str, values: list[str]) \
@@ -107,12 +107,24 @@ interleave_testdata_definition = [
     ([10, 10], "wUwUwUwUwUwUwUwUwUwU"),
 ]
 
-interleave_all_test_data_definition = [
+interleave_all_testdata_definition = [
     ([], ""),
     ([0], ""),
     ([0, 0], ""),
     ([0, 0, 0], ""),
-    ([0, 0, 0, 0], "")
+    ([0, 0, 0, 0], ""),
+    ([1, 1, 1], "acb"),
+    ([1, 1, 1, 1], "acbd"),
+    ([1, 1, 1, 1, 1], "acebd"),
+    ([2, 1, 1], "cacb"),
+    ([2, 2, 1], "cabca"),
+    ([2, 2, 2], "abcabc"),
+    ([3, 2, 1], "abacab"),
+    ([3, 3, 1], "abacbab"),
+    ([3, 3, 2], "abcabcab"),
+    ([3, 3, 3], "abcabcabc"),
+    ([1, 1, 2, 1], "cadcb"),
+    ([1, 1, 2, 1, 1], "adcbec"),
 ]
 
 interleave_testdata: list[InterleaveParameterSet] = []
@@ -122,6 +134,13 @@ for d in interleave_testdata_definition:
     i += 1
     if d[0][0] != d[0][1]:
         interleave_testdata.append(t(*r(*d, values=['w', 'U']), k=i, values=['w', 'U']))
+        i += 1
+
+i = 0
+interleave_all_testdata: list[InterleaveParameterSet] = []
+for d in interleave_all_testdata_definition:
+    interleave_all_testdata.append(t(*d, k=i, values=['a', 'b', 'c', 'd', 'e', 'f']))
+    i += 1
 
 
 @pytest.mark.parametrize("input_,expected", interleave_testdata)
@@ -133,5 +152,12 @@ def test_interleave(input_, expected):
 
 @pytest.mark.parametrize("groups,expected", interleave_testdata)
 def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected):
+    actual = interleave_all(groups)
+    assert(actual == expected)
+
+
+@pytest.mark.skip
+@pytest.mark.parametrize("groups,expected", interleave_all_testdata)
+def test_interleave_all(groups, expected):
     actual = interleave_all(groups)
     assert(actual == expected)
