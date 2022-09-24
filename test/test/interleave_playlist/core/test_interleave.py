@@ -28,9 +28,12 @@ def transform_testdata_definition(input_: list[int], expected: str, k: int, valu
     return pytest.param(transformed_input, [c for c in expected], id=f'{k=} {(input_, expected)}')
 
 
-def reverse_testdata_arguments(a, b, expected) -> tuple[int, int, str]:
-    r_expected = ["w" if c == "U" else "U" for c in expected]
-    return b, a, "".join(r_expected)
+def reverse_testdata_arguments(input_: list[int], expected: str, values: list[str]) \
+        -> tuple[list[int], str]:
+    if len(values) != 2:
+        raise ValueError("Reversing test data is for 2 values only")
+    r_expected = [values[0] if c == values[1] else values[1] for c in expected]
+    return list(reversed(input_)), "".join(r_expected)
 
 
 t = transform_testdata_definition
@@ -118,9 +121,7 @@ for d in interleave_testdata_definition:
     interleave_testdata.append(t(*d, k=i, values=['w', 'U']))
     i += 1
     if d[0][0] != d[0][1]:
-        reversed_ = r(d[0][0], d[0][1], d[1])
-        interleave_testdata.append(t([reversed_[0], reversed_[1]],
-                                     reversed_[2], k=i, values=['w', 'U']))
+        interleave_testdata.append(t(*r(*d, values=['w', 'U']), k=i, values=['w', 'U']))
 
 
 @pytest.mark.parametrize("input_,expected", interleave_testdata)
