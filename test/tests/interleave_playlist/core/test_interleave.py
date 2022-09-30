@@ -15,9 +15,10 @@
 import pytest
 from _pytest.mark import ParameterSet
 
-from interleave_playlist.core.interleave import interleave, interleave_all
+from interleave_playlist.core.interleave import interleave_all, interleave
 
 InterleaveParameterSet = ParameterSet[list[str], list[str], list[str]]
+InterleaveDefinition = tuple[list[int], str]
 
 
 def transform_testdata_definition(input_: list[int], expected: str, k: int, values: list[str]) \
@@ -39,7 +40,7 @@ def reverse_testdata_arguments(input_: list[int], expected: str, values: list[st
 t = transform_testdata_definition
 r = reverse_testdata_arguments
 
-interleave_testdata_definition = [
+interleave_testdata_definition: list[InterleaveDefinition] = [
     ([0, 0], ""),
     ([0, 1], "U"),
     ([0, 2], "UU"),
@@ -107,40 +108,52 @@ interleave_testdata_definition = [
     ([10, 10], "wUwUwUwUwUwUwUwUwUwU"),
 ]
 
-interleave_all_testdata_definition = [
+interleave_all_testdata_definition: list[InterleaveDefinition] = [
     ([], ""),
     ([0], ""),
     ([0, 0], ""),
     ([0, 0, 0], ""),
     ([0, 0, 0, 0], ""),
+    ([1], "a"),
+    ([1, 0], "a"),
+    ([2, 0], "aa"),
+    ([1, 0, 0], "a"),
+    ([2, 0, 0], "aa"),
+    ([1, 0, 0, 0], "a"),
+    ([2, 0, 0, 0], "aa"),
     ([1, 1, 1], "acb"),
     ([1, 1, 1, 1], "acbd"),
     ([1, 1, 1, 1, 1], "acebd"),
-    ([2, 1, 1], "cacb"),
-    ([2, 2, 1], "cabca"),
-    ([2, 2, 2], "abcabc"),
+    ([2, 1, 1], "abac"),
+    ([2, 2, 1], "abcab"),
+    ([2, 2, 2], "acbcab"),
     ([3, 2, 1], "abacab"),
     ([3, 3, 1], "abacbab"),
     ([3, 3, 2], "abcabcab"),
-    ([3, 3, 3], "abcabcabc"),
+    ([3, 3, 3], "acbacbcab"),
     ([1, 1, 2, 1], "cadcb"),
-    ([1, 1, 2, 1, 1], "adcbec"),
+    ([1, 1, 2, 1, 1], "cdaecb"),
 ]
 
-interleave_testdata: list[InterleaveParameterSet] = []
-i = 0
-for d in interleave_testdata_definition:
-    interleave_testdata.append(t(*d, k=i, values=['w', 'U']))
-    i += 1
-    if d[0][0] != d[0][1]:
-        interleave_testdata.append(t(*r(*d, values=['w', 'U']), k=i, values=['w', 'U']))
-        i += 1
 
-i = 0
-interleave_all_testdata: list[InterleaveParameterSet] = []
-for d in interleave_all_testdata_definition:
-    interleave_all_testdata.append(t(*d, k=i, values=['a', 'b', 'c', 'd', 'e', 'f']))
-    i += 1
+def transform_definition(definition: list[InterleaveDefinition],
+                         chars: list[str],
+                         reverse: bool = False) -> list[InterleaveParameterSet]:
+    data: list[InterleaveParameterSet] = []
+    i = 0
+    for d in definition:
+        data.append(t(*d, k=i, values=chars))
+        i += 1
+        if reverse and d[0][0] != d[0][1]:
+            data.append(t(*r(*d, values=chars), k=i, values=chars))
+            i += 1
+    return data
+
+
+interleave_testdata = transform_definition(
+    interleave_testdata_definition, ['w', 'U'], reverse=True)
+interleave_all_testdata = transform_definition(
+    interleave_all_testdata_definition, ['a', 'b', 'c', 'd', 'e', 'f'])
 
 
 @pytest.mark.parametrize("input_,expected", interleave_testdata)
@@ -156,7 +169,6 @@ def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected
     assert(actual == expected)
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("groups,expected", interleave_all_testdata)
 def test_interleave_all(groups, expected):
     actual = interleave_all(groups)
