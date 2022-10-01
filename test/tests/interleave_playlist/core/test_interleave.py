@@ -46,8 +46,12 @@ def reverse_testdata_arguments(input_: list[int], expected: str, values: list[st
 def transform_interleave_all_testdata(input_: list[int], k: int):
     transformed_input: list[list[str]] = []
     a = alpha(len(input_))
-    for idx, size in enumerate(input_):
-        transformed_input.append([next(a)] * size)
+    for size in input_:
+        cur_alpha = next(a)
+        group = []
+        for i in range(size):
+            group.append(cur_alpha + str(i))
+        transformed_input.append(group)
     return pytest.param(transformed_input, id=f'[{k} {input_}]')
 
 
@@ -163,7 +167,8 @@ def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected
 
 
 # We don't care so much about what the actual result of the interleaving here is.
-# We only care that the result contains all the elements of the input with nothing added or removed.
+# We only care that the result contains all the elements of the input with nothing added or removed
+# and that the items within each group retain their ordering.
 # The actual quality of the interleaving is measured outside unit tests.
 # There is no absolute correct way of determining how to interleave more than two asymmetric lists
 @pytest.mark.parametrize("groups", combinations)
@@ -171,10 +176,17 @@ def test_interleave_all(groups: list[list[str]]):
     expected_counts = {}
     for group in groups:
         if group:
-            expected_counts[group[0]] = len(group)
+            expected_counts[group[0][0]] = len(group)
     actual = interleave_all(groups)
+    actual_last_seen = {}
     actual_counts = {}
     for item in actual:
-        count = actual_counts.get(item, 0)
-        actual_counts[item] = count + 1
+        key = item[0]
+        count = actual_counts.get(key, 0)
+        actual_counts[key] = count + 1
+        if key in actual_last_seen:
+            # this will stop working the moment there's 10 or more items in a group
+            # use natural comparisons if it comes to that
+            assert(actual_last_seen[key] < item)
+        actual_last_seen[key] = item
     assert(actual_counts == expected_counts)
