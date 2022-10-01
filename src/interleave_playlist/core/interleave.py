@@ -49,6 +49,7 @@ def interleave(a: list[T], b: list[T]) -> list[T]:
 
 # Sort by minimum group size difference
 def interleave_all(groups: list[list[T]]) -> list[T]:
+    groups = [group for group in groups if group]  # just make debugging easier
     sorted_groups = sorted(groups, key=lambda l: len(l))
     while len(sorted_groups) > 1:
         min_diff: int = sys.maxsize
