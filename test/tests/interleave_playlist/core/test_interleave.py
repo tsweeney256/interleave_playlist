@@ -11,6 +11,7 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import itertools
 
 import pytest
 from _pytest.mark import ParameterSet
@@ -19,6 +20,11 @@ from interleave_playlist.core.interleave import interleave_all, interleave
 
 InterleaveParameterSet = ParameterSet[list[str], list[str], list[str]]
 InterleaveDefinition = tuple[list[int], str]
+
+
+def alpha(n: int):
+    for i in range(n):
+        yield chr(ord('a') + i)
 
 
 def transform_testdata_definition(input_: list[int], expected: str, k: int, values: list[str]) \
@@ -35,6 +41,14 @@ def reverse_testdata_arguments(input_: list[int], expected: str, values: list[st
         raise ValueError("Reversing test data is for 2 values only")
     r_expected = [values[0] if c == values[1] else values[1] for c in expected]
     return list(reversed(input_)), "".join(r_expected)
+
+
+def transform_interleave_all_testdata(input_: list[int], k: int):
+    transformed_input: list[list[str]] = []
+    a = alpha(len(input_))
+    for idx, size in enumerate(input_):
+        transformed_input.append([next(a)] * size)
+    return pytest.param(transformed_input, id=f'[{k} {input_}]')
 
 
 t = transform_testdata_definition
@@ -108,31 +122,12 @@ interleave_testdata_definition: list[InterleaveDefinition] = [
     ([10, 10], "wUwUwUwUwUwUwUwUwUwU"),
 ]
 
-interleave_all_testdata_definition: list[InterleaveDefinition] = [
-    ([], ""),
-    ([0], ""),
-    ([0, 0], ""),
-    ([0, 0, 0], ""),
-    ([0, 0, 0, 0], ""),
-    ([1], "a"),
-    ([1, 0], "a"),
-    ([2, 0], "aa"),
-    ([1, 0, 0], "a"),
-    ([2, 0, 0], "aa"),
-    ([1, 0, 0, 0], "a"),
-    ([2, 0, 0, 0], "aa"),
-    ([1, 1, 1], "acb"),
-    ([1, 1, 1, 1], "acbd"),
-    ([1, 1, 1, 1, 1], "acebd"),
-    ([2, 1, 1], "abac"),
-    ([2, 2, 1], "abcab"),
-    ([2, 2, 2], "acbcab"),
-    ([3, 2, 1], "abacab"),
-    ([3, 3, 1], "abacbab"),
-    ([3, 3, 2], "abcabcab"),
-    ([3, 3, 3], "acbacbcab"),
-    ([1, 1, 2, 1], "cadcb"),
-    ([1, 1, 2, 1, 1], "cdaecb"),
+n = 5
+combinations: list[ParameterSet[list[str]]] = [
+    transform_interleave_all_testdata(combo, i)
+    for i, combo in enumerate(
+        itertools.combinations_with_replacement(list(range(n+1)), n)
+    )
 ]
 
 
@@ -152,8 +147,6 @@ def transform_definition(definition: list[InterleaveDefinition],
 
 interleave_testdata = transform_definition(
     interleave_testdata_definition, ['w', 'U'], reverse=True)
-interleave_all_testdata = transform_definition(
-    interleave_all_testdata_definition, ['a', 'b', 'c', 'd', 'e', 'f'])
 
 
 @pytest.mark.parametrize("input_,expected", interleave_testdata)
@@ -169,7 +162,19 @@ def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected
     assert(actual == expected)
 
 
-@pytest.mark.parametrize("groups,expected", interleave_all_testdata)
-def test_interleave_all(groups, expected):
+# We don't care so much about what the actual result of the interleaving here is.
+# We only care that the result contains all the elements of the input with nothing added or removed.
+# The actual quality of the interleaving is measured outside unit tests.
+# There is no absolute correct way of determining how to interleave more than two asymmetric lists
+@pytest.mark.parametrize("groups", combinations)
+def test_interleave_all(groups: list[list[str]]):
+    expected_counts = {}
+    for group in groups:
+        if group:
+            expected_counts[group[0]] = len(group)
     actual = interleave_all(groups)
-    assert(actual == expected)
+    actual_counts = {}
+    for item in actual:
+        count = actual_counts.get(item, 0)
+        actual_counts[item] = count + 1
+    assert(actual_counts == expected_counts)
