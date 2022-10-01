@@ -18,9 +18,9 @@ from interleave_playlist.core.interleave import interleave_all, interleave
 from tests.interleave_playlist.core import interleave_testdata, combinations
 
 
-@pytest.mark.parametrize("input_,expected", interleave_testdata)
-def test_interleave(input_, expected):
-    a, b = input_
+@pytest.mark.parametrize("groups,expected", interleave_testdata)
+def test_interleave(groups, expected):
+    a, b = groups
     actual = interleave(a, b)
     assert(actual == expected)
 
