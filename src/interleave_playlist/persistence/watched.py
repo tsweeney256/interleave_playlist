@@ -54,7 +54,7 @@ def _get_temp_file_name() -> str:
 
 
 def _get_basename_playlist() -> list[PlaylistEntry]:
-    return [i for i in get_playlist(input_.get_locations(), [])]
+    return [i for i in get_playlist(input_.get_locations(), [], use_cache=True)]
 
 
 def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:

@@ -315,9 +315,9 @@ class PlaylistWindow(QWidget):
     def refresh(self):
         self._refresh()
 
-    def _refresh(self):
+    def _refresh(self, *, use_cache = False):
         self.item_list.clear()
-        self.playlist = _create_playlist(self.search_bar.text())
+        self.playlist = _create_playlist(self.search_bar.text(), use_cache)
         if self.playlist is not None:
             for item in sorted(self.playlist,
                                key=self.sort,
@@ -395,7 +395,7 @@ class PlaylistWindow(QWidget):
             return
         counter = itertools.count()
         self.sort = lambda x: next(counter)
-        self._refresh()
+        self._refresh(use_cache=True)
         self.item_list.setFocus()
 
     @Slot()
@@ -403,7 +403,7 @@ class PlaylistWindow(QWidget):
         if not checked:
             return
         self.sort = natsort.natsort_keygen(lambda i: os.path.basename(i.filename))
-        self._refresh()
+        self._refresh(use_cache=True)
         self.item_list.setFocus()
 
     @Slot()
@@ -411,12 +411,12 @@ class PlaylistWindow(QWidget):
         if not checked:
             return
         self.sort = lambda x: os.path.getmtime(x.filename)
-        self._refresh()
+        self._refresh(use_cache=True)
         self.item_list.setFocus()
 
     @Slot()
     def reverse_sort(self, checked: bool):
-        self._refresh()
+        self._refresh(use_cache=True)
         self.item_list.setFocus()
 
     @Slot()
@@ -432,12 +432,12 @@ class PlaylistWindow(QWidget):
 
     @Slot()
     def search_bar_editing_finished(self):
-        self.refresh()
+        self._refresh(use_cache=True)
         # we don't want focus back here. we're finished
 
     @Slot()
     def search_bar_thread_completed(self, text: str):
-        self.refresh()
+        self._refresh(use_cache=True)
         self.search_bar.setFocus()
 
     def _init_search_bar_thread(self, text: str):

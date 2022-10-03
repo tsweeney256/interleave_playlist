@@ -33,9 +33,9 @@ def open_with_default_application(filepath: str):
         subprocess.call(('xdg-open', filepath))
 
 
-def _create_playlist(search_filter: str = "") -> list[PlaylistEntry]:
+def _create_playlist(search_filter: str = "", use_cache: bool = False) -> list[PlaylistEntry]:
     try:
-        return get_playlist(input_.get_locations(), get_watched(), search_filter)
+        return get_playlist(input_.get_locations(), get_watched(), search_filter, use_cache)
     except FileNotFoundError:
         QMessageBox(text="Input yml file not found: {}\n\n"
                          "Please create or find file and open it"

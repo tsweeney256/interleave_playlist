@@ -29,14 +29,17 @@ from interleave_playlist.persistence import settings
 FilePathsByGroup = dict[Group, list[str]]
 FileGroup = tuple[str, str]
 PlaylistEntriesByGroup = dict[Group, list[PlaylistEntry]]
+file_cache: dict[str, list[str]] = {}
 
 
 def get_playlist(locations: list[Location],
                  watched_list: list[FileGroup],
-                 search_filter: str = "") -> list[PlaylistEntry]:
+                 search_filter: str = "",
+                 use_cache=False) -> list[PlaylistEntry]:
     location_groups: PlaylistEntriesByGroup = {}
     for loc in locations:
-        location_groups.update(_group_items_by_regex(loc))
+        paths: list[str] = _get_paths_from_location(loc, use_cache)
+        location_groups.update(_group_items_by_regex(loc, paths))
 
     def _key(i) -> int: return i[0].priority
     entries_by_priority: dict[int, PlaylistEntriesByGroup] = {
@@ -82,17 +85,24 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
     return _unmask_playlist(masked_playlist, sorted_group)
 
 
-def _group_items_by_regex(loc: Location) -> PlaylistEntriesByGroup:
-    regex_str: str = loc.regex if loc.regex is not None else ''
-    regex: Pattern = re.compile(regex_str)
-    grouped_items: PlaylistEntriesByGroup = {}
-    group_dict = {group.name: group for group in loc.groups}
-
+def _get_paths_from_location(loc: Location, use_cache: bool) -> list[str]:
+    if use_cache and loc.name in file_cache:
+        return file_cache[loc.name]
     paths = [(loc.name, i) for i in listdir(loc.name)]
     for a in loc.additional:
         paths += [(a, i) for i in listdir(a)]
     paths = list(map(lambda i: path.join(i[0], i[1]),
                      natsorted(paths, key=lambda i: i[1], alg=ns.IGNORECASE)))
+    file_cache[loc.name] = paths
+    return paths
+
+
+def _group_items_by_regex(loc: Location, paths: list[str]) -> PlaylistEntriesByGroup:
+    regex_str: str = loc.regex if loc.regex is not None else ''
+    regex: Pattern = re.compile(regex_str)
+    grouped_items: PlaylistEntriesByGroup = {}
+    group_dict = {group.name: group for group in loc.groups}
+
     for p in paths:
         match = regex.match(path.basename(p))
         if not match:
