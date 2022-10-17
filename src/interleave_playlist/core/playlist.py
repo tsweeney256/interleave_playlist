@@ -11,12 +11,11 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import os
 import re
 from copy import copy
 from itertools import groupby
-from os import path, listdir
-from os.path import isfile
+from os import path
 from re import Pattern
 
 from natsort import natsorted, ns
@@ -62,7 +61,7 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
             lambda i: (search_filter.upper() in path.basename(i.filename).upper()
                        and _matches_whitelist(i.filename, group.whitelist)
                        and not _matches_blacklist(i.filename, group.blacklist)
-                       and (not settings.get_exclude_directories() or isfile(i.filename))),
+                       and (not settings.get_exclude_directories() or os.path.isfile(i.filename))),
             entries)]
         # Now that invalid considerations are gone, we can slice by timing considerations
         # or else invalid considerations will be part of the result, then removed anyway
@@ -88,9 +87,9 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
 def _get_paths_from_location(loc: Location, use_cache: bool) -> list[str]:
     if use_cache and loc.name in file_cache:
         return file_cache[loc.name]
-    paths = [(loc.name, i) for i in listdir(loc.name)]
+    paths = [(loc.name, i) for i in os.listdir(loc.name)]
     for a in loc.additional:
-        paths += [(a, i) for i in listdir(a)]
+        paths += [(a, i) for i in os.listdir(a)]
     paths = list(map(lambda i: path.join(i[0], i[1]),
                      natsorted(paths, key=lambda i: i[1], alg=ns.IGNORECASE)))
     file_cache[loc.name] = paths
