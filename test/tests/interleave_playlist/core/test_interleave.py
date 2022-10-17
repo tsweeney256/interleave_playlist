@@ -15,7 +15,7 @@
 import pytest
 
 from interleave_playlist.core.interleave import interleave_all, interleave
-from tests.interleave_playlist.core import interleave_testdata, combinations
+from tests.interleave_playlist.core.interleave_helper import interleave_testdata, combinations
 
 
 @pytest.mark.parametrize("groups,expected", interleave_testdata)
