@@ -90,10 +90,15 @@ class RuntimeCalculationThread(QThread):
                     duration: int = 0
                     if os.path.isfile(elem):
                         media_info = MediaInfo.parse(elem)
-                        if len(media_info.video_tracks) > 0:
+                        if len(media_info.video_tracks) > 0 \
+                                and media_info.video_tracks[0].duration:
                             duration = int(float(media_info.video_tracks[0].duration))
-                        elif len(media_info.audio_tracks) > 0:
+                        elif len(media_info.audio_tracks) > 0 \
+                                and media_info.audio_tracks[0].duration:
                             duration = int(float(media_info.audio_tracks[0].duration))
+                        else:
+                            print(f'Warning: {elem} has no duration info for video or audio')
+                            duration = 0
                     self.duration_cache[elem] = duration
                     self.value_updated.emit(i+1)
                 total_duration += self.duration_cache[elem]
