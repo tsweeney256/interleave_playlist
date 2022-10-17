@@ -133,7 +133,7 @@ def _timed_slice(timed: Timed, loc_list: list[PlaylistEntry]) -> list[PlaylistEn
 
 
 def _matches_whitelist(s: str, whitelist: list[str]) -> bool:
-    if whitelist is None:
+    if not whitelist:
         return True
     for white in whitelist:
         if white in s:
