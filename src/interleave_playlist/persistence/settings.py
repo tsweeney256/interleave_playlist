@@ -46,7 +46,7 @@ def get_exclude_directories() -> bool:
 def _get_settings(option):
     global _CACHED_FILE
     if _CACHED_FILE is None:
-        with open(_SETTINGS_FILE, 'r') as f:
+        with open(_SETTINGS_FILE, 'rw') as f:
             yaml = YAML()
             yaml.preserve_quotes = True
             _CACHED_FILE = yaml.load(f)
@@ -54,7 +54,7 @@ def _get_settings(option):
         for key in default_settings.keys():
             if key not in _CACHED_FILE:
                 _CACHED_FILE[key] = default_settings[key]
-            yaml.dump(_CACHED_FILE, Path(_SETTINGS_FILE))
+            yaml.dump(_CACHED_FILE, f)
 
     return _CACHED_FILE[option]
 
