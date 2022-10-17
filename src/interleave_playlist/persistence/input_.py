@@ -43,7 +43,6 @@ def get_locations() -> list[Location]:
         locations.append(
             Location(
                 loc['name'],
-                loc['additional'] if 'additional' in loc else [],
                 Group(
                     loc['name'],
                     _nested_get('priority', options),
@@ -51,6 +50,7 @@ def get_locations() -> list[Location]:
                     _nested_get('blacklist', options),
                     _get_timed(loc['timed']) if 'timed' in loc else None,
                 ),
+                loc['additional'] if 'additional' in loc else [],
                 _nested_get('regex', options),
                 _get_group_list(loc['groups'], options) if 'groups' in loc else []
             )

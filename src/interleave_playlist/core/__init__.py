@@ -11,13 +11,13 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from interleave_playlist.persistence import Group, Location
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class PlaylistEntry:
-    filename: str
-    location: Location
-    group: Group
+    filename: str = field(hash=True)
+    location: Location = field(hash=False)
+    group: Group = field(hash=False)

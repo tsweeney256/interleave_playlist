@@ -13,6 +13,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import sys
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from crontab import CronTab
@@ -51,30 +52,36 @@ class Timed:
         return initial + first_cron_amount + cron_amount - 1
 
 
+@dataclass(unsafe_hash=True)
 class Group:
-    def __init__(self, name: str, priority: int, whitelist: list[str], blacklist: list[str],
-                 timed: Timed):
-        self.name = name
-        self.priority = priority if priority is not None else sys.maxsize
-        self.whitelist = whitelist
-        self.blacklist = blacklist
-        self.timed = timed
+    name: str = field(hash=True)
+    priority: int = field(default=sys.maxsize, hash=False)
+    whitelist: list[str] = field(default_factory=list, hash=False)
+    blacklist: list[str] = field(default_factory=list, hash=False)
+    timed: Timed = None
 
-    def __repr__(self):
-        return str(self.__dict__)
+    def __post_init__(self):
+        if self.priority is None:
+            self.priority = sys.maxsize
+        if self.whitelist is None:
+            self.whitelist = []
+        if self.blacklist is None:
+            self.blacklist = []
 
 
+@dataclass(unsafe_hash=True)
 class Location:
-    def __init__(self, name: str, additional: list[str], default_group: Group, regex: str,
-                 groups: list[Group]):
-        self.name = name
-        self.additional = additional
-        self.default_group = default_group
-        self.regex = regex
-        self.groups = groups if groups is not None else []
+    name: str = field(hash=True)
+    default_group: Group = field(hash=False)
+    additional: list[str] = field(default_factory=list, hash=False)
+    regex: str = field(default=None, hash=False)
+    groups: list[Group] = field(default_factory=list, hash=False)
 
-    def __repr__(self):
-        return str(self.__dict__)
+    def __post_init__(self):
+        if self.groups is None:
+            self.groups = []
+        if self.additional is None:
+            self.additional = []
 
 
 def _create_state_file():
