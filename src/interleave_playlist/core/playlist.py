@@ -17,6 +17,7 @@ from copy import copy
 from itertools import groupby
 from os import path
 from re import Pattern
+from typing import Any
 
 from natsort import natsorted, ns
 
@@ -87,11 +88,11 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
 def _get_paths_from_location(loc: Location, use_cache: bool) -> list[str]:
     if use_cache and loc.name in file_cache:
         return file_cache[loc.name]
-    paths = [(loc.name, i) for i in os.listdir(loc.name)]
+    path_parts = [(loc.name, i) for i in os.listdir(loc.name)]
     for a in loc.additional:
-        paths += [(a, i) for i in os.listdir(a)]
+        path_parts += [(a, i) for i in os.listdir(a)]
     paths = list(map(lambda i: path.join(i[0], i[1]),
-                     natsorted(paths, key=lambda i: i[1], alg=ns.IGNORECASE)))
+                     natsorted(path_parts, key=lambda i: i[1], alg=ns.IGNORECASE)))
     file_cache[loc.name] = paths
     return paths
 
@@ -149,7 +150,7 @@ def _matches_blacklist(s: str, blacklist: list[str]) -> bool:
     return False
 
 
-def _get_from_dict_key_superset(super_key: str, d: dict[str, any]) -> any:
+def _get_from_dict_key_superset(super_key: str, d: dict[str, Any]) -> Any:
     for k, v in d.items():
         if k in super_key:
             return v

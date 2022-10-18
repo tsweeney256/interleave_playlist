@@ -28,7 +28,7 @@ def open_with_default_application(filepath: str):
     if platform.system() == 'Darwin':       # macOS
         subprocess.call(('open', filepath))
     elif platform.system() == 'Windows':    # Windows
-        os.startfile(filepath)
+        os.startfile(filepath)  # type: ignore
     else:                                   # linux variants
         subprocess.call(('xdg-open', filepath))
 

@@ -16,7 +16,8 @@ import math
 import os
 import subprocess
 import threading
-from typing import Optional
+import typing
+from typing import Optional, Callable
 
 import natsort
 from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread, QDeadlineTimer
@@ -52,23 +53,23 @@ class RuntimeCalculationThread(QThread):
     error = Signal(BaseException)
 
     def __init__(self,
-                 playlist: dict[PlaylistEntry],
+                 playlist: list[PlaylistEntry],
                  duration_cache: Optional[dict[str, int]] = None):
         super(RuntimeCalculationThread, self).__init__()
         if duration_cache is None:
             duration_cache = {}
         self.running: bool = False
         self.stop: bool = False
-        self.playlist: dict[PlaylistEntry] = playlist.copy()
+        self.playlist: list[PlaylistEntry] = playlist.copy()
         self.duration_cache: dict[str, int] = ({}
                                                if duration_cache is None else
                                                duration_cache.copy())
-        self.pending_playlist: Optional[dict[str, str]] = None
+        self.pending_playlist: Optional[list[PlaylistEntry]] = None
 
     def __del__(self):
         self.wait()
 
-    def set_pending_playlist(self, playlist: dict[PlaylistEntry]):
+    def set_pending_playlist(self, playlist: list[PlaylistEntry]):
         self.pending_playlist = playlist.copy()
 
     def run(self):
@@ -131,7 +132,7 @@ class PlaylistWindow(QWidget):
         self.total_selected_label = QLabel()
         self.total_selected_label.setFont(label_font)
 
-        self.playlist: dict[PlaylistEntry] = {}
+        self.playlist: list[PlaylistEntry] = []
         self.item_list: QListWidget = self._create_item_list()
 
         self.total_runtime_label = QLabel(_TOTAL_RUNTIME.format('...'))

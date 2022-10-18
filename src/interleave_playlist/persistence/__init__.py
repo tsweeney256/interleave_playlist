@@ -15,6 +15,7 @@ import os
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Optional
 
 from crontab import CronTab
 
@@ -25,8 +26,8 @@ _STATE_FILE = os.path.join(SCRIPT_LOC, 'config', 'state.json')
 
 
 class Timed:
-    def __init__(self, start: datetime, cron: CronTab, first: int,
-                 amount: int, start_at_cron: bool):
+    def __init__(self, start: datetime, cron: CronTab, first: Optional[int],
+                 amount: Optional[int], start_at_cron: Optional[bool]):
         self.start = (start.astimezone()
                       if start.tzinfo is None else
                       start)
@@ -58,7 +59,7 @@ class Group:
     priority: int = field(default=sys.maxsize, hash=False)
     whitelist: list[str] = field(default_factory=list, hash=False)
     blacklist: list[str] = field(default_factory=list, hash=False)
-    timed: Timed = None
+    timed: Optional[Timed] = None
 
     def __post_init__(self):
         if self.priority is None:
@@ -74,7 +75,7 @@ class Location:
     name: str = field(hash=True)
     default_group: Group = field(hash=False)
     additional: list[str] = field(default_factory=list, hash=False)
-    regex: str = field(default=None, hash=False)
+    regex: Optional[str] = field(default=None, hash=False)
     groups: list[Group] = field(default_factory=list, hash=False)
 
     def __post_init__(self):

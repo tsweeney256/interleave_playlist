@@ -14,6 +14,7 @@
 
 import os
 from pathlib import Path
+from typing import Any
 
 from ruamel.yaml import YAML
 
@@ -60,7 +61,7 @@ def _get_settings(option):
     return _CACHED_FILE[option]
 
 
-def _get_default_settings() -> dict[str, any]:
+def _get_default_settings() -> dict[str, Any]:
     return {
         'font-size': 12,
         'play-command': 'mpv',

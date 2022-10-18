@@ -23,7 +23,7 @@ _USER_TYPE: int = 1001
 class PlaylistWindowItem(QListWidgetItem):
 
     def __init__(self, *args, value: PlaylistEntry, **kwargs):
-        super().__init__(*args, type=_USER_TYPE, **kwargs)
+        super().__init__(*args, type=_USER_TYPE, **kwargs)  # type: ignore
         self.value: PlaylistEntry = value
         self.setText(path.basename(value.filename))
 

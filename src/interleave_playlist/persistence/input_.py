@@ -17,6 +17,7 @@ import re
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
@@ -81,7 +82,7 @@ def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
     yaml.dump(input_, Path(get_last_input_file()))
 
 
-def _get_group_list(groups: list[dict[str, any]], additional_options: list[dict[str, any]]):
+def _get_group_list(groups: list[dict[str, Any]], additional_options: list[dict[str, Any]]):
     data = []
     for g in groups:
         options = [g, *additional_options]
@@ -95,7 +96,7 @@ def _get_group_list(groups: list[dict[str, any]], additional_options: list[dict[
     return data
 
 
-def _get_timed(d: dict[str, any]):
+def _get_timed(d: dict[str, Any]):
     return Timed(
         datetime.fromisoformat(d['start']),
         CronTab(d['cron']),
@@ -109,7 +110,7 @@ def _get_input(input_file: str):
     try:
         with open(input_file, 'r') as f:
             yaml = YAML()
-            yaml.preserve_quotes = True
+            yaml.preserve_quotes = True  # type: ignore
             yml = yaml.load(f)
         _validate_group(yml)
         if 'locations' not in yml:
@@ -211,7 +212,7 @@ def _validate_groups(groups: list[dict]):
         _validate_group(group)
 
 
-def _nested_get(key: str, options: list[dict[str, any]]):
+def _nested_get(key: str, options: list[dict[str, Any]]):
     for option in options:
         if key in option:
             return option.get(key)
@@ -231,7 +232,7 @@ def _get_state():
         return json.load(f)
 
 
-def _set_state(key: str, val: any):
+def _set_state(key: str, val: Any):
     state = _get_state()
     state[key] = val
     with open(_STATE_FILE, 'w') as f:
