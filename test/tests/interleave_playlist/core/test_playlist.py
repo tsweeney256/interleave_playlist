@@ -515,19 +515,267 @@ def test_get_playlist_with_one_location_using_regex_other_no_regex_interleaved(m
     assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_many_locations_different_priorities():
-    pass
+def test_get_playlist_with_one_location_with_priority(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    al = Location('/dir/A', ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/A/foo 1.mkv', al, Group('/dir/A', priority=1)),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, Group('/dir/A', priority=1)),
+    ]
+    assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_one_location_many_regex_groups_different_priorities():
-    pass
+def test_get_playlist_with_many_locations_with_same_priority(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+        '/dir/B': ['bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    al = Location('/dir/A', ag)
+    bg = Group('/dir/B', priority=1)
+    bl = Location('/dir/B', bg)
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/A/foo 1.mkv', al, Group('/dir/A', priority=1)),
+        PlaylistEntry('/dir/B/bar 1.mkv', bl, Group('/dir/B', priority=1)),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, Group('/dir/A', priority=1)),
+        PlaylistEntry('/dir/B/bar 2.mkv', bl, Group('/dir/B', priority=1)),
+    ]
+    assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_many_location_many_regex_groups_different_priorities():
-    pass
+def test_get_playlist_with_many_locations_with_one_priority_one_no_priority(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+        '/dir/B': ['bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A')
+    al = Location('/dir/A', ag)
+    bg = Group('/dir/B', priority=1)
+    bl = Location('/dir/B', bg)
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/B/bar 1.mkv', bl, Group('/dir/B', priority=1)),
+        PlaylistEntry('/dir/B/bar 2.mkv', bl, Group('/dir/B', priority=1)),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, Group('/dir/A')),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, Group('/dir/A')),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_many_locations_different_priorities(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+        '/dir/B': ['bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=2)
+    al = Location('/dir/A', ag)
+    bg = Group('/dir/B', priority=1)
+    bl = Location('/dir/B', bg)
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/B/bar 1.mkv', bl, Group('/dir/B', priority=1)),
+        PlaylistEntry('/dir/B/bar 2.mkv', bl, Group('/dir/B', priority=1)),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, Group('/dir/A', priority=2)),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, Group('/dir/A', priority=2)),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_one_location_many_regex_groups_same_priorities(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv')
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/A/bar 1.mkv', al, Group('bar', priority=1)),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, Group('foo', priority=1)),
+        PlaylistEntry('/dir/A/bar 2.mkv', al, Group('bar', priority=1)),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, Group('foo', priority=1)),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_overrides(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    foo_g = Group('foo', priority=1)
+    bar_g = Group('bar', priority=1)
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv', groups=[foo_g, bar_g])
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/A/bar 1.mkv', al, bar_g),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, foo_g),
+        PlaylistEntry('/dir/A/bar 2.mkv', al, bar_g),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, foo_g),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_one_location_many_regex_groups_one_with_priority_one_with_no_priority(
+        mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    foo_g = Group('foo')
+    bar_g = Group('bar', priority=1)
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv', groups=[foo_g, bar_g])
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/A/bar 1.mkv', al, bar_g),
+        PlaylistEntry('/dir/A/bar 2.mkv', al, bar_g),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, foo_g),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, foo_g),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_one_location_many_regex_groups_different_priorities(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    foo_g = Group('foo', priority=2)
+    bar_g = Group('bar', priority=1)
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv', groups=[foo_g, bar_g])
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/A/bar 1.mkv', al, bar_g),
+        PlaylistEntry('/dir/A/bar 2.mkv', al, bar_g),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, foo_g),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, foo_g),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_many_location_many_regex_groups_same_priorities(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+        '/dir/B': ['bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    foo_g = Group('foo', priority=1)
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv')
+    bg = Group('/dir/B', priority=1)
+    bar_g = Group('bar', priority=1)
+    bl = Location('/dir/B', bg, regex='(?P<group>[a-z]+).*\\.mkv')
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/A/foo 1.mkv', al, foo_g),
+        PlaylistEntry('/dir/B/bar 1.mkv', bl, bar_g),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, foo_g),
+        PlaylistEntry('/dir/B/bar 2.mkv', bl, bar_g),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_many_location_many_regex_groups_one_with_one_without_priorities(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+        '/dir/B': ['bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A')
+    foo_g = Group('foo')
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv')
+    bg = Group('/dir/B', priority=1)
+    bar_g = Group('bar', priority=1)
+    bl = Location('/dir/B', bg, regex='(?P<group>[a-z]+).*\\.mkv')
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/B/bar 1.mkv', bl, bar_g),
+        PlaylistEntry('/dir/B/bar 2.mkv', bl, bar_g),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, foo_g),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, foo_g),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_many_location_many_regex_groups_different_priorities(mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+        '/dir/B': ['bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=2)
+    foo_g = Group('foo', priority=2)
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv')
+    bg = Group('/dir/B', priority=1)
+    bar_g = Group('bar', priority=1)
+    bl = Location('/dir/B', bg, regex='(?P<group>[a-z]+).*\\.mkv')
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/B/bar 1.mkv', bl, bar_g),
+        PlaylistEntry('/dir/B/bar 2.mkv', bl, bar_g),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, foo_g),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, foo_g),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_many_location_many_regex_groups_different_priorities_from_default(
+        mocker):
+    mock_listdir(mocker, {
+        '/dir/A': ['foo 1.mkv', 'foo 2.mkv'],
+        '/dir/B': ['bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group('/dir/A', priority=1)
+    foo_g = Group('foo', priority=2)
+    al = Location('/dir/A', ag, regex='(?P<group>[a-z]+).*\\.mkv', groups=[foo_g])
+    bg = Group('/dir/B', priority=2)
+    bar_g = Group('bar', priority=1)
+    bl = Location('/dir/B', bg, regex='(?P<group>[a-z]+).*\\.mkv', groups=[bar_g])
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry('/dir/B/bar 1.mkv', bl, bar_g),
+        PlaylistEntry('/dir/B/bar 2.mkv', bl, bar_g),
+        PlaylistEntry('/dir/A/foo 1.mkv', al, foo_g),
+        PlaylistEntry('/dir/A/foo 2.mkv', al, foo_g),
+    ]
+    assert actual == expected
 
 
 @pytest.mark.skip
