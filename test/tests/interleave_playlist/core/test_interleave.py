@@ -22,13 +22,13 @@ from tests.interleave_playlist.core.interleave_helper import interleave_testdata
 def test_interleave(groups, expected):
     a, b = groups
     actual = interleave(a, b)
-    assert(actual == expected)
+    assert actual == expected
 
 
 @pytest.mark.parametrize("groups,expected", interleave_testdata)
 def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected):
     actual = interleave_all(groups)
-    assert(actual == expected)
+    assert actual == expected
 
 
 # We don't care so much about what the actual result of the interleaving here is.
@@ -52,6 +52,6 @@ def test_interleave_all(groups: list[list[str]]):
         if key in actual_last_seen:
             # this will stop working the moment there's 10 or more items in a group
             # use natural comparisons if it comes to that
-            assert(actual_last_seen[key] < item)
+            assert actual_last_seen[key] < item
         actual_last_seen[key] = item
-    assert(actual_counts == expected_counts)
+    assert actual_counts == expected_counts

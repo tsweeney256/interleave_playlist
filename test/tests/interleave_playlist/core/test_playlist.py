@@ -26,7 +26,7 @@ default_settings_mock = {settings._SETTINGS_FILE: default_settings_content}
 def test_get_playlist_with_no_locations():
     actual = get_playlist([], [])
     expected = []
-    assert(actual == expected)
+    assert actual == expected
 
 
 def test_get_playlist_with_one_location_empty(mocker):
@@ -130,7 +130,6 @@ def test_get_playlist_with_many_locations_many_files(mocker):
 def test_get_playlist_with_duplicate_locations_no_files(mocker):
     mock_listdir(mocker, {
         '/dir/A': [],
-        '/dir/A': [],
     })
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
@@ -146,7 +145,6 @@ def test_get_playlist_with_duplicate_locations_no_files(mocker):
 
 def test_get_playlist_with_duplicate_locations_one_file(mocker):
     mock_listdir(mocker, {
-        '/dir/A': ['foo.mkv'],
         '/dir/A': ['foo.mkv'],
     })
     mocker.patch('os.path.isfile', return_value=True)
@@ -165,7 +163,6 @@ def test_get_playlist_with_duplicate_locations_one_file(mocker):
 
 def test_get_playlist_with_duplicate_locations_many_files(mocker):
     mock_listdir(mocker, {
-        '/dir/A': ['foo.mkv', 'bar.mkv'],
         '/dir/A': ['foo.mkv', 'bar.mkv'],
     })
     mocker.patch('os.path.isfile', return_value=True)
@@ -472,8 +469,9 @@ def test_get_playlist_with_many_locations_many_regex_groups_each_interleaved(moc
 
 # TODO: actual bug
 # These need to be counted as entirely separate groups
-@pytest.mark.skip(reason = 'This found an actual, existing, bug')
-def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_crossing_locations(mocker):
+@pytest.mark.skip(reason='This found an actual, existing, bug')
+def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_crossing_locations(
+        mocker):
     mock_listdir(mocker, {
         '/dir/A': ['foo 1.mkv', 'bar 2.mkv'],
         '/dir/B': ['bar 1.mkv', 'foo 2.mkv'],
