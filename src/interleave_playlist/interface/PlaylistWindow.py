@@ -17,14 +17,14 @@ import os
 import subprocess
 import threading
 import typing
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 
 import natsort
-from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread, QDeadlineTimer
+from PySide6.QtCore import Slot, QEvent, Qt, Signal, QThread, QDeadlineTimer, SignalInstance
 from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
-    QGroupBox, QCheckBox, QLineEdit
+    QGroupBox, QCheckBox, QLineEdit, QLayout
 from natsort import natsorted
 from pymediainfo import MediaInfo
 
@@ -48,9 +48,9 @@ _SELECTED_RUNTIME =    'Selected Runtime: {}'
 
 
 class RuntimeCalculationThread(QThread):
-    value_updated = Signal(int)
-    completed = Signal(dict, int)
-    error = Signal(BaseException)
+    value_updated = typing.cast(SignalInstance, Signal(int))
+    completed = typing.cast(SignalInstance, Signal(dict, int))
+    error = typing.cast(SignalInstance, Signal(BaseException))
 
     def __init__(self,
                  playlist: list[PlaylistEntry],
@@ -66,13 +66,13 @@ class RuntimeCalculationThread(QThread):
                                                duration_cache.copy())
         self.pending_playlist: Optional[list[PlaylistEntry]] = None
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.wait()
 
-    def set_pending_playlist(self, playlist: list[PlaylistEntry]):
+    def set_pending_playlist(self, playlist: list[PlaylistEntry]) -> None:
         self.pending_playlist = playlist.copy()
 
-    def run(self):
+    def run(self) -> None:
         self.running = True
         try:
             self._run()
@@ -81,7 +81,7 @@ class RuntimeCalculationThread(QThread):
         finally:
             self.running = False
 
-    def _run(self):
+    def _run(self) -> None:
         while True:
             total_duration = 0
             for i, elem in enumerate(item.filename for item in self.playlist):
@@ -111,21 +111,19 @@ class RuntimeCalculationThread(QThread):
 
 
 class PlaylistWindow(QWidget):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-
         self._warned_about_mediainfo_missing = False
         self.selection_dependent_buttons: list[QPushButton] = []
         self._row_color1, self._row_color2 = self._get_standard_row_colors()
-        self.duration_cache = {}
+        self.duration_cache: dict[str, int] = {}
         self.durations_loaded = False
         counter = itertools.count()
-        self.sort = lambda x: next(counter)
+        self.sort: Callable[[Any], Any] = lambda x: next(counter)
 
         self.search_bar_thread = None
-
         label_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        label_font.setPointSize(settings.get_font_size() * 1.25)
+        label_font.setPointSize(int(settings.get_font_size() * 1.25))
         self.total_shows_label = QLabel()
         self.total_shows_label.setFont(label_font)
 
@@ -208,7 +206,7 @@ class PlaylistWindow(QWidget):
         self._refresh()
         self.item_list.selectAll()
 
-    def _create_item_list(self):
+    def _create_item_list(self) -> QListWidget:
         item_list = QListWidget()
         item_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         item_list.setAlternatingRowColors(True)
@@ -220,7 +218,7 @@ class PlaylistWindow(QWidget):
         item_list.installEventFilter(self)
         return item_list
 
-    def _create_button_layout(self):
+    def _create_button_layout(self) -> QLayout:
         button_layout = QHBoxLayout()
         buttons = [
             ('Play', self.play, 'Enter', True),
@@ -241,9 +239,10 @@ class PlaylistWindow(QWidget):
             button_layout.addWidget(button)
         return button_layout
 
+    @typing.no_type_check
     def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
         if event.type() == QEvent.KeyPress:
-            switch: dict[int, callable] = {
+            switch: dict[int, Callable] = {
                 Qt.NoModifier + Qt.Key_Return: self._play,
                 Qt.NoModifier + Qt.Key_Enter: self._play,
                 Qt.ControlModifier + Qt.Key_W: self.mark_watched,
@@ -264,22 +263,26 @@ class PlaylistWindow(QWidget):
         return False
 
     @Slot()
-    def play(self):
+    def play(self) -> None:
         self._play()
         self.item_list.setFocus()
 
-    def _play(self):
-        def _impl():
-            files = [i.getValue().filename for i in self.item_list.selectedItems()]
+    def _play(self) -> None:
+        def _impl() -> None:
+            files = [i.getValue().filename
+                     for i
+                     in typing.cast(list[PlaylistWindowItem], self.item_list.selectedItems())]
             subprocess.run([settings.get_play_command()] + files)
         if self.playlist is not None:
             thread = threading.Thread(target=_impl)
             thread.start()
 
     @Slot()
-    def mark_watched(self):
+    def mark_watched(self) -> None:
         selected_values: list[PlaylistEntry] = [
-            i.getValue() for i in self.item_list.selectedItems()
+            i.getValue()
+            for i
+            in typing.cast(list[PlaylistWindowItem], self.item_list.selectedItems())
         ]
         add_watched(selected_values)
         for item in self.item_list.selectedItems():
@@ -287,9 +290,11 @@ class PlaylistWindow(QWidget):
         self.item_list.setFocus()
 
     @Slot()
-    def unmark_watched(self):
+    def unmark_watched(self) -> None:
         selected_values: list[PlaylistEntry] = [
-            i.getValue() for i in self.item_list.selectedItems()
+            i.getValue()
+            for i
+            in typing.cast(list[PlaylistWindowItem], self.item_list.selectedItems())
         ]
         remove_watched(selected_values)
         for i, item in enumerate(self.item_list.selectedItems()):
@@ -298,19 +303,23 @@ class PlaylistWindow(QWidget):
         self.item_list.setFocus()
 
     @Slot()
-    def drop_groups(self):
+    def drop_groups(self) -> None:
         selected_entries: list[PlaylistEntry] = [
-            i.getValue() for i in self.item_list.selectedItems()
+            i.getValue()
+            for i
+            in typing.cast(list[PlaylistWindowItem], self.item_list.selectedItems())
         ]
         if len(selected_entries) == 0:
             return
         groups_str = set()
         for entry in selected_entries:
             groups_str.add(entry.group.name)
-        msg_box = QMessageBox(text="You are about to drop the following groups. "
-                                   "Do you wish to continue?\n    {}"
-                                   .format('\n    '.join(natsorted(groups_str))),
-                              icon=QMessageBox.Question)
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle('Drop Groups')
+        msg_box.setText("You are about to drop the following groups. "
+                        "Do you wish to continue?\n    {}"
+                        .format('\n    '.join(natsorted(groups_str))))
+        msg_box.setIcon(QMessageBox.Icon.Question)
         msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         reply = msg_box.exec()
         if reply == QMessageBox.Ok:
@@ -318,10 +327,10 @@ class PlaylistWindow(QWidget):
         self.item_list.setFocus()
 
     @Slot()
-    def refresh(self):
+    def refresh(self) -> None:
         self._refresh()
 
-    def _refresh(self, *, use_cache = False):
+    def _refresh(self, *, use_cache: bool = False) -> None:
         self.item_list.clear()
         self.playlist = _create_playlist(self.search_bar.text(), use_cache)
         if self.playlist is not None:
@@ -340,7 +349,7 @@ class PlaylistWindow(QWidget):
         self.item_list.setFocus()
 
     @Slot()
-    def open_input(self):
+    def open_input(self) -> None:
         try:
             file_name: str = QFileDialog.getOpenFileName(
                 self, 'Open yaml', os.path.expanduser('~'), 'yaml files (*.yml *.yaml)')[0]
@@ -349,9 +358,11 @@ class PlaylistWindow(QWidget):
             try:
                 set_last_input_file(file_name)
             except input_.InvalidInputFile:
-                QMessageBox(text='Error: Attempted to open invalid input yaml file\n\n'
-                                 '{}'.format(file_name),
-                            icon=QMessageBox.Critical).exec()
+                msg_box = QMessageBox()
+                msg_box.setWindowTitle('Error')
+                msg_box.setText(f'Error: Attempted to open invalid input yaml file\n\n{file_name}')
+                msg_box.setIcon(QMessageBox.Icon.Warning)
+                msg_box.exec()
                 return
             self._stop_runtime_thread()
             self._refresh()
@@ -359,26 +370,27 @@ class PlaylistWindow(QWidget):
             self.item_list.setFocus()
 
     @Slot()
-    def open_watched_file(self):
-        def _impl():
+    def open_watched_file(self) -> None:
+        def _impl() -> None:
             open_with_default_application(input_.get_watched_file_name())
         thread = threading.Thread(target=_impl)
         thread.start()
         self.item_list.setFocus()
 
     @Slot()
-    def selection_change(self):
+    def selection_change(self) -> None:
         self._selection_change(len(self.item_list.selectedItems()))
 
     @Slot()
-    def update_total_runtime_progress_bar(self, value):
+    def update_total_runtime_progress_bar(self, value: int) -> None:
         if self.runtime_thread is None:
             return
         self.total_runtime_progress.setMaximum(len(self.runtime_thread.playlist))
         self.total_runtime_progress.setValue(value)
 
     @Slot()
-    def total_runtime_thread_completed(self, duration_cache: dict[str, int], total_duration: int):
+    def total_runtime_thread_completed(self, duration_cache: dict[str, int],
+                                       total_duration: int) -> None:
         self.duration_cache = duration_cache
         self.total_duration = total_duration
         self.total_runtime_label.setText(
@@ -388,15 +400,15 @@ class PlaylistWindow(QWidget):
         self.total_runtime_progress.hide()
 
     @Slot()
-    def total_runtime_thread_error(self, exception: BaseException):
+    def total_runtime_thread_error(self, exception: BaseException) -> None:
         raise exception
 
     @Slot()
-    def search_bar_thread_error(self, exception: BaseException):
+    def search_bar_thread_error(self, exception: BaseException) -> None:
         raise exception
 
     @Slot()
-    def interleave_sort(self, checked: bool):
+    def interleave_sort(self, checked: bool) -> None:
         if not checked:
             return
         counter = itertools.count()
@@ -405,15 +417,15 @@ class PlaylistWindow(QWidget):
         self.item_list.setFocus()
 
     @Slot()
-    def alphabetical_sort(self, checked: bool):
+    def alphabetical_sort(self, checked: bool) -> None:
         if not checked:
             return
-        self.sort = natsort.natsort_keygen(lambda i: os.path.basename(i.filename))
+        self.sort = natsort.natsort_keygen(lambda i: os.path.basename(i.filename))  # type: ignore[no-any-return]
         self._refresh(use_cache=True)
         self.item_list.setFocus()
 
     @Slot()
-    def last_modified_sort(self, checked: bool):
+    def last_modified_sort(self, checked: bool) -> None:
         if not checked:
             return
         self.sort = lambda x: os.path.getmtime(x.filename)
@@ -421,12 +433,12 @@ class PlaylistWindow(QWidget):
         self.item_list.setFocus()
 
     @Slot()
-    def reverse_sort(self, checked: bool):
+    def reverse_sort(self, checked: bool) -> None:
         self._refresh(use_cache=True)
         self.item_list.setFocus()
 
     @Slot()
-    def search_bar_text_edited(self, text: str):
+    def search_bar_text_edited(self, text: str) -> None:
         if self.search_bar_thread is None:
             self._init_search_bar_thread(text)
             return
@@ -437,26 +449,26 @@ class PlaylistWindow(QWidget):
             self._init_search_bar_thread(text)
 
     @Slot()
-    def search_bar_editing_finished(self):
+    def search_bar_editing_finished(self) -> None:
         self._refresh(use_cache=True)
         # we don't want focus back here. we're finished
 
     @Slot()
-    def search_bar_thread_completed(self, text: str):
+    def search_bar_thread_completed(self, text: str) -> None:
         self._refresh(use_cache=True)
         self.search_bar.setFocus()
 
-    def _init_search_bar_thread(self, text: str):
+    def _init_search_bar_thread(self, text: str) -> None:
         self.search_bar_thread = SearchBarThread(text, 500)
         self.search_bar_thread.error.connect(self.search_bar_thread_error)
         self.search_bar_thread.completed.connect(self.search_bar_thread_completed)
         self.search_bar_thread.start()
 
-    def _focus_search_bar(self):
+    def _focus_search_bar(self) -> None:
         self.search_bar.setFocus()
         self.search_bar.selectAll()
 
-    def _selection_change(self, num_selected: int):
+    def _selection_change(self, num_selected: int) -> None:
         self.total_selected_label.setText(
             _SELECTED_SHOWS_TEXT.format(
                 str(num_selected).rjust(math.ceil(
@@ -468,17 +480,18 @@ class PlaylistWindow(QWidget):
         for btn in self.selection_dependent_buttons:
             btn.setEnabled(num_selected > 0)
 
-    def _get_selected_runtime(self):
+    def _get_selected_runtime(self) -> None:
         if not self.durations_loaded:
             return
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         duration = sum([self.duration_cache[i.getValue().filename]
-                        for i in self.item_list.selectedItems()])
+                        for i
+                        in typing.cast(list[PlaylistWindowItem], self.item_list.selectedItems())])
         self.selected_runtime_label.setText(
             _SELECTED_RUNTIME.format(_get_duration_str(duration, self.total_duration)))
 
     @staticmethod
-    def _get_standard_row_colors():
+    def _get_standard_row_colors() -> tuple[QBrush, QBrush]:
         # wow this is silly
         _hidden_list = QListWidget()
         _hidden_list.setAlternatingRowColors(True)
@@ -488,7 +501,7 @@ class PlaylistWindow(QWidget):
         return color1, color2
 
     @staticmethod
-    def _get_watched_color():
+    def _get_watched_color() -> QBrush:
         return (_LIGHT_MODE_WATCHED_COLOR
                 if not settings.get_dark_mode() else
                 _DARK_MODE_WATCHED_COLOR)
@@ -496,15 +509,18 @@ class PlaylistWindow(QWidget):
     def closeEvent(self, event: QCloseEvent) -> None:
         self._stop_runtime_thread()
 
-    def _run_calculate_total_runtime_thread(self):
+    def _run_calculate_total_runtime_thread(self) -> None:
         self.selected_runtime_label.setText(_SELECTED_RUNTIME.format('...'))
         self.durations_loaded = False
         if not MediaInfo.can_parse():
             if not self._warned_about_mediainfo_missing:
                 self._warned_about_mediainfo_missing = True
-                QMessageBox(text="libmediainfo not found. Will be unable to calculate "
-                                 "runtimes unless installed",
-                            icon=QMessageBox.Warning).exec()
+                msg_box = QMessageBox()
+                msg_box.setWindowTitle('Warning')
+                msg_box.setText("libmediainfo not found. Will be unable to calculate "
+                                 "runtimes unless installed")
+                msg_box.setIcon(QMessageBox.Icon.Warning)
+                msg_box.exec()
             return
         if self.runtime_thread is not None and not self.runtime_thread.isFinished():
             self.runtime_thread.set_pending_playlist(self.playlist)
@@ -518,7 +534,7 @@ class PlaylistWindow(QWidget):
         self.runtime_thread.error.connect(self.total_runtime_thread_error)
         self.runtime_thread.start()
 
-    def _stop_runtime_thread(self):
+    def _stop_runtime_thread(self) -> None:
         if self.runtime_thread is None:
             return
 
@@ -526,8 +542,8 @@ class PlaylistWindow(QWidget):
         self.runtime_thread.wait(QDeadlineTimer(10 * 1000))
         self.runtime_thread = None
         self.durations_loaded = False
-        self.duration_cache = None
+        self.duration_cache = {}
 
-    def _refresh_buttons(self):
+    def _refresh_buttons(self) -> None:
         for button in self.selection_dependent_buttons:
             button.setEnabled(len(self.item_list.selectedItems()) > 0)

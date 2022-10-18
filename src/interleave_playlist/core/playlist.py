@@ -35,13 +35,13 @@ file_cache: dict[str, list[str]] = {}
 def get_playlist(locations: list[Location],
                  watched_list: list[FileGroup],
                  search_filter: str = "",
-                 use_cache=False) -> list[PlaylistEntry]:
+                 use_cache: bool = False) -> list[PlaylistEntry]:
     location_groups: PlaylistEntriesByGroup = {}
     for loc in locations:
         paths: list[str] = _get_paths_from_location(loc, use_cache)
         location_groups.update(_group_items_by_regex(loc, paths))
 
-    def _key(i) -> int: return i[0].priority
+    def _key(i: tuple[Group, list[PlaylistEntry]]) -> int: return i[0].priority
     entries_by_priority: dict[int, PlaylistEntriesByGroup] = {
         k: dict(v) for k, v in groupby(sorted(location_groups.items(), key=_key), _key)
     }
@@ -156,7 +156,7 @@ def _get_from_dict_key_superset(super_key: str, d: dict[str, Any]) -> Any:
             return v
 
 
-def _get_watched_groups_lru(watched_list: list[FileGroup]):
+def _get_watched_groups_lru(watched_list: list[FileGroup]) -> list[str]:
     groups: list[str] = []
     for i in reversed(watched_list):
         if not i[1] in groups:

@@ -78,7 +78,7 @@ def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
     return new_watched_list
 
 
-def _write_new_watched_list(new_watched_list: list[FileGroup]):
+def _write_new_watched_list(new_watched_list: list[FileGroup]) -> None:
     with open(_get_temp_file_name(), 'w') as tmp:
         writer = csv.writer(tmp, quoting=csv.QUOTE_ALL)
         writer.writerows(new_watched_list)

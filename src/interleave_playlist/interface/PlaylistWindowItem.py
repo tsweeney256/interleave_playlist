@@ -12,6 +12,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from os import path
+from typing import Any
 
 from PySide6.QtWidgets import QListWidgetItem
 
@@ -22,13 +23,13 @@ _USER_TYPE: int = 1001
 
 class PlaylistWindowItem(QListWidgetItem):
 
-    def __init__(self, *args, value: PlaylistEntry, **kwargs):
+    def __init__(self, *args: list[Any], value: PlaylistEntry, **kwargs: dict[Any, Any]):
         super().__init__(*args, type=_USER_TYPE, **kwargs)  # type: ignore
         self.value: PlaylistEntry = value
         self.setText(path.basename(value.filename))
 
-    def setValue(self, value: PlaylistEntry):
+    def setValue(self, value: PlaylistEntry) -> None:
         self.value = value
 
-    def getValue(self):
+    def getValue(self) -> PlaylistEntry:
         return self.value

@@ -13,6 +13,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import typing
 from pathlib import Path
 from typing import Any
 
@@ -21,30 +22,30 @@ from ruamel.yaml import YAML
 from interleave_playlist import SCRIPT_LOC
 
 _SETTINGS_FILE = os.path.join(SCRIPT_LOC, 'config', 'settings.yml')
-_CACHED_FILE = None
+_CACHED_FILE: dict[str, Any] = {}
 
 
 def get_font_size() -> int:
-    return _get_settings('font-size')
+    return typing.cast(int, _get_settings('font-size'))
 
 
 def get_play_command() -> str:
-    return _get_settings('play-command')
+    return typing.cast(str, _get_settings('play-command'))
 
 
 def get_dark_mode() -> bool:
-    return _get_settings('dark-mode')
+    return typing.cast(bool, _get_settings('dark-mode'))
 
 
 def get_max_watched_remembered() -> int:
-    return _get_settings('max-watched-remembered')
+    return typing.cast(int, _get_settings('max-watched-remembered'))
 
 
 def get_exclude_directories() -> bool:
-    return _get_settings('exclude-directories')
+    return typing.cast(bool, _get_settings('exclude-directories'))
 
 
-def _get_settings(option):
+def _get_settings(option: str) -> Any:
     global _CACHED_FILE
     if _CACHED_FILE is None:
         with open(_SETTINGS_FILE, 'r') as f:
@@ -71,7 +72,7 @@ def _get_default_settings() -> dict[str, Any]:
     }
 
 
-def _create_settings_file():
+def _create_settings_file() -> None:
     if not os.path.exists(_SETTINGS_FILE):
         with open(_SETTINGS_FILE, 'w') as f:
             yaml = YAML()

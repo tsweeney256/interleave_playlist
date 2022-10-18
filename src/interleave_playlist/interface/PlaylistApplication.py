@@ -15,6 +15,8 @@
 import os.path
 import sys
 from traceback import format_exception
+from types import TracebackType
+from typing import Type, Optional, Sequence
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
@@ -24,7 +26,7 @@ from interleave_playlist.persistence.settings import get_dark_mode
 
 
 class PlaylistApplication(QApplication):
-    def __init__(self, arr):
+    def __init__(self, arr: Sequence[str]):
         super().__init__(arr)
         playlist_window = PlaylistWindow()
         playlist_window.setWindowTitle('Interleave Playlist')
@@ -44,11 +46,15 @@ class PlaylistApplication(QApplication):
         sys.exit(self.exec())
 
 
-def excepthook(cls, exception, traceback):
-    QMessageBox(text="Encountered an unhandled exception. This is a bug.\n"
-                     "Please file a bug report so that this can be fixed\n\n{}"
-                .format(''.join(format_exception(cls, exception, traceback))),
-                icon=QMessageBox.Warning).exec()
+def excepthook(cls: Type[BaseException], exception: BaseException,
+               traceback: Optional[TracebackType]) -> None:
+    err = "".join(format_exception(cls, exception, traceback))
+    msg_box = QMessageBox()
+    msg_box.setWindowTitle("Error")
+    msg_box.setText(f'Encountered an unhandled exception. This is a bug.\n'
+                    f'Please file a bug report so that this can be fixed\n\n{err}')
+    msg_box.setIcon(QMessageBox.Icon.Critical)
+    msg_box.exec()
 
 
 sys.excepthook = excepthook

@@ -36,7 +36,7 @@ class Timed:
         self.amount = amount if amount is not None and amount > 0 else 1
         self.start_at_cron = start_at_cron
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.__dict__)
 
     def get_current(self) -> int:
@@ -61,7 +61,7 @@ class Group:
     blacklist: list[str] = field(default_factory=list, hash=False)
     timed: Optional[Timed] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.priority is None:
             self.priority = sys.maxsize
         if self.whitelist is None:
@@ -78,19 +78,19 @@ class Location:
     regex: Optional[str] = field(default=None, hash=False)
     groups: list[Group] = field(default_factory=list, hash=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.groups is None:
             self.groups = []
         if self.additional is None:
             self.additional = []
 
 
-def _create_state_file():
+def _create_state_file() -> None:
     if not os.path.exists(_STATE_FILE):
         with open(_STATE_FILE, 'w') as f:
             f.write('{"last-input-file": "See config/input.yml.example"}')
 
 
-def create_needed_files():
+def create_needed_files() -> None:
     _create_settings_file()
     _create_state_file()

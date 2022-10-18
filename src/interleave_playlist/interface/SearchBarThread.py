@@ -11,10 +11,11 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import typing
 from threading import Lock
 from time import time_ns
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, SignalInstance
 
 
 class SearchBarThreadAlreadyDeadException(BaseException):
@@ -22,8 +23,8 @@ class SearchBarThreadAlreadyDeadException(BaseException):
 
 
 class SearchBarThread(QThread):
-    completed = Signal(str)
-    error = Signal(BaseException)
+    completed = typing.cast(SignalInstance, Signal(str))
+    error = typing.cast(SignalInstance, Signal(BaseException))
 
     def __init__(self, search_value: str, delay_ms: int):
         super(SearchBarThread, self).__init__()
@@ -38,15 +39,15 @@ class SearchBarThread(QThread):
         self._has_run = False
         self._running = False
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.wait()
 
     @property
-    def search_value(self):
+    def search_value(self) -> str:
         return self._search_value
 
     @search_value.setter
-    def search_value(self, search_value: str):
+    def search_value(self, search_value: str) -> None:
         self._lock.acquire()
         if not self._running and self._has_run:
             raise SearchBarThreadAlreadyDeadException()
@@ -56,14 +57,14 @@ class SearchBarThread(QThread):
         finally:
             self._lock.release()
 
-    def run(self):
+    def run(self) -> None:
         try:
             self._run()
         except BaseException as e:
             self.error.emit(e)
             self._lock.release()
 
-    def _run(self):
+    def _run(self) -> None:
         # _running and _has_run must be set in this order!!!
         self._running = True
         self._has_run = True

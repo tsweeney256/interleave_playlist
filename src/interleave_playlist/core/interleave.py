@@ -30,7 +30,7 @@ def interleave(a: list[T], b: list[T]) -> list[T]:
     result = []
     larger_idx = 0
 
-    def _append_larger():
+    def _append_larger() -> None:
         nonlocal larger_idx
         use_surplus = surplus_per_group and (group_idx+1+_MARGIN) % (1/surplus_per_group) < 1
         surplus_offset = 1 if use_surplus else 0
