@@ -18,10 +18,10 @@ from datetime import datetime, timedelta
 
 from crontab import CronTab
 
-from interleave_playlist import util
+from interleave_playlist import SCRIPT_LOC
 from interleave_playlist.persistence.settings import _create_settings_file
 
-_STATE_FILE = os.path.join(util.SCRIPT_LOC, 'config', 'state.json')
+_STATE_FILE = os.path.join(SCRIPT_LOC, 'config', 'state.json')
 
 
 class Timed:

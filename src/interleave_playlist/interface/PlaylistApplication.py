@@ -18,9 +18,9 @@ from traceback import format_exception
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
+from interleave_playlist import SCRIPT_LOC
 from interleave_playlist.interface.PlaylistWindow import PlaylistWindow
 from interleave_playlist.persistence.settings import get_dark_mode
-from interleave_playlist.util import SCRIPT_LOC
 
 
 class PlaylistApplication(QApplication):

@@ -17,9 +17,9 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
-from interleave_playlist import util
+from interleave_playlist import SCRIPT_LOC
 
-_SETTINGS_FILE = os.path.join(util.SCRIPT_LOC, 'config', 'settings.yml')
+_SETTINGS_FILE = os.path.join(SCRIPT_LOC, 'config', 'settings.yml')
 _CACHED_FILE = None
 
 
