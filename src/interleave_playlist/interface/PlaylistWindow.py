@@ -41,10 +41,10 @@ from interleave_playlist.persistence.watched import add_watched, remove_watched
 
 _LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
 _DARK_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(77, 12, 12))
-_TOTAL_SHOWS_TEXT =    'Total Shows:    {}'
+_TOTAL_SHOWS_TEXT = 'Total Shows:    {}'
 _SELECTED_SHOWS_TEXT = 'Selected Shows: {}'
-_TOTAL_RUNTIME =       'Total Runtime:    {}'
-_SELECTED_RUNTIME =    'Selected Runtime: {}'
+_TOTAL_RUNTIME = 'Total Runtime:    {}'
+_SELECTED_RUNTIME = 'Selected Runtime: {}'
 
 
 class RuntimeCalculationThread(QThread):
@@ -420,7 +420,8 @@ class PlaylistWindow(QWidget):
     def alphabetical_sort(self, checked: bool) -> None:
         if not checked:
             return
-        self.sort = natsort.natsort_keygen(lambda i: os.path.basename(i.filename))  # type: ignore[no-any-return]
+        self.sort = natsort.natsort_keygen(
+            lambda i: os.path.basename(i.filename))  # type: ignore[no-any-return]
         self._refresh(use_cache=True)
         self.item_list.setFocus()
 
@@ -518,7 +519,7 @@ class PlaylistWindow(QWidget):
                 msg_box = QMessageBox()
                 msg_box.setWindowTitle('Warning')
                 msg_box.setText("libmediainfo not found. Will be unable to calculate "
-                                 "runtimes unless installed")
+                                "runtimes unless installed")
                 msg_box.setIcon(QMessageBox.Icon.Warning)
                 msg_box.exec()
             return

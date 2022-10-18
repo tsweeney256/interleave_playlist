@@ -14,7 +14,6 @@
 
 import os
 import typing
-from pathlib import Path
 from typing import Any
 
 from ruamel.yaml import YAML
@@ -76,4 +75,4 @@ def _create_settings_file() -> None:
     if not os.path.exists(_SETTINGS_FILE):
         with open(_SETTINGS_FILE, 'w') as f:
             yaml = YAML()
-            yaml.dump(_get_default_settings(), Path(_SETTINGS_FILE))
+            yaml.dump(_get_default_settings(), f)

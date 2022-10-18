@@ -81,7 +81,8 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
     # that doesn't interfere with the quality of the interleaving.
     masked: list[list[tuple[int, int]]] = _mask_data(filtered_entries)
     masked_playlist: list[tuple[int, int]] = interleave_all(masked)
-    sorted_group: list[list[PlaylistEntry]] = _sort_data_by_least_recently_watched(filtered_entries, watched_list)
+    sorted_group: list[list[PlaylistEntry]] = \
+        _sort_data_by_least_recently_watched(filtered_entries, watched_list)
     return _unmask_playlist(masked_playlist, sorted_group)
 
 
@@ -178,8 +179,9 @@ def _mask_data(data: list[list[PlaylistEntry]]) -> list[list[tuple[int, int]]]:
     return masked
 
 
-def _sort_data_by_least_recently_watched(data: list[list[PlaylistEntry]],
-                                         watched_list: list[FileGroup]) -> list[list[PlaylistEntry]]:
+def _sort_data_by_least_recently_watched(
+        data: list[list[PlaylistEntry]],
+        watched_list: list[FileGroup]) -> list[list[PlaylistEntry]]:
     lru_groups: list[str] = _get_watched_groups_lru(watched_list)
     ideal_group_sorting: list[list[PlaylistEntry]] = []
     for i, d in enumerate(data):
