@@ -49,7 +49,7 @@ def _get_settings(option: str) -> Any:
     if not _CACHED_FILE:
         with open(_SETTINGS_FILE, 'r') as f:
             yaml = YAML()
-            yaml.preserve_quotes = True
+            yaml.preserve_quotes = True  # type: ignore
             _CACHED_FILE = yaml.load(f)
             default_settings = _get_default_settings()
         for key in default_settings.keys():
