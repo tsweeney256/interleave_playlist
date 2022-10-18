@@ -9,3 +9,6 @@ __pycache__/
 scratch.py
 *egg-info/
 scripts/
+htmlcov/
+.pytest_cache/
+.coverage
