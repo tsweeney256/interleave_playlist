@@ -20,9 +20,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install tox tox-gh-actions coverage
     - name: Test with tox
-      run: tox -vv
+      run: tox
     - name: Generate lcov
-      run: coverage lcov
+      run: |
+        coverage lcov
+        python .github/coverage_replace.py
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
