@@ -22,7 +22,7 @@ jobs:
     - name: Test with tox
       run: tox -vv
     - name: Generate lcov
-      run: coverage lcov
+      run: python -m coverage lcov
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
