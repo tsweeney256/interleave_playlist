@@ -14,6 +14,7 @@
 import os
 import platform
 import subprocess
+import sys
 from math import log10, ceil
 
 from PySide6.QtWidgets import QMessageBox
@@ -27,7 +28,8 @@ from interleave_playlist.persistence.watched import get_watched
 def open_with_default_application(filepath: str) -> None:
     if platform.system() == 'Darwin':       # macOS
         subprocess.call(('open', filepath))
-    elif platform.system() == 'Windows':    # Windows
+    # This is actually ridiculous https://github.com/python/mypy/issues/8547
+    elif sys.platform == 'win32' or sys.platform == 'cygwin':  # Windows
         os.startfile(filepath)
     else:                                   # linux variants
         subprocess.call(('xdg-open', filepath))
