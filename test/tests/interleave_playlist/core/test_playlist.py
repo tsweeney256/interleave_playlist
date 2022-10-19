@@ -516,7 +516,7 @@ def test_get_playlist_with_one_location_using_regex_other_no_regex_interleaved(m
         PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, Group('foo')),
         PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, Group(B_DIR)),
         PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, Group('foo')),
-        PlaylistEntry('/dir/B/foo 0.mkv', bl, Group(B_DIR)),
+        PlaylistEntry(str(B_DIR_PATH / 'foo 0.mkv'), bl, Group(B_DIR)),
     ]
     assert actual == expected
 
