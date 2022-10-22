@@ -666,16 +666,61 @@ def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_ov
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
 
-    ag = Group(A_DIR, priority=1)
+    ag = Group(A_DIR)
     foo_g = Group('foo', priority=1)
-    bar_g = Group('bar', priority=1)
+    bar_g = Group('bar', priority=2)
     al = Location(A_DIR, ag, regex='(?P<group>[a-z]+).*\\.mkv', groups=[foo_g, bar_g])
     actual = get_playlist([al], watched_list=[])
     expected = [
-        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_g),
         PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_g),
-        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), al, bar_g),
         PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_g),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_g),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), al, bar_g),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_subset_overrides(
+        mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR)
+    foo_g = Group('fo', priority=1)
+    bar_g = Group('ba', priority=2)
+    al = Location(A_DIR, ag, regex='(?P<group>[a-z]+).*\\.mkv', groups=[foo_g, bar_g])
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_g),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_g),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_g),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), al, bar_g),
+    ]
+    assert actual == expected
+
+
+# TODO: support case insensitive group name matching
+@pytest.mark.skip(reason='This is actually bugged and needs to be fixed')
+def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_subset_case_insensitive_overrides(mocker):  # noqa: E501
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR)
+    foo_g = Group('fO', priority=1)
+    bar_g = Group('Ba', priority=2)
+    al = Location(A_DIR, ag, regex='(?P<group>[a-z]+).*\\.mkv', groups=[foo_g, bar_g])
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_g),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_g),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_g),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), al, bar_g),
     ]
     assert actual == expected
 
@@ -1108,6 +1153,23 @@ def test_get_playlist_with_whitelist_matching_subset_case_insensitive(mocker):
     assert actual == expected
 
 
+def test_get_playlist_with_group_whitelist_matching(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR)
+    foo_group = Group('foo', whitelist=['1'])
+    al = Location(A_DIR, ag, groups=[foo_group], regex='(?P<group>[a-z]+).*\\.mkv')
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
+    ]
+    assert actual == expected
+
+
 def test_get_playlist_with_whitelist_with_many_locations_interleaved(mocker):
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv'],
@@ -1304,6 +1366,23 @@ def test_get_playlist_with_blacklist_subset_case_insensitive(mocker):
     actual = get_playlist([al], watched_list=[])
     expected = [
         PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_group_blacklist_matching(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR)
+    foo_group = Group('foo', blacklist=['2'])
+    al = Location(A_DIR, ag, groups=[foo_group], regex='(?P<group>[a-z]+).*\\.mkv')
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
     ]
     assert actual == expected
 
