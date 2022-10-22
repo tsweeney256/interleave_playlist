@@ -14,49 +14,53 @@
 import os
 import platform
 import subprocess
+import sys
 from math import log10, ceil
 
 from PySide6.QtWidgets import QMessageBox
 
-from core.playlist import get_playlist, PlaylistEntry
-from persistence import input_
-from persistence.watched import get_watched
+from interleave_playlist.core.playlist import get_playlist, PlaylistEntry
+from interleave_playlist.persistence import input_
+from interleave_playlist.persistence.watched import get_watched
 
 
 # https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
-def open_with_default_application(filepath: str):
+def open_with_default_application(filepath: str) -> None:
     if platform.system() == 'Darwin':       # macOS
         subprocess.call(('open', filepath))
-    elif platform.system() == 'Windows':    # Windows
+    # This is actually ridiculous https://github.com/python/mypy/issues/8547
+    elif sys.platform == 'win32' or sys.platform == 'cygwin':  # Windows
         os.startfile(filepath)
     else:                                   # linux variants
         subprocess.call(('xdg-open', filepath))
 
 
-def _create_playlist(search_filter: str = "") -> list[PlaylistEntry]:
+def _create_playlist(search_filter: str = "", use_cache: bool = False) -> list[PlaylistEntry]:
+    def show_warning(text: str) -> None:
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle('Error')
+        msg_box.setText(text)
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.show()
     try:
-        return get_playlist(input_.get_locations(), get_watched(), search_filter)
+        return get_playlist(input_.get_locations(), get_watched(), search_filter, use_cache)
     except FileNotFoundError:
-        QMessageBox(text="Input yml file not found: {}\n\n"
-                         "Please create or find file and open it"
-                    .format(input_.get_last_input_file()),
-                    icon=QMessageBox.Warning).exec()
+        show_warning(f'Input yml file not found: {input_.get_last_input_file()}\n\n'
+                     'Please create or find file and open it')
     except input_.InvalidInputFile as e:
-        QMessageBox(text="Error reading yml file. Please fix it and try again\n{}\n{}"
-                    .format(e, input_.get_last_input_file()),
-                    icon=QMessageBox.Warning).exec()
+        show_warning(f'Error reading yml file. Please fix it and try again\n'
+                     f'{input_.get_last_input_file()}\n{e}')
     except input_.LocationNotFound as e:
-        QMessageBox(text="Location from input file not found. Please fix it and try again\n{}\n{}"
-                    .format(e, input_.get_last_input_file()),
-                    icon=QMessageBox.Warning).exec()
+        show_warning(f'Location from input file not found. Please fix it and try again\n'
+                     f'{input_.get_last_input_file()}\n{e}')
     return []
 
 
-def _get_temp_file_name():
+def _get_temp_file_name() -> str:
     return input_.get_watched_file_name() + '.tmp'
 
 
-def _get_duration_str(ms: int, override_ms: int):
+def _get_duration_str(ms: int, override_ms: int) -> str:
     hours, remainder = divmod(ms, 1000 * 60 * 60)
     minutes, remainder = divmod(remainder, 1000 * 60)
     seconds, remainder = divmod(remainder, 1000)

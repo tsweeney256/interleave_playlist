@@ -14,15 +14,17 @@
 import json
 import os
 import re
+import typing
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
 
-from core import PlaylistEntry
-from persistence import Location, Group, Timed, _STATE_FILE
+from interleave_playlist.core import PlaylistEntry
+from interleave_playlist.persistence import Location, Group, Timed, _STATE_FILE
 
 
 class InvalidInputFile(Exception):
@@ -43,7 +45,6 @@ def get_locations() -> list[Location]:
         locations.append(
             Location(
                 loc['name'],
-                loc['additional'] if 'additional' in loc else [],
                 Group(
                     loc['name'],
                     _nested_get('priority', options),
@@ -51,6 +52,7 @@ def get_locations() -> list[Location]:
                     _nested_get('blacklist', options),
                     _get_timed(loc['timed']) if 'timed' in loc else None,
                 ),
+                loc['additional'] if 'additional' in loc else [],
                 _nested_get('regex', options),
                 _get_group_list(loc['groups'], options) if 'groups' in loc else []
             )
@@ -58,7 +60,7 @@ def get_locations() -> list[Location]:
     return locations
 
 
-def get_watched_file_name():
+def get_watched_file_name() -> str:
     fn = get_last_input_file() + '.watched.txt'
     if not os.path.exists(fn):
         with open(fn, 'w'):
@@ -81,21 +83,22 @@ def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
     yaml.dump(input_, Path(get_last_input_file()))
 
 
-def _get_group_list(groups: list[dict[str, any]], additional_options: list[dict[str, any]]):
-    data = []
-    for g in groups:
+def _get_group_list(data: list[dict[str, Any]], additional_options: list[dict[str, Any]]) \
+        -> list[Group]:
+    groups = []
+    for g in data:
         options = [g, *additional_options]
-        data.append(Group(
+        groups.append(Group(
             g['name'],
             _nested_get('priority', options),
             _nested_get('whitelist', options),
             _nested_get('blacklist', options),
             _nested_get('timed', options),
         ))
-    return data
+    return groups
 
 
-def _get_timed(d: dict[str, any]):
+def _get_timed(d: dict[str, Any]) -> Timed:
     return Timed(
         datetime.fromisoformat(d['start']),
         CronTab(d['cron']),
@@ -105,11 +108,11 @@ def _get_timed(d: dict[str, any]):
     )
 
 
-def _get_input(input_file: str):
+def _get_input(input_file: str) -> dict[str, Any]:
     try:
         with open(input_file, 'r') as f:
             yaml = YAML()
-            yaml.preserve_quotes = True
+            yaml.preserve_quotes = True  # type: ignore
             yml = yaml.load(f)
         _validate_group(yml)
         if 'locations' not in yml:
@@ -140,10 +143,10 @@ def _get_input(input_file: str):
 
     except YAMLError as e:
         raise InvalidInputFile("Unable to parse input file") from e
-    return yml
+    return typing.cast(dict[str, Any], yml)
 
 
-def _validate_wb_list(d: dict, wb_list: str):
+def _validate_wb_list(d: dict, wb_list: str) -> None:
     if wb_list in d:
         if not isinstance(d[wb_list], list):
             raise InvalidInputFile(wb_list + ' must be a list')
@@ -152,15 +155,15 @@ def _validate_wb_list(d: dict, wb_list: str):
                 raise InvalidInputFile(wb_list + ' entries must be strings')
 
 
-def _validate_whitelist(d: dict):
+def _validate_whitelist(d: dict) -> None:
     _validate_wb_list(d, 'blacklist')
 
 
-def _validate_blacklist(d: dict):
+def _validate_blacklist(d: dict) -> None:
     _validate_wb_list(d, 'whitelist')
 
 
-def _validate_regex(d: dict):
+def _validate_regex(d: dict) -> None:
     if d.get('regex'):
         if not isinstance(d['regex'], str):
             raise InvalidInputFile("Regex must be a string")
@@ -170,7 +173,7 @@ def _validate_regex(d: dict):
             raise InvalidInputFile("Regex is invalid")
 
 
-def _validate_timed(d: dict):
+def _validate_timed(d: dict) -> None:
     if d.get('timed'):
         if 'start' not in d['timed']:
             raise InvalidInputFile('Usage of timed requires a start datetime')
@@ -190,12 +193,12 @@ def _validate_timed(d: dict):
             raise InvalidInputFile('timed.amount must be an integer')
 
 
-def _validate_priority(d: dict):
+def _validate_priority(d: dict) -> None:
     if 'priority' in d and not isinstance(d['priority'], int):
         raise InvalidInputFile('priority must be an integer')
 
 
-def _validate_group(group: dict):
+def _validate_group(group: dict) -> None:
     validators = [
         _validate_whitelist,
         _validate_blacklist,
@@ -206,33 +209,33 @@ def _validate_group(group: dict):
         validator(group)
 
 
-def _validate_groups(groups: list[dict]):
+def _validate_groups(groups: list[dict]) -> None:
     for group in groups:
         _validate_group(group)
 
 
-def _nested_get(key: str, options: list[dict[str, any]]):
+def _nested_get(key: str, options: list[dict[str, Any]]) -> Any:
     for option in options:
         if key in option:
             return option.get(key)
 
 
 def get_last_input_file() -> str:
-    return _get_state()['last-input-file']
+    return typing.cast(str, _get_state()['last-input-file'])
 
 
-def set_last_input_file(input_file: str):
+def set_last_input_file(input_file: str) -> None:
     _get_input(input_file)  # ensure that the input can be read
     _set_state('last-input-file', input_file)
 
 
-def _get_state():
+def _get_state() -> dict[str, Any]:
     with open(_STATE_FILE, 'r') as f:
-        return json.load(f)
+        return typing.cast(dict[str, Any], json.load(f))
 
 
-def _set_state(key: str, val: any):
+def _set_state(key: str, val: Any) -> None:
     state = _get_state()
     state[key] = val
     with open(_STATE_FILE, 'w') as f:
-        return json.dump(state, f)
+        json.dump(state, f)

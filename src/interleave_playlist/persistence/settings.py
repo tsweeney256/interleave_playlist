@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -13,53 +13,55 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from pathlib import Path
+import typing
+from typing import Any
 
 from ruamel.yaml import YAML
 
-import util
+from interleave_playlist import SCRIPT_LOC
 
-_SETTINGS_FILE = os.path.join(util.SCRIPT_LOC, 'config', 'settings.yml')
-_CACHED_FILE = None
+_SETTINGS_FILE = os.path.join(SCRIPT_LOC, 'config', 'settings.yml')
+_CACHED_FILE: dict[str, Any] = {}
 
 
 def get_font_size() -> int:
-    return _get_settings('font-size')
+    return typing.cast(int, _get_settings('font-size'))
 
 
 def get_play_command() -> str:
-    return _get_settings('play-command')
+    return typing.cast(str, _get_settings('play-command'))
 
 
 def get_dark_mode() -> bool:
-    return _get_settings('dark-mode')
+    return typing.cast(bool, _get_settings('dark-mode'))
 
 
 def get_max_watched_remembered() -> int:
-    return _get_settings('max-watched-remembered')
+    return typing.cast(int, _get_settings('max-watched-remembered'))
 
 
 def get_exclude_directories() -> bool:
-    return _get_settings('exclude-directories')
+    return typing.cast(bool, _get_settings('exclude-directories'))
 
 
-def _get_settings(option):
+def _get_settings(option: str) -> Any:
     global _CACHED_FILE
-    if _CACHED_FILE is None:
+    if not _CACHED_FILE:
         with open(_SETTINGS_FILE, 'r') as f:
             yaml = YAML()
-            yaml.preserve_quotes = True
+            yaml.preserve_quotes = True  # type: ignore
             _CACHED_FILE = yaml.load(f)
             default_settings = _get_default_settings()
         for key in default_settings.keys():
             if key not in _CACHED_FILE:
                 _CACHED_FILE[key] = default_settings[key]
-            yaml.dump(_CACHED_FILE, Path(_SETTINGS_FILE))
+        with open(_SETTINGS_FILE, 'w') as f:
+            yaml.dump(_CACHED_FILE, f)
 
     return _CACHED_FILE[option]
 
 
-def _get_default_settings() -> dict[str, any]:
+def _get_default_settings() -> dict[str, Any]:
     return {
         'font-size': 12,
         'play-command': 'mpv',
@@ -69,8 +71,8 @@ def _get_default_settings() -> dict[str, any]:
     }
 
 
-def _create_settings_file():
+def _create_settings_file() -> None:
     if not os.path.exists(_SETTINGS_FILE):
         with open(_SETTINGS_FILE, 'w') as f:
             yaml = YAML()
-            yaml.dump(_get_default_settings(), Path(_SETTINGS_FILE))
+            yaml.dump(_get_default_settings(), f)

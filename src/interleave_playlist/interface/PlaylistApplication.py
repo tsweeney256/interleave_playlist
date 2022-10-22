@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021 Thomas Sweeney
+#    Copyright (C) 2021-2022 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,16 +15,18 @@
 import os.path
 import sys
 from traceback import format_exception
+from types import TracebackType
+from typing import Type, Optional, Sequence
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
-from interface.PlaylistWindow import PlaylistWindow
-from persistence.settings import get_dark_mode
-from util import SCRIPT_LOC
+from interleave_playlist import SCRIPT_LOC
+from interleave_playlist.interface.PlaylistWindow import PlaylistWindow
+from interleave_playlist.persistence.settings import get_dark_mode
 
 
 class PlaylistApplication(QApplication):
-    def __init__(self, arr):
+    def __init__(self, arr: Sequence[str]):
         super().__init__(arr)
         playlist_window = PlaylistWindow()
         playlist_window.setWindowTitle('Interleave Playlist')
@@ -32,17 +34,27 @@ class PlaylistApplication(QApplication):
         playlist_window.show()
         if get_dark_mode():
             with open(os.path.join(
-                    SCRIPT_LOC, 'interface', 'style', 'dark.qss'), 'r') as f:
+                    SCRIPT_LOC,
+                    'src',
+                    'interleave_playlist',
+                    'interface',
+                    'style',
+                    'dark.qss'
+            ), 'r') as f:
                 _style = f.read()
                 self.setStyleSheet(_style)
         sys.exit(self.exec())
 
 
-def excepthook(cls, exception, traceback):
-    QMessageBox(text="Encountered an unhandled exception. This is a bug.\n"
-                     "Please file a bug report so that this can be fixed\n\n{}"
-                .format(''.join(format_exception(cls, exception, traceback))),
-                icon=QMessageBox.Warning).exec()
+def excepthook(cls: Type[BaseException], exception: BaseException,
+               traceback: Optional[TracebackType]) -> None:
+    err = "".join(format_exception(cls, exception, traceback))
+    msg_box = QMessageBox()
+    msg_box.setWindowTitle("Error")
+    msg_box.setText(f'Encountered an unhandled exception. This is a bug.\n'
+                    f'Please file a bug report so that this can be fixed\n\n{err}')
+    msg_box.setIcon(QMessageBox.Icon.Critical)
+    msg_box.exec()
 
 
 sys.excepthook = excepthook

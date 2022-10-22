@@ -7,3 +7,11 @@ __pycache__/
 .idea/
 *~
 scratch.py
+*egg-info/
+scripts/
+htmlcov/
+.pytest_cache/
+.coverage
+.tox/
+.mypy_cache/
+coverage.lcov

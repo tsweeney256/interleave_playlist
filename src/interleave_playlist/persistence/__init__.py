@@ -13,19 +13,21 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import sys
-from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+from datetime import timedelta, datetime
+from typing import Optional
 
 from crontab import CronTab
 
-import util
-from persistence.settings import _create_settings_file
+from interleave_playlist import SCRIPT_LOC
+from interleave_playlist.persistence.settings import _create_settings_file
 
-_STATE_FILE = os.path.join(util.SCRIPT_LOC, 'config', 'state.json')
+_STATE_FILE = os.path.join(SCRIPT_LOC, 'config', 'state.json')
 
 
 class Timed:
-    def __init__(self, start: datetime, cron: CronTab, first: int,
-                 amount: int, start_at_cron: bool):
+    def __init__(self, start: datetime, cron: CronTab, first: Optional[int] = None,
+                 amount: Optional[int] = None, start_at_cron: Optional[bool] = False):
         self.start = (start.astimezone()
                       if start.tzinfo is None else
                       start)
@@ -34,7 +36,7 @@ class Timed:
         self.amount = amount if amount is not None and amount > 0 else 1
         self.start_at_cron = start_at_cron
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.__dict__)
 
     def get_current(self) -> int:
@@ -42,8 +44,11 @@ class Timed:
         if self.start > now:
             return -1
         initial: int = self.first + (self.amount if not self.start_at_cron else 0)
-        first_diff = timedelta(seconds=self.cron.next(self.start, default_utc=False))
-        first_cron_amount: int = self.amount if self.start + first_diff < now else 0
+        if self.start_at_cron and self.cron.test(self.start):
+            first_diff = timedelta(seconds=0)
+        else:
+            first_diff = timedelta(seconds=self.cron.next(self.start, default_utc=False))
+        first_cron_amount: int = self.amount if self.start + first_diff <= now else 0
         if first_cron_amount == 0 and self.start_at_cron:
             return -1
         diff = timedelta(seconds=self.cron.next(self.start + first_diff, default_utc=False))
@@ -51,38 +56,44 @@ class Timed:
         return initial + first_cron_amount + cron_amount - 1
 
 
+@dataclass(unsafe_hash=True)
 class Group:
-    def __init__(self, name: str, priority: int, whitelist: list[str], blacklist: list[str],
-                 timed: Timed):
-        self.name = name
-        self.priority = priority if priority is not None else sys.maxsize
-        self.whitelist = whitelist
-        self.blacklist = blacklist
-        self.timed = timed
+    name: str = field(hash=True)
+    priority: int = field(default=sys.maxsize, hash=False, compare=False)
+    whitelist: list[str] = field(default_factory=list, hash=False, compare=False)
+    blacklist: list[str] = field(default_factory=list, hash=False, compare=False)
+    timed: Optional[Timed] = field(default=None, hash=False, compare=False)
 
-    def __repr__(self):
-        return str(self.__dict__)
+    def __post_init__(self) -> None:
+        if self.priority is None:
+            self.priority = sys.maxsize
+        if self.whitelist is None:
+            self.whitelist = []
+        if self.blacklist is None:
+            self.blacklist = []
 
 
+@dataclass(unsafe_hash=True)
 class Location:
-    def __init__(self, name: str, additional: list[str], default_group: Group, regex: str,
-                 groups: list[Group]):
-        self.name = name
-        self.additional = additional
-        self.default_group = default_group
-        self.regex = regex
-        self.groups = groups if groups is not None else []
+    name: str = field(hash=True)
+    default_group: Group = field(hash=False)
+    additional: list[str] = field(default_factory=list, hash=False)
+    regex: Optional[str] = field(default=None, hash=False)
+    groups: list[Group] = field(default_factory=list, hash=False)
 
-    def __repr__(self):
-        return str(self.__dict__)
+    def __post_init__(self) -> None:
+        if self.groups is None:
+            self.groups = []
+        if self.additional is None:
+            self.additional = []
 
 
-def _create_state_file():
+def _create_state_file() -> None:
     if not os.path.exists(_STATE_FILE):
         with open(_STATE_FILE, 'w') as f:
             f.write('{"last-input-file": "See config/input.yml.example"}')
 
 
-def create_needed_files():
+def create_needed_files() -> None:
     _create_settings_file()
     _create_state_file()

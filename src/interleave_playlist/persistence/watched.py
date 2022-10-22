@@ -15,8 +15,9 @@ import csv
 import os
 from os import path
 
-from core.playlist import FileGroup, get_playlist, PlaylistEntry
-from persistence import input_, settings
+from interleave_playlist.core.playlist import FileGroup, get_playlist, PlaylistEntry
+from interleave_playlist.persistence import input_
+from interleave_playlist.persistence import settings
 
 
 def get_watched() -> list[FileGroup]:
@@ -53,7 +54,7 @@ def _get_temp_file_name() -> str:
 
 
 def _get_basename_playlist() -> list[PlaylistEntry]:
-    return [i for i in get_playlist(input_.get_locations(), [])]
+    return [i for i in get_playlist(input_.get_locations(), [], use_cache=True)]
 
 
 def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
@@ -77,7 +78,7 @@ def _clean_watched_list(remove_names: list[str]) -> list[FileGroup]:
     return new_watched_list
 
 
-def _write_new_watched_list(new_watched_list: list[FileGroup]):
+def _write_new_watched_list(new_watched_list: list[FileGroup]) -> None:
     with open(_get_temp_file_name(), 'w') as tmp:
         writer = csv.writer(tmp, quoting=csv.QUOTE_ALL)
         writer.writerows(new_watched_list)
