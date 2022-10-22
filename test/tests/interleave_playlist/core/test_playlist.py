@@ -1768,9 +1768,44 @@ def test_get_playlist_with_one_loc_timed(mocker):
     assert set(actual) == set(expected)
 
 
+@freeze_time(NEW_YEAR_2000 - timedelta(seconds=1))
+def test_get_playlist_with_many_loc_timed_right_before(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000 - timedelta(days=1),
+        cron=CronTab('0 0 * * *')
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group)
+    ]
+    assert set(actual) == set(expected)
+
+
 @freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_many_loc_timed(mocker):
-    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000 - timedelta(days=1),
+        cron=CronTab('0 0 * * *')
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, group)
+    ]
+    assert set(actual) == set(expected)
+
+
+@freeze_time(NEW_YEAR_2000 + timedelta(seconds=1))
+def test_get_playlist_with_many_loc_timed_right_after(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
     group = Group(A_DIR, timed=Timed(
@@ -1872,6 +1907,108 @@ def test_get_playlist_with_starting_at_episode(mocker):
     location = Location(A_DIR, group)
     actual = get_playlist([location], watched_list=[])
     expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, group)
+    ]
+    assert set(actual) == set(expected)
+
+
+@freeze_time(NEW_YEAR_2000)
+def test_get_playlist_with_one_loc_timed_start_at_cron_is_true(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000,
+        cron=CronTab('0 1 * * *'),
+        start_at_cron=True
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = []
+    assert set(actual) == set(expected)
+
+
+@freeze_time(NEW_YEAR_2000)
+def test_get_playlist_with_one_loc_timed_start_at_cron_is_false(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000,
+        cron=CronTab('0 1 * * *'),
+        start_at_cron=False
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group)]
+    assert set(actual) == set(expected)
+
+
+@freeze_time(NEW_YEAR_2000)
+def test_get_playlist_with_many_loc_timed_start_at_cron_is_true(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000 - timedelta(days=1),
+        cron=CronTab('0 1 * * *'),
+        start_at_cron=True
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group)]
+    assert set(actual) == set(expected)
+
+
+@freeze_time(NEW_YEAR_2000)
+def test_get_playlist_with_many_loc_timed_start_at_cron_is_false(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000 - timedelta(days=1),
+        cron=CronTab('0 1 * * *'),
+        start_at_cron=False
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, group)
+    ]
+    assert set(actual) == set(expected)
+
+
+@freeze_time(NEW_YEAR_2000)
+def test_get_playlist_with_one_loc_timed_start_at_cron_is_true_exact_at_cron(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000,
+        cron=CronTab('0 0 * * *'),
+        start_at_cron=True
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group)]
+    assert set(actual) == set(expected)
+
+
+@freeze_time(NEW_YEAR_2000)
+def test_get_playlist_with_many_loc_timed_start_at_cron_is_true_exact_at_cron(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+    group = Group(A_DIR, timed=Timed(
+        start=NEW_YEAR_2000 - timedelta(days=1),
+        cron=CronTab('0 0 * * *'),
+        start_at_cron=True
+    ))
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group),
         PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, group)
     ]
     assert set(actual) == set(expected)
