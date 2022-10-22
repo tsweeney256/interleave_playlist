@@ -1010,6 +1010,20 @@ def test_get_playlist_with_search_filter_with_many_groups_different_priorities_i
     assert actual == expected
 
 
+def test_get_playlist_with_search_ignoring_directory(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR)
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter=A_DIR)
+    expected = []
+    assert actual == expected
+
+
 def test_get_playlist_with_whitelist_no_entries_none_matching(mocker):
     mock_listdir(mocker, {
         A_DIR: [],
@@ -1191,6 +1205,22 @@ def test_get_playlist_with_whitelist_with_many_groups_different_priorities_inter
     assert actual == expected
 
 
+# TODO: fix whitelist considering path
+@pytest.mark.skip(reason='this functionality is bugged and needs to be fixed')
+def test_get_playlist_with_whitelist_ignoring_directory(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, whitelist=[A_DIR])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = []
+    assert actual == expected
+
+
 def test_get_playlist_with_blacklist_no_entries_none_matching(mocker):
     mock_listdir(mocker, {
         A_DIR: [],
@@ -1272,14 +1302,174 @@ def test_get_playlist_with_blacklist_subset_case_insensitive(mocker):
     assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_blacklist_and_whitelist_working_together():
-    pass
+# TODO: fix blacklist considering path
+@pytest.mark.skip(reason='this functionality is bugged and needs to be fixed')
+def test_get_playlist_with_blacklist_ignoring_directory(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=[A_DIR])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, ag),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+    ]
+    assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_blacklist_and_whitelist_contradicting():
-    pass
+def test_get_playlist_with_blacklist_and_whitelist_working_together(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['foo'], whitelist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_blacklist_and_whitelist_contradicting(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['bar'], whitelist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = []
+    assert actual == expected
+
+
+def test_get_playlist_with_whitelist_and_search_working_together(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, whitelist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='mkv')
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_whitelist_and_search_contradicting(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, whitelist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='foo')
+    expected = []
+    assert actual == expected
+
+
+def test_get_playlist_with_blacklist_and_search_working_together(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['foo'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='bar')
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_blacklist_and_search_contradicting(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='bar')
+    expected = []
+    assert actual == expected
+
+
+def test_get_playlist_with_whitelist_and_blacklist_and_search_working_together(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['foo'], whitelist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='bar')
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_because_whitelist(
+        mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['bar'], whitelist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='foo')
+    expected = []
+    assert actual == expected
+
+
+def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_because_blacklist(
+        mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['foo'], whitelist=['foo'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='foo')
+    expected = []
+    assert actual == expected
+
+
+def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_because_search(
+        mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['foo'], whitelist=['bar'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[], search_filter='foo')
+    expected = []
+    assert actual == expected
 
 
 @pytest.mark.skip
