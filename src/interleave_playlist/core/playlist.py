@@ -60,8 +60,8 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
         # Ordering is important! Filter out invalid considerations first
         group_entries = [entry for entry in filter(
             lambda i: (search_filter.upper() in path.basename(i.filename).upper()
-                       and _matches_whitelist(i.filename, group.whitelist)
-                       and not _matches_blacklist(i.filename, group.blacklist)
+                       and _matches_whitelist(path.basename(i.filename), group.whitelist)
+                       and not _matches_blacklist(path.basename(i.filename), group.blacklist)
                        and (not settings.get_exclude_directories() or os.path.isfile(i.filename))),
             entries)]
         # Now that invalid considerations are gone, we can slice by timing considerations

@@ -1274,8 +1274,6 @@ def test_get_playlist_with_whitelist_with_many_groups_different_priorities_inter
     assert actual == expected
 
 
-# TODO: fix whitelist considering path
-@pytest.mark.skip(reason='this functionality is bugged and needs to be fixed')
 def test_get_playlist_with_whitelist_ignoring_directory(mocker):
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
@@ -1386,8 +1384,6 @@ def test_get_playlist_with_group_blacklist_matching(mocker):
     assert actual == expected
 
 
-# TODO: fix blacklist considering path
-@pytest.mark.skip(reason='this functionality is bugged and needs to be fixed')
 def test_get_playlist_with_blacklist_ignoring_directory(mocker):
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
