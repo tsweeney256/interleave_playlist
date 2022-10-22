@@ -14,3 +14,4 @@ htmlcov/
 .coverage
 .tox/
 .mypy_cache/
+coverage.lcov

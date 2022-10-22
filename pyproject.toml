@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-rfE -q --cov=interleave_playlist --cov-report html --cov-report xml"
+addopts = "-rfE -q --cov=interleave_playlist --cov-report html"
 testpaths = [
     "test",
 ]
