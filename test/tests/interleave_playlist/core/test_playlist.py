@@ -1191,19 +1191,85 @@ def test_get_playlist_with_whitelist_with_many_groups_different_priorities_inter
     assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_blacklist_exact():
-    pass
+def test_get_playlist_with_blacklist_no_entries_none_matching(mocker):
+    mock_listdir(mocker, {
+        A_DIR: [],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['1'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = []
+    assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_blacklist_subset():
-    pass
+def test_get_playlist_with_blacklist_none_matching(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['3'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, ag),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag)
+    ]
+    assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_blacklist_subset_case_insensitive():
-    pass
+def test_get_playlist_with_blacklist_exact(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['foo 1.mkv'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_blacklist_subset(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['1.mkv'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+# TODO: Support case insensitive blacklisting
+@pytest.mark.skip(reason='feature not yet supported')
+def test_get_playlist_with_blacklist_subset_case_insensitive(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    ag = Group(A_DIR, blacklist=['1.MkV'])
+    al = Location(A_DIR, ag)
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+    ]
+    assert actual == expected
 
 
 @pytest.mark.skip
