@@ -707,8 +707,6 @@ def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_su
     assert actual == expected
 
 
-# TODO: support case insensitive group name matching
-@pytest.mark.skip(reason='This is actually bugged and needs to be fixed')
 def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_subset_case_insensitive_overrides(mocker):  # noqa: E501
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
@@ -1140,8 +1138,6 @@ def test_get_playlist_with_whitelist_matching_subset(mocker):
     assert actual == expected
 
 
-# TODO: Support case insensitive whitelisting
-@pytest.mark.skip(reason='feature not yet supported')
 def test_get_playlist_with_whitelist_matching_subset_case_insensitive(mocker):
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
@@ -1357,8 +1353,6 @@ def test_get_playlist_with_blacklist_subset(mocker):
     assert actual == expected
 
 
-# TODO: Support case insensitive blacklisting
-@pytest.mark.skip(reason='feature not yet supported')
 def test_get_playlist_with_blacklist_subset_case_insensitive(mocker):
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
@@ -1680,8 +1674,6 @@ def test_get_playlist_with_watched_and_different_location(mocker):
     assert set(actual) == set(expected)
 
 
-# TODO: support watched file case insensitivity
-@pytest.mark.skip(reason='This feature is not yet supported')
 def test_get_playlist_with_watched_and_case_insensitive(mocker):
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],

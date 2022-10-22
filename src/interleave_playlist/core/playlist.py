@@ -55,7 +55,7 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
                   watched_list: list[FileGroup],
                   search_filter: str = "") -> list[PlaylistEntry]:
     filtered_entries: list[list[PlaylistEntry]] = []
-    watched_names = [i[0] for i in watched_list]
+    watched_names = [i[0].upper() for i in watched_list]
     for group, entries in entries_by_group.items():
         # Ordering is important! Filter out invalid considerations first
         group_entries = [entry for entry in filter(
@@ -70,7 +70,7 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
         # Now that invalid and timed considerations are gone, we can finally remove things
         # that we've already seen
         group_entries = [entry for entry in filter(
-            lambda i: path.basename(i.filename) not in watched_names,
+            lambda i: path.basename(i.filename).upper() not in watched_names,
             group_entries)]
         if group_entries:
             filtered_entries.append(group_entries)
@@ -102,7 +102,7 @@ def _group_items_by_regex(loc: Location, paths: list[str]) -> PlaylistEntriesByG
     regex_str: str = loc.regex if loc.regex is not None else ''
     regex: Pattern = re.compile(regex_str)
     grouped_items: PlaylistEntriesByGroup = {}
-    group_dict = {group.name: group for group in loc.groups}
+    group_dict = {group.name.upper(): group for group in loc.groups}
 
     for p in paths:
         match = regex.match(path.basename(p))
@@ -111,10 +111,10 @@ def _group_items_by_regex(loc: Location, paths: list[str]) -> PlaylistEntriesByG
         match_dict = match.groupdict()
         if 'group' in match_dict:
             group_name = path.basename(match.group('group')).strip()
-            group = _get_from_dict_key_superset(group_name, group_dict)
+            group = _get_from_dict_key_superset(group_name.upper(), group_dict)
             if group is None:
                 group = copy(loc.default_group)
-                group_dict[group_name] = group
+                group_dict[group_name.upper()] = group
             # Overwrite name so we always use the full name
             group.name = group_name
         else:
@@ -135,7 +135,7 @@ def _matches_whitelist(s: str, whitelist: list[str]) -> bool:
     if not whitelist:
         return True
     for white in whitelist:
-        if white in s:
+        if white.upper() in s.upper():
             return True
     return False
 
@@ -144,7 +144,7 @@ def _matches_blacklist(s: str, blacklist: list[str]) -> bool:
     if not blacklist:
         return False
     for black in blacklist:
-        if black and black in s:
+        if black and black.upper() in s.upper():
             return True
     return False
 
