@@ -1966,23 +1966,87 @@ def test_get_playlist_with_timed_group_override(mocker):
     assert set(actual) == set(expected)
 
 
-@pytest.mark.skip
-def test_get_playlist_with_least_recently_watched_bias():
+def test_get_playlist_with_least_recently_watched_bias_with_groups(mocker):
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv',
+                'baz 1.mkv', 'baz 2.mkv', 'baz 3.mkv',
+                'abc 1.mkv', 'abc 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    ag = Group(A_DIR)
+    abc_group = Group('abc')
+    foo_group = Group('foo')
+    bar_group = Group('bar')
+    baz_group = Group('baz')
+    al = Location(A_DIR, ag, regex='(?P<group>[a-z]+).*\\.mkv')
+    actual = get_playlist([al], watched_list=[
+        ('foo 1.mkv', foo_group.name),
+        ('bar 1.mkv', bar_group.name),
+        ('baz 1.mkv', baz_group.name),
+    ])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'abc 1.mkv'), al, abc_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), al, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'baz 2.mkv'), al, baz_group),
+        PlaylistEntry(str(A_DIR_PATH / 'abc 2.mkv'), al, abc_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), al, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), al, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'baz 3.mkv'), al, baz_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_least_recently_watched_bias_with_locations(mocker):
+    foo_dir_path = pathlib.Path('/dir/foo')
+    bar_dir_path = pathlib.Path('/dir/bar')
+    baz_dir_path = pathlib.Path('/dir/baz')
+    abc_dir_path = pathlib.Path('/dir/abc')
+    mock_listdir(mocker, {
+        str(foo_dir_path): ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv'],
+        str(bar_dir_path): ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+        str(baz_dir_path): ['baz 1.mkv', 'baz 2.mkv', 'baz 3.mkv'],
+        str(abc_dir_path): ['abc 1.mkv', 'abc 2.mkv']
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    foo_group = Group(str(foo_dir_path))
+    bar_group = Group(str(bar_dir_path))
+    baz_group = Group(str(baz_dir_path))
+    abc_group = Group(str(abc_dir_path))
+    foo_location = Location(str(foo_dir_path), foo_group)
+    bar_location = Location(str(bar_dir_path), bar_group)
+    baz_location = Location(str(baz_dir_path), baz_group)
+    abc_location = Location(str(abc_dir_path), abc_group)
+    actual = get_playlist(
+        [foo_location, bar_location, baz_location, abc_location],
+        watched_list=[
+            ('foo 1.mkv', foo_group.name),
+            ('bar 1.mkv', bar_group.name),
+            ('baz 1.mkv', baz_group.name),
+        ])
+    expected = [
+        PlaylistEntry(str(abc_dir_path / 'abc 1.mkv'), abc_location, abc_group),
+        PlaylistEntry(str(foo_dir_path / 'foo 2.mkv'), foo_location, foo_group),
+        PlaylistEntry(str(bar_dir_path / 'bar 2.mkv'), bar_location, bar_group),
+        PlaylistEntry(str(baz_dir_path / 'baz 2.mkv'), baz_location, baz_group),
+        PlaylistEntry(str(abc_dir_path / 'abc 2.mkv'), abc_location, abc_group),
+        PlaylistEntry(str(foo_dir_path / 'foo 3.mkv'), foo_location, foo_group),
+        PlaylistEntry(str(bar_dir_path / 'bar 3.mkv'), bar_location, bar_group),
+        PlaylistEntry(str(baz_dir_path / 'baz 3.mkv'), baz_location, baz_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_using_cache_with_existing_after_update(mocker):
     pass
 
 
-@pytest.mark.skip
-def test_get_playlist_using_cache_without_existing_yet():
-    pass
-
-
-@pytest.mark.skip
-def test_get_playlist_using_cache_with_existing_after_update():
-    pass
-
-
-@pytest.mark.skip
-def test_get_playlist_using_cache_after_refreshing_cache_after_update():
+def test_get_playlist_using_cache_after_refreshing_cache_after_update(mocker):
     pass
 
 
