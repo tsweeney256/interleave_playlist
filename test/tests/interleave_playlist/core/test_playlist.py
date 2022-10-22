@@ -2043,11 +2043,41 @@ def test_get_playlist_with_least_recently_watched_bias_with_locations(mocker):
 
 
 def test_get_playlist_using_cache_with_existing_after_update(mocker):
-    pass
+    mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    group = Group(A_DIR)
+    location = Location(A_DIR, group)
+    get_playlist([location], watched_list=[])
+    mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv', 'hooplah.mkv']})
+    actual = get_playlist([location], watched_list=[], use_cache=True)
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar.mkv'), location, group),
+    ]
+    assert set(actual) == set(expected)
 
 
 def test_get_playlist_using_cache_after_refreshing_cache_after_update(mocker):
-    pass
+    mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    group = Group(A_DIR)
+    location = Location(A_DIR, group)
+    get_playlist([location], watched_list=[])
+    mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv', 'hooplah.mkv']})
+    actual = get_playlist([location], watched_list=[], use_cache=False)
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'hooplah.mkv'), location, group),
+    ]
+    assert set(actual) == set(expected)
+    mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv', 'hooplah.mkv', 'wow.mkv']})
+    actual = get_playlist([location], watched_list=[], use_cache=True)
+    assert set(actual) == set(expected)
 
 
 # TODO: add "additional" tests, don't forget sorting paths vs files
