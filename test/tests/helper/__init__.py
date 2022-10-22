@@ -11,6 +11,10 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from os import PathLike
+from pathlib import Path
+from typing import Union
+
 from pytest_mock import MockerFixture
 
 
@@ -29,9 +33,21 @@ def mock_listdir(mocker: MockerFixture, data: dict[str, list[str]]):
     mocker.patch('os.listdir', side_effect=ListdirMock(data).listdir)
 
 
+def get_mock_isfile(mocker:MockerFixture, files: dict[Union[PathLike, str], bool]):
+    def isfile_mock(filename, *args, **kwargs):
+        if filename in files:
+            return files[filename]
+        elif str(filename) in files:
+            return files[str(filename)]
+        elif Path(filename) in files:
+            return files[Path(filename)]
+        raise FileNotFoundError(f'(mock) Unable to open {filename}')
+    return mocker.patch('os.path.isfile', side_effect=isfile_mock)
+
+
 def get_mock_open(mocker: MockerFixture, files: dict[str, str]):
     def open_mock(filename, *args, **kwargs):
         if filename in files:
             return mocker.mock_open(read_data=files[filename]).return_value
-        raise FileNotFoundError('(mock) Unable to open {filename}')
+        raise FileNotFoundError(f'(mock) Unable to open {filename}')
     return mocker.patch('builtins.open', side_effect=open_mock)

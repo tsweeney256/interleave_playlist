@@ -18,7 +18,7 @@ import pytest
 from interleave_playlist.core import PlaylistEntry
 from interleave_playlist.core.playlist import get_playlist
 from interleave_playlist.persistence import Location, Group, settings
-from tests.helper import mock_listdir, get_mock_open
+from tests.helper import mock_listdir, get_mock_open, get_mock_isfile
 
 default_settings_content = 'dummy: text'
 default_settings_mock = {settings._SETTINGS_FILE: default_settings_content}
@@ -1472,14 +1472,37 @@ def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_beca
     assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_exclude_directories_setting_on():
-    pass
+def test_get_playlist_with_exclude_directories_setting_on(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo.mkv', 'foo']})
+    get_mock_isfile(mocker, {
+        A_DIR_PATH / 'foo.mkv': True,
+        A_DIR_PATH / 'foo': False
+    })
+    get_mock_open(mocker, {settings._SETTINGS_FILE: default_settings_content})
+
+    group = Group(A_DIR)
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [PlaylistEntry(str(A_DIR_PATH / 'foo.mkv'), location, group)]
+    assert actual == expected
 
 
-@pytest.mark.skip
-def test_get_playlist_with_not_exclude_directories_setting_off():
-    pass
+def test_get_playlist_with_not_exclude_directories_setting_off(mocker):
+    mock_listdir(mocker, {A_DIR: ['foo.mkv', 'foo']})
+    get_mock_isfile(mocker, {
+        A_DIR_PATH / 'foo.mkv': True,
+        A_DIR_PATH / 'foo': False
+    })
+    get_mock_open(mocker, {settings._SETTINGS_FILE: 'exclude-directories: false'})
+
+    group = Group(A_DIR)
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo'), location, group)
+    ]
+    assert set(actual) == set(expected)
 
 
 @pytest.mark.skip
