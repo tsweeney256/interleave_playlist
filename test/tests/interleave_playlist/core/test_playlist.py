@@ -2080,4 +2080,77 @@ def test_get_playlist_using_cache_after_refreshing_cache_after_update(mocker):
     assert set(actual) == set(expected)
 
 
-# TODO: add "additional" tests, don't forget sorting paths vs files
+def test_get_playlist_with_additional(mocker):
+    additional_a_dir_path = pathlib.Path('/a/dir/additional/A')  # sorts first
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv'],
+        str(additional_a_dir_path): ['foo 2.mkv']
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    ag = Group(A_DIR)
+    al = Location(A_DIR, ag, additional=[str(additional_a_dir_path)])
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, ag),
+        PlaylistEntry(str(additional_a_dir_path / 'foo 2.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_additional_with_groups(mocker):
+    additional_a_dir_path = pathlib.Path('/a/dir/additional/A')  # sorts first
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+        str(additional_a_dir_path): ['foo 2.mkv', 'bar 2.mkv']
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    foo_group = Group('foo', priority=2)
+    bar_group = Group('bar', priority=1)
+    ag = Group(A_DIR)
+    al = Location(
+        A_DIR,
+        ag,
+        additional=[str(additional_a_dir_path)],
+        regex='(?P<group>[a-z]+).*\\.mkv',
+        groups=[foo_group, bar_group]
+    )
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_group),
+        PlaylistEntry(str(additional_a_dir_path / 'bar 2.mkv'), al, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
+        PlaylistEntry(str(additional_a_dir_path / 'foo 2.mkv'), al, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_additional_with_groups_interleaved(mocker):
+    additional_a_dir_path = pathlib.Path('/a/dir/additional/A')  # sorts first
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
+        str(additional_a_dir_path): ['foo 2.mkv', 'bar 2.mkv']
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    foo_group = Group('foo')
+    bar_group = Group('bar')
+    ag = Group(A_DIR)
+    al = Location(
+        A_DIR,
+        ag,
+        additional=[str(additional_a_dir_path)],
+        regex='(?P<group>[a-z]+).*\\.mkv',
+    )
+    actual = get_playlist([al], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
+        PlaylistEntry(str(additional_a_dir_path / 'bar 2.mkv'), al, bar_group),
+        PlaylistEntry(str(additional_a_dir_path / 'foo 2.mkv'), al, foo_group),
+    ]
+    assert actual == expected
