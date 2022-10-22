@@ -12,7 +12,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pathlib
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from crontab import CronTab
@@ -24,9 +24,7 @@ from interleave_playlist.persistence import Location, Group, settings, Timed
 from tests.helper import mock_listdir, get_mock_open, get_mock_isfile
 
 ISO_FORMAT = '%Y-%m-%dT%H:%M:%S'
-ISO_TZ_FORMAT = ISO_FORMAT + '[%Z]'
 NEW_YEAR_2000 = datetime.strptime('2000-01-01T00:00:00', ISO_FORMAT)
-NEW_YEAR_2000_UTC = NEW_YEAR_2000.astimezone(timezone.utc)
 DEFAULT_SETTINGS_CONTENT = 'dummy: text'
 DEFAULT_SETTINGS_MOCK = {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT}
 
@@ -1740,7 +1738,7 @@ def test_get_playlist_with_watched_and_blacklisted(mocker):
     assert actual == expected
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_one_loc_timed_for_future(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1755,7 +1753,7 @@ def test_get_playlist_with_one_loc_timed_for_future(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_one_loc_timed(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1770,7 +1768,7 @@ def test_get_playlist_with_one_loc_timed(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_many_loc_timed(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1788,7 +1786,7 @@ def test_get_playlist_with_many_loc_timed(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_loc_timed_finished(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1806,7 +1804,7 @@ def test_get_playlist_with_loc_timed_finished(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_many_amount(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1825,7 +1823,7 @@ def test_get_playlist_with_many_amount(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_zero_amount(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1843,7 +1841,7 @@ def test_get_playlist_with_zero_amount(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_negative_amount(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1861,7 +1859,7 @@ def test_get_playlist_with_negative_amount(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_starting_at_episode(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1879,7 +1877,7 @@ def test_get_playlist_with_starting_at_episode(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_timed_and_watched(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1894,7 +1892,7 @@ def test_get_playlist_with_timed_and_watched(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_timed_and_whitelist(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1911,7 +1909,7 @@ def test_get_playlist_with_timed_and_whitelist(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_timed_and_blacklist(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1930,7 +1928,7 @@ def test_get_playlist_with_timed_and_blacklist(mocker):
 
 # TODO: fix timed with search filter
 @pytest.mark.skip(reason='This is actually bugged and needs to be fixed')
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_timed_ands_search(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
@@ -1945,7 +1943,7 @@ def test_get_playlist_with_timed_ands_search(mocker):
     assert set(actual) == set(expected)
 
 
-@freeze_time(NEW_YEAR_2000_UTC)
+@freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_timed_group_override(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)

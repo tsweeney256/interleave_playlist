@@ -45,7 +45,7 @@ class Timed:
             return -1
         initial: int = self.first + (self.amount if not self.start_at_cron else 0)
         first_diff = timedelta(seconds=self.cron.next(self.start, default_utc=False))
-        first_cron_amount: int = self.amount if self.start + first_diff < now else 0
+        first_cron_amount: int = self.amount if self.start + first_diff <= now else 0
         if first_cron_amount == 0 and self.start_at_cron:
             return -1
         diff = timedelta(seconds=self.cron.next(self.start + first_diff, default_utc=False))
