@@ -143,7 +143,7 @@ def _matches_whitelist(s: str, whitelist: list[str]) -> bool:
 
 
 def _matches_blacklist(s: str, blacklist: list[str]) -> bool:
-    if blacklist is None:
+    if not blacklist:
         return False
     for black in blacklist:
         if black and black in s:
