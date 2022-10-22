@@ -125,8 +125,6 @@ def _group_items_by_regex(loc: Location, paths: list[str]) -> PlaylistEntriesByG
 
 
 def _timed_slice(timed: Timed, loc_list: list[PlaylistEntry]) -> list[PlaylistEntry]:
-    if timed is None:
-        return loc_list
     cur_release = min(timed.get_current(), len(loc_list))
     if cur_release < 0:
         return []

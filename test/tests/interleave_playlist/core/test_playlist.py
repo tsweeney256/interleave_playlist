@@ -2006,9 +2006,9 @@ def test_get_playlist_with_least_recently_watched_bias_with_locations(mocker):
     baz_dir_path = pathlib.Path('/dir/baz')
     abc_dir_path = pathlib.Path('/dir/abc')
     mock_listdir(mocker, {
-        str(foo_dir_path): ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv'],
-        str(bar_dir_path): ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
-        str(baz_dir_path): ['baz 1.mkv', 'baz 2.mkv', 'baz 3.mkv'],
+        str(foo_dir_path): ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv', 'foo 4.mkv'],
+        str(bar_dir_path): ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv', 'bar 4.mkv'],
+        str(baz_dir_path): ['baz 1.mkv', 'baz 2.mkv', 'baz 3.mkv', 'baz 4.mkv'],
         str(abc_dir_path): ['abc 1.mkv', 'abc 2.mkv']
     })
     mocker.patch('os.path.isfile', return_value=True)
@@ -2028,16 +2028,19 @@ def test_get_playlist_with_least_recently_watched_bias_with_locations(mocker):
             ('foo 1.mkv', foo_group.name),
             ('bar 1.mkv', bar_group.name),
             ('baz 1.mkv', baz_group.name),
+            ('foo 2.mkv', foo_group.name),
+            ('bar 2.mkv', bar_group.name),
+            ('baz 2.mkv', baz_group.name),
         ])
     expected = [
         PlaylistEntry(str(abc_dir_path / 'abc 1.mkv'), abc_location, abc_group),
-        PlaylistEntry(str(foo_dir_path / 'foo 2.mkv'), foo_location, foo_group),
-        PlaylistEntry(str(bar_dir_path / 'bar 2.mkv'), bar_location, bar_group),
-        PlaylistEntry(str(baz_dir_path / 'baz 2.mkv'), baz_location, baz_group),
-        PlaylistEntry(str(abc_dir_path / 'abc 2.mkv'), abc_location, abc_group),
         PlaylistEntry(str(foo_dir_path / 'foo 3.mkv'), foo_location, foo_group),
         PlaylistEntry(str(bar_dir_path / 'bar 3.mkv'), bar_location, bar_group),
         PlaylistEntry(str(baz_dir_path / 'baz 3.mkv'), baz_location, baz_group),
+        PlaylistEntry(str(abc_dir_path / 'abc 2.mkv'), abc_location, abc_group),
+        PlaylistEntry(str(foo_dir_path / 'foo 4.mkv'), foo_location, foo_group),
+        PlaylistEntry(str(bar_dir_path / 'bar 4.mkv'), bar_location, bar_group),
+        PlaylistEntry(str(baz_dir_path / 'baz 4.mkv'), baz_location, baz_group),
     ]
     assert actual == expected
 
