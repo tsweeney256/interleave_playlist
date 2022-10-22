@@ -47,6 +47,7 @@ def get_locations() -> list[Location]:
                 loc['name'],
                 Group(
                     loc['name'],
+                    loc['name'],
                     _nested_get('priority', options),
                     _nested_get('whitelist', options),
                     _nested_get('blacklist', options),
@@ -90,6 +91,7 @@ def _get_group_list(data: list[dict[str, Any]], additional_options: list[dict[st
         options = [g, *additional_options]
         groups.append(Group(
             g['name'],
+            _nested_get('name', additional_options),
             _nested_get('priority', options),
             _nested_get('whitelist', options),
             _nested_get('blacklist', options),

@@ -514,9 +514,6 @@ def test_get_playlist_with_many_locations_many_regex_groups_each_interleaved(moc
     assert actual == expected
 
 
-# TODO: actual bug
-# These need to be counted as entirely separate groups
-@pytest.mark.skip(reason='This found an actual, existing, bug')
 def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_crossing_locations(
         mocker):
     mock_listdir(mocker, {
@@ -526,16 +523,38 @@ def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_cro
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
 
-    ag = Group(A_DIR)
+    ag = Group(A_DIR, A_DIR)
     al = Location(A_DIR, ag, regex='(?P<group>[a-z]+).*\\.mkv')
-    bg = Group(B_DIR)
+    bg = Group(B_DIR, B_DIR)
     bl = Location(B_DIR, bg, regex='(?P<group>[a-z]+).*\\.mkv')
     actual = get_playlist([al, bl], watched_list=[])
     expected = [
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, Group('foo')),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, Group('foo')),
-        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, Group('bar')),
-        PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), bl, Group('bar')),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, Group('foo', A_DIR)),
+        PlaylistEntry(str(B_DIR_PATH / 'foo 2.mkv'), bl, Group('foo', B_DIR)),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, Group('bar', B_DIR)),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), al, Group('bar', A_DIR)),
+    ]
+    assert set(actual) == set(expected)
+
+
+def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_crossing_locations_with_group_override_with_whitelist(mocker):  # noqa: E501
+    mock_listdir(mocker, {
+        A_DIR: ['A-foo 1.mkv', 'A-bar 1.mkv'],
+        B_DIR: ['B-foo 1.mkv', 'B-bar 1.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT})
+
+    foo_b_group = Group('foo', B_DIR, whitelist=['bar'])
+    ag = Group(A_DIR, A_DIR)
+    al = Location(A_DIR, ag, regex='[AB]-(?P<group>[a-z]+).*\\.mkv')
+    bg = Group(B_DIR, B_DIR, whitelist=['bar'])
+    bl = Location(B_DIR, bg, regex='[AB]-(?P<group>[a-z]+).*\\.mkv', groups=[foo_b_group])
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'A-foo 1.mkv'), al, Group('foo', A_DIR)),
+        PlaylistEntry(str(A_DIR_PATH / 'A-bar 1.mkv'), al, Group('bar', A_DIR)),
+        PlaylistEntry(str(B_DIR_PATH / 'B-bar 1.mkv'), bl, Group('bar', B_DIR)),
     ]
     assert set(actual) == set(expected)
 

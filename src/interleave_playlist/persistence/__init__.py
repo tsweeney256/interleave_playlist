@@ -59,6 +59,7 @@ class Timed:
 @dataclass(unsafe_hash=True)
 class Group:
     name: str = field(hash=True)
+    location_name: str = field(default="", hash=True)
     priority: int = field(default=sys.maxsize, hash=False, compare=False)
     whitelist: list[str] = field(default_factory=list, hash=False, compare=False)
     blacklist: list[str] = field(default_factory=list, hash=False, compare=False)
