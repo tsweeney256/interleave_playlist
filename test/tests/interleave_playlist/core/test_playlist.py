@@ -2051,8 +2051,6 @@ def test_get_playlist_with_timed_and_blacklist(mocker):
     assert set(actual) == set(expected)
 
 
-# TODO: fix timed with search filter
-@pytest.mark.skip(reason='This is actually bugged and needs to be fixed')
 @freeze_time(NEW_YEAR_2000)
 def test_get_playlist_with_timed_ands_search(mocker):
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})

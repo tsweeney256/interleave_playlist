@@ -59,8 +59,7 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
     for group, entries in entries_by_group.items():
         # Ordering is important! Filter out invalid considerations first
         group_entries = [entry for entry in filter(
-            lambda i: (search_filter.upper() in path.basename(i.filename).upper()
-                       and _matches_whitelist(path.basename(i.filename), group.whitelist)
+            lambda i: (_matches_whitelist(path.basename(i.filename), group.whitelist)
                        and not _matches_blacklist(path.basename(i.filename), group.blacklist)
                        and (not settings.get_exclude_directories() or os.path.isfile(i.filename))),
             entries)]
@@ -68,10 +67,14 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
         # or else invalid considerations will be part of the result, then removed anyway
         group_entries = _timed_slice(group.timed, group_entries) if group.timed else group_entries
         # Now that invalid and timed considerations are gone, we can finally remove things
-        # that we've already seen
-        group_entries = [entry for entry in filter(
-            lambda i: path.basename(i.filename).upper() not in watched_names,
-            group_entries)]
+        # that we've already seen and match by the search filter
+        group_entries = [
+            entry for entry in filter(
+                lambda i: path.basename(i.filename).upper() not in watched_names
+                and search_filter.upper() in path.basename(i.filename).upper(),
+                group_entries
+            )
+        ]
         if group_entries:
             filtered_entries.append(group_entries)
     if not filtered_entries:
