@@ -15,7 +15,7 @@ import pathlib
 
 import pytest
 
-from interleave_playlist.core import PlaylistEntry
+from interleave_playlist.core import PlaylistEntry, playlist
 from interleave_playlist.core.playlist import get_playlist
 from interleave_playlist.persistence import Location, Group, settings
 from tests.helper import mock_listdir, get_mock_open, get_mock_isfile
@@ -27,6 +27,12 @@ A_DIR_PATH = pathlib.Path('/dir/A')
 A_DIR = str(A_DIR_PATH)
 B_DIR_PATH = pathlib.Path('/dir/B')
 B_DIR = str(B_DIR_PATH)
+
+
+@pytest.fixture(autouse=True)
+def before_each():
+    settings._CACHED_FILE = {}
+    playlist._FILE_CACHE = {}
 
 
 def test_get_playlist_with_no_locations():
@@ -1494,7 +1500,6 @@ def test_get_playlist_with_not_exclude_directories_setting_off(mocker):
         A_DIR_PATH / 'foo': False
     })
     get_mock_open(mocker, {settings._SETTINGS_FILE: 'exclude-directories: false'})
-
     group = Group(A_DIR)
     location = Location(A_DIR, group)
     actual = get_playlist([location], watched_list=[])

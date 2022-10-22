@@ -29,7 +29,7 @@ from interleave_playlist.persistence import settings
 FilePathsByGroup = dict[Group, list[str]]
 FileGroup = tuple[str, str]
 PlaylistEntriesByGroup = dict[Group, list[PlaylistEntry]]
-file_cache: dict[str, list[str]] = {}
+_FILE_CACHE: dict[str, list[str]] = {}
 
 
 def get_playlist(locations: list[Location],
@@ -87,14 +87,14 @@ def _get_playlist(entries_by_group: PlaylistEntriesByGroup,
 
 
 def _get_paths_from_location(loc: Location, use_cache: bool) -> list[str]:
-    if use_cache and loc.name in file_cache:
-        return file_cache[loc.name]
+    if use_cache and loc.name in _FILE_CACHE:
+        return _FILE_CACHE[loc.name]
     path_parts = [(loc.name, i) for i in os.listdir(loc.name)]
     for a in loc.additional:
         path_parts += [(a, i) for i in os.listdir(a)]
     paths = list(map(lambda i: path.join(i[0], i[1]),
                      natsorted(path_parts, key=lambda i: i[1], alg=ns.IGNORECASE)))
-    file_cache[loc.name] = paths
+    _FILE_CACHE[loc.name] = paths
     return paths
 
 

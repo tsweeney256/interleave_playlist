@@ -33,7 +33,7 @@ def mock_listdir(mocker: MockerFixture, data: dict[str, list[str]]):
     mocker.patch('os.listdir', side_effect=ListdirMock(data).listdir)
 
 
-def get_mock_isfile(mocker:MockerFixture, files: dict[Union[PathLike, str], bool]):
+def get_mock_isfile(mocker: MockerFixture, files: dict[Union[PathLike, str], bool]):
     def isfile_mock(filename, *args, **kwargs):
         if filename in files:
             return files[filename]
