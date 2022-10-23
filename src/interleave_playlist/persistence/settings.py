@@ -13,14 +13,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import pathlib
 import typing
 from typing import Any
 
+import appdirs
 from ruamel.yaml import YAML
 
-from interleave_playlist import SCRIPT_LOC
-
-_SETTINGS_FILE = os.path.join(SCRIPT_LOC, 'config', 'settings.yml')
+_SETTINGS_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(),
+                                           'interleave_playlist',
+                                           'settings.yml'))
 _CACHED_FILE: dict[str, Any] = {}
 
 
@@ -73,6 +75,8 @@ def _get_default_settings() -> dict[str, Any]:
 
 def _create_settings_file() -> None:
     if not os.path.exists(_SETTINGS_FILE):
+        if not os.path.exists(_SETTINGS_FILE.parent):
+            os.mkdir(_SETTINGS_FILE.parent)
         with open(_SETTINGS_FILE, 'w') as f:
             yaml = YAML()
             yaml.dump(_get_default_settings(), f)

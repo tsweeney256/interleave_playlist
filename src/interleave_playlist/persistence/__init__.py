@@ -12,17 +12,20 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
+import pathlib
 import sys
 from dataclasses import dataclass, field
 from datetime import timedelta, datetime
 from typing import Optional
 
+import appdirs
 from crontab import CronTab
 
-from interleave_playlist import SCRIPT_LOC
 from interleave_playlist.persistence.settings import _create_settings_file
 
-_STATE_FILE = os.path.join(SCRIPT_LOC, 'config', 'state.json')
+_STATE_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(),
+                                        'interleave_playlist',
+                                        'state.json'))
 
 
 class Timed:
