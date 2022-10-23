@@ -39,7 +39,7 @@ class PlaylistApplication(QApplication):
                     'interleave_playlist',
                     'interface',
                     'style',
-                    'dark.qss'
+                    'style/dark.qss'
             ), 'r') as f:
                 _style = f.read()
                 self.setStyleSheet(_style)
