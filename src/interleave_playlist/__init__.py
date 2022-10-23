@@ -13,6 +13,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import pathlib
-import sys
 
-SCRIPT_LOC = pathlib.Path(*pathlib.Path(os.path.realpath(sys.argv[0])).parts[:-2])
+SCRIPT_LOC = os.path.sep.join(pathlib.Path(__file__).parts[:-3])
