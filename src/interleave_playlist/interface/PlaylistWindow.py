@@ -330,9 +330,8 @@ class PlaylistWindow(QWidget):
     def refresh(self) -> None:
         self._refresh()
 
-    def _refresh(self, *, use_cache: bool = False) -> None:
+    def _refresh_sort(self):
         self.item_list.clear()
-        self.playlist = _create_playlist(self.search_bar.text(), use_cache)
         if self.playlist is not None:
             for item in sorted(self.playlist,
                                key=self.sort,
@@ -340,6 +339,10 @@ class PlaylistWindow(QWidget):
                 self.item_list.addItem(
                     PlaylistWindowItem(value=item)
                 )
+
+    def _refresh(self, *, use_cache: bool = False) -> None:
+        self.playlist = _create_playlist(self.search_bar.text(), use_cache)
+        self._refresh_sort()
         self.total_shows_label.setText(_TOTAL_SHOWS_TEXT.format(len(self.playlist)))
         self.durations_loaded = False
         if self.item_list.count() > 0:
@@ -413,7 +416,7 @@ class PlaylistWindow(QWidget):
             return
         counter = itertools.count()
         self.sort = lambda x: next(counter)
-        self._refresh(use_cache=True)
+        self._refresh_sort()
         self.item_list.setFocus()
 
     @Slot()
@@ -422,7 +425,7 @@ class PlaylistWindow(QWidget):
             return
         self.sort = natsort.natsort_keygen(
             lambda i: os.path.basename(i.filename))  # type: ignore[no-any-return]
-        self._refresh(use_cache=True)
+        self._refresh_sort()
         self.item_list.setFocus()
 
     @Slot()
@@ -430,12 +433,12 @@ class PlaylistWindow(QWidget):
         if not checked:
             return
         self.sort = lambda x: os.path.getmtime(x.filename)
-        self._refresh(use_cache=True)
+        self._refresh_sort()
         self.item_list.setFocus()
 
     @Slot()
     def reverse_sort(self, checked: bool) -> None:
-        self._refresh(use_cache=True)
+        self._refresh_sort()
         self.item_list.setFocus()
 
     @Slot()
