@@ -16,5 +16,5 @@ import re
 
 f = pathlib.Path('coverage.lcov')
 data = f.read_text()
-data = re.sub(r'\.tox/.+site-packages/', 'src/', data)
+data = re.sub(r'\.tox(?P<sep>[/\\]).+site-packages[/\\]', 'src\\g<sep>', data)
 f.write_text(data)
