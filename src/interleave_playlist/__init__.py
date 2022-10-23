@@ -14,4 +14,4 @@
 import os
 import pathlib
 
-SCRIPT_LOC = os.path.sep.join(pathlib.Path(__file__).parts[:-3])
+SCRIPT_LOC = os.path.sep.join(pathlib.Path(__file__).parts[:-1])

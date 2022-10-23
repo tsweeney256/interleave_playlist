@@ -35,11 +35,9 @@ class PlaylistApplication(QApplication):
         if get_dark_mode():
             with open(os.path.join(
                     SCRIPT_LOC,
-                    'src',
-                    'interleave_playlist',
                     'interface',
                     'style',
-                    'style/dark.qss'
+                    'dark.qss'
             ), 'r') as f:
                 _style = f.read()
                 self.setStyleSheet(_style)
