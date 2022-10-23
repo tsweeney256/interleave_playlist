@@ -330,7 +330,7 @@ class PlaylistWindow(QWidget):
     def refresh(self) -> None:
         self._refresh()
 
-    def _refresh_sort(self):
+    def _refresh_sort(self) -> None:
         self.item_list.clear()
         if self.playlist is not None:
             for item in sorted(self.playlist,
