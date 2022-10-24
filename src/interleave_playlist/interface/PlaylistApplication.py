@@ -20,14 +20,17 @@ from typing import Type, Optional, Sequence
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
-from interleave_playlist import SCRIPT_LOC
+from interleave_playlist import SCRIPT_LOC, CriticalUserError
 from interleave_playlist.interface.PlaylistWindow import PlaylistWindow
-from interleave_playlist.persistence.settings import get_dark_mode
+from interleave_playlist.persistence import create_needed_files
+from interleave_playlist.persistence.settings import get_dark_mode, validate_settings_file
 
 
 class PlaylistApplication(QApplication):
     def __init__(self, arr: Sequence[str]):
         super().__init__(arr)
+        create_needed_files()
+        validate_settings_file()
         playlist_window = PlaylistWindow()
         playlist_window.setWindowTitle('Interleave Playlist')
         playlist_window.resize(800, 600)
@@ -46,11 +49,16 @@ class PlaylistApplication(QApplication):
 
 def excepthook(cls: Type[BaseException], exception: BaseException,
                traceback: Optional[TracebackType]) -> None:
-    err = "".join(format_exception(cls, exception, traceback))
+    text = ''
+    if isinstance(exception, CriticalUserError):
+        text = exception.message
+    else:
+        err = "".join(format_exception(cls, exception, traceback))
+        text = f'Encountered an unhandled exception. This is a bug.\n' \
+               f'Please file a bug report so that this can be fixed\n\n{err}'
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Error")
-    msg_box.setText(f'Encountered an unhandled exception. This is a bug.\n'
-                    f'Please file a bug report so that this can be fixed\n\n{err}')
+    msg_box.setText(text)
     msg_box.setIcon(QMessageBox.Icon.Critical)
     msg_box.exec()
 

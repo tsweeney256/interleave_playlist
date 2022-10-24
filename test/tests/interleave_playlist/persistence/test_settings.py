@@ -12,9 +12,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
+from contextlib import nullcontext as does_not_raise
 
 import pytest
 
+from interleave_playlist import CriticalUserError
 from interleave_playlist.persistence import settings
 from tests.helper import get_mock_open, get_mock_os_path_exists
 
@@ -33,6 +35,18 @@ play-command: vlc
 dark-mode: true
 max-watched-remembered: 10
 exclude-directories: false
+'''}
+INVALID_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''font-size: thirteen
+play-command: 24
+dark-mode: maybe
+max-watched-remembered: ten
+exclude-directories: maybe
+'''}
+NEEDS_CONVERSION_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''font-size: '13'
+play-command: true
+dark-mode: 'FaLsE'
+max-watched-remembered: '10'
+exclude-directories: 'TrUe'
 '''}
 
 
@@ -159,3 +173,76 @@ def test_create_settings_file_with_directory_already_existing_but_not_file(mocke
     mkdir_mock.assert_not_called()
     with open(settings._SETTINGS_FILE, 'r') as f:
         assert f.read() == DEFAULT_SETTINGS_CONTENT
+
+
+def test_get_font_size_with_invalid_settings_file(mocker):
+    get_mock_open(mocker, INVALID_SETTINGS_MOCK)
+    with pytest.raises(settings.InvalidSettingsYmlException):
+        settings.get_font_size()
+
+
+def test_get_play_command_with_invalid_settings_file(mocker):
+    get_mock_open(mocker, INVALID_SETTINGS_MOCK)
+    assert settings.get_play_command() == '24'
+
+
+def test_get_dark_mode_with_invalid_settings_file(mocker):
+    get_mock_open(mocker, INVALID_SETTINGS_MOCK)
+    with pytest.raises(settings.InvalidSettingsYmlException):
+        settings.get_dark_mode()
+
+
+def test_get_get_max_watched_remembered_with_invalid_settings_file(mocker):
+    get_mock_open(mocker, INVALID_SETTINGS_MOCK)
+    with pytest.raises(settings.InvalidSettingsYmlException):
+        settings.get_max_watched_remembered()
+
+
+def test_get_exclude_directories_with_invalid_settings_file(mocker):
+    get_mock_open(mocker, INVALID_SETTINGS_MOCK)
+    with pytest.raises(settings.InvalidSettingsYmlException):
+        settings.get_exclude_directories()
+
+
+def test_get_font_size_with_needs_conversion_settings_file(mocker):
+    get_mock_open(mocker, NEEDS_CONVERSION_SETTINGS_MOCK)
+    assert settings.get_font_size() == 13
+
+
+def test_get_play_command_with_needs_conversion_settings_file(mocker):
+    get_mock_open(mocker, NEEDS_CONVERSION_SETTINGS_MOCK)
+    assert settings.get_play_command() == 'True'
+
+
+def test_get_dark_mode_with_needs_conversion_settings_file(mocker):
+    get_mock_open(mocker, NEEDS_CONVERSION_SETTINGS_MOCK)
+    assert settings.get_dark_mode() is False
+
+
+def test_get_get_max_watched_remembered_with_needs_conversion_settings_file(mocker):
+    get_mock_open(mocker, NEEDS_CONVERSION_SETTINGS_MOCK)
+    assert settings.get_max_watched_remembered() == 10
+
+
+def test_get_exclude_directories_with_needs_conversion_settings_file(mocker):
+    get_mock_open(mocker, NEEDS_CONVERSION_SETTINGS_MOCK)
+    assert settings.get_exclude_directories() is True
+
+
+def test_get_exclude_directories_with_inconvertable_int_settings_value(mocker):
+    get_mock_open(mocker, {settings._SETTINGS_FILE: 'exclude-directories: 13'})
+    with pytest.raises(settings.InvalidSettingsYmlException):
+        settings.get_exclude_directories()
+
+
+@pytest.mark.parametrize(
+    'open_mock_data,expectation',
+    [
+        (EMPTY_SETTINGS_MOCK, does_not_raise()),
+        (DEFAULT_SETTINGS_MOCK, does_not_raise()),
+        (INVALID_SETTINGS_MOCK, pytest.raises(CriticalUserError))
+    ])
+def test_validate_settings_file(mocker, open_mock_data, expectation):
+    get_mock_open(mocker, open_mock_data)
+    with expectation:
+        settings.validate_settings_file()

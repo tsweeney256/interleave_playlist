@@ -20,30 +20,42 @@ from typing import Any
 import appdirs
 from ruamel.yaml import YAML
 
+from interleave_playlist import CriticalUserError
+
 _SETTINGS_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(),
                                            'interleave_playlist',
                                            'settings.yml'))
 _CACHED_FILE: dict[str, Any] = {}
 
+T = typing.TypeVar('T')
+
+
+class InvalidSettingsYmlException(Exception):
+
+    def __init__(self, message: str, key: Any, value: Any) -> None:
+        self.message = message
+        self.key = key
+        self.value = value
+
 
 def get_font_size() -> int:
-    return typing.cast(int, _get_settings('font-size'))
+    return _get_settings_and_convert('font-size', int)
 
 
 def get_play_command() -> str:
-    return typing.cast(str, _get_settings('play-command'))
+    return _get_settings_and_convert('play-command', str)
 
 
 def get_dark_mode() -> bool:
-    return typing.cast(bool, _get_settings('dark-mode'))
+    return _get_settings_and_convert('dark-mode', _convert_to_bool)
 
 
 def get_max_watched_remembered() -> int:
-    return typing.cast(int, _get_settings('max-watched-remembered'))
+    return _get_settings_and_convert('max-watched-remembered', int)
 
 
 def get_exclude_directories() -> bool:
-    return typing.cast(bool, _get_settings('exclude-directories'))
+    return _get_settings_and_convert('exclude-directories', _convert_to_bool)
 
 
 def _get_settings(option: str) -> Any:
@@ -65,6 +77,27 @@ def _get_settings(option: str) -> Any:
     return _CACHED_FILE[option]
 
 
+def _get_settings_and_convert(key: str, conv: typing.Callable[[Any], T]) -> T:
+    value = _get_settings(key)
+    try:
+        return conv(value)
+    except Exception:
+        raise InvalidSettingsYmlException(
+            f"Invalid settings.yml value for '{key}': {value}", key, value
+        )
+
+
+def _convert_to_bool(x: Any) -> bool:
+    if isinstance(x, bool):
+        return x
+    elif isinstance(x, str):
+        if x.upper() == 'TRUE':
+            return True
+        elif x.upper() == 'FALSE':
+            return False
+    raise ValueError(f'Unable to convert {x} to type bool')
+
+
 def _get_default_settings() -> dict[str, Any]:
     return {
         'font-size': 12,
@@ -82,3 +115,24 @@ def create_settings_file() -> None:
         with open(_SETTINGS_FILE, 'w') as f:
             yaml = YAML()
             yaml.dump(_get_default_settings(), f)
+
+
+def validate_settings_file() -> None:
+    options = [
+        get_font_size,
+        get_play_command,
+        get_dark_mode,
+        get_max_watched_remembered,
+        get_exclude_directories
+    ]
+    errors = []
+    for option in options:
+        try:
+            option()
+        except InvalidSettingsYmlException as e:
+            errors.append(e)
+    if errors:
+        message = 'Invalid settings.yml values:'
+        for error in errors:
+            message += f'\n    {error.key}: {error.value}'
+        raise CriticalUserError(message)

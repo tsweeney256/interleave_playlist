@@ -12,7 +12,5 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from interleave_playlist.interface.PlaylistApplication import PlaylistApplication
-from interleave_playlist.persistence import create_needed_files
 
-create_needed_files()
 PlaylistApplication([])

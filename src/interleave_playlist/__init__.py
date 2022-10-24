@@ -15,3 +15,9 @@ import os
 import pathlib
 
 SCRIPT_LOC = os.path.sep.join(pathlib.Path(__file__).parts[:-1])
+
+
+class CriticalUserError(Exception):
+
+    def __init__(self, message: str) -> None:
+        self.message = message
