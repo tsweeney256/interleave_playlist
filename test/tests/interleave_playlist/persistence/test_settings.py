@@ -11,31 +11,35 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+
 import pytest
 
 from interleave_playlist.persistence import settings
 from tests.helper import get_mock_open, get_mock_os_path_exists
 
+ORIGINAL_SETTINGS_FILE = settings._SETTINGS_FILE
+SETTINGS_FILENAME = 'settings.yml'
 EMPTY_SETTINGS_MOCK = {settings._SETTINGS_FILE: ''}
-DEFAULT_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''
-'font-size': 12
-'play-command': 'mpv'
-'dark-mode': False
-'max-watched-remembered': 100
-'exclude-directories': True
-'''}
-MODIFIED_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''
-'font-size': 13
-'play-command': 'vlc'
-'dark-mode': True
-'max-watched-remembered': 10
-'exclude-directories': False
+DEFAULT_SETTINGS_CONTENT = '''font-size: 12
+play-command: mpv
+dark-mode: false
+max-watched-remembered: 100
+exclude-directories: true
+'''
+DEFAULT_SETTINGS_MOCK = {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT}
+MODIFIED_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''font-size: 13
+play-command: vlc
+dark-mode: true
+max-watched-remembered: 10
+exclude-directories: false
 '''}
 
 
 @pytest.fixture(autouse=True)
 def before_each():
     settings._CACHED_FILE = {}
+    settings._SETTINGS_FILE = ORIGINAL_SETTINGS_FILE
 
 
 def test_get_font_size_with_empty_settings_file(mocker):
@@ -120,17 +124,13 @@ def test_get_font_size_with_different_value_after_cached_returning_old_value(moc
     assert settings.get_font_size() == 12
 
 
-def test_create_settings_file_with_not_already_existing(mocker):
-    get_mock_os_path_exists(mocker, {
-        settings._SETTINGS_FILE: False,
-        settings._SETTINGS_FILE.parent: False
-    })
-    mkdir_mock = mocker.patch('os.mkdir')
-    open_mock = get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+def test_create_settings_file_with_not_already_existing(mocker, tmp_path):
+    settings._SETTINGS_FILE = tmp_path / SETTINGS_FILENAME
 
     settings.create_settings_file()
-    mkdir_mock.assert_called_once_with(settings._SETTINGS_FILE.parent)
-    open_mock.assert_called_once_with(settings._SETTINGS_FILE, 'w')
+    assert os.path.exists(settings._SETTINGS_FILE)
+    with open(settings._SETTINGS_FILE, 'r') as f:
+        assert f.read() == DEFAULT_SETTINGS_CONTENT
 
 
 def test_create_settings_file_with_already_existing(mocker):
@@ -146,14 +146,15 @@ def test_create_settings_file_with_already_existing(mocker):
     open_mock.assert_not_called()
 
 
-def test_create_settings_file_with_directory_already_existing_but_not_file(mocker):
+def test_create_settings_file_with_directory_already_existing_but_not_file(mocker, tmp_path):
+    settings._SETTINGS_FILE = tmp_path / SETTINGS_FILENAME
     get_mock_os_path_exists(mocker, {
         settings._SETTINGS_FILE: False,
-        settings._SETTINGS_FILE.parent: True
+        tmp_path: True
     })
     mkdir_mock = mocker.patch('os.mkdir')
-    open_mock = get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
 
     settings.create_settings_file()
     mkdir_mock.assert_not_called()
-    open_mock.assert_called_once_with(settings._SETTINGS_FILE, 'w')
+    with open(settings._SETTINGS_FILE, 'r') as f:
+        assert f.read() == DEFAULT_SETTINGS_CONTENT

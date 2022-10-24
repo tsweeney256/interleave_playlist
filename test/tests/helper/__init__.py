@@ -53,7 +53,7 @@ def get_mock_open(mocker: MockerFixture, files: dict[str, str]):
     return mocker.patch('builtins.open', side_effect=open_mock)
 
 
-def get_mock_os_path_exists(mocker: MockerFixture, files: dict[str, bool]):
+def get_mock_os_path_exists(mocker: MockerFixture, files: dict[Union[str, PathLike], bool]):
     def os_path_exists_mock(filename, *args, **kwargs):
         return bool(files.get(filename))
     return mocker.patch('os.path.exists', side_effect=os_path_exists_mock)
