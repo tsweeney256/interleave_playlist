@@ -53,6 +53,8 @@ def _get_settings(option: str) -> Any:
             yaml = YAML()
             yaml.preserve_quotes = True  # type: ignore
             _CACHED_FILE = yaml.load(f)
+            if _CACHED_FILE is None:
+                _CACHED_FILE = {}
             default_settings = _get_default_settings()
         for key in default_settings.keys():
             if key not in _CACHED_FILE:
@@ -73,7 +75,7 @@ def _get_default_settings() -> dict[str, Any]:
     }
 
 
-def _create_settings_file() -> None:
+def create_settings_file() -> None:
     if not os.path.exists(_SETTINGS_FILE):
         if not os.path.exists(_SETTINGS_FILE.parent):
             os.mkdir(_SETTINGS_FILE.parent)
