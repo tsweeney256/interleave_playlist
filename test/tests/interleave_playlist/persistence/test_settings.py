@@ -125,7 +125,7 @@ def test_get_font_size_with_different_value_after_cached_returning_old_value(moc
 
 
 def test_create_settings_file_with_not_already_existing(mocker, tmp_path):
-    settings._SETTINGS_FILE = tmp_path / SETTINGS_FILENAME
+    settings._SETTINGS_FILE = tmp_path / 'foo' / SETTINGS_FILENAME
 
     settings.create_settings_file()
     assert os.path.exists(settings._SETTINGS_FILE)
@@ -147,11 +147,12 @@ def test_create_settings_file_with_already_existing(mocker):
 
 
 def test_create_settings_file_with_directory_already_existing_but_not_file(mocker, tmp_path):
-    settings._SETTINGS_FILE = tmp_path / SETTINGS_FILENAME
+    settings._SETTINGS_FILE = tmp_path / 'foo' / SETTINGS_FILENAME
     get_mock_os_path_exists(mocker, {
         settings._SETTINGS_FILE: False,
-        tmp_path: True
+        settings._SETTINGS_FILE.parent: True
     })
+    os.mkdir(settings._SETTINGS_FILE.parent)
     mkdir_mock = mocker.patch('os.mkdir')
 
     settings.create_settings_file()
