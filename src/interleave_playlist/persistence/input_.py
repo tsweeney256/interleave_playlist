@@ -11,7 +11,6 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import json
 import os
 import re
 import typing
@@ -24,7 +23,7 @@ from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
 
 from interleave_playlist.core import PlaylistEntry
-from interleave_playlist.persistence import Location, Group, Timed, _STATE_FILE
+from interleave_playlist.persistence import Location, Group, Timed, state
 
 
 class InvalidInputFile(Exception):
@@ -36,7 +35,7 @@ class LocationNotFound(Exception):
 
 
 def get_locations() -> list[Location]:
-    input_: dict = _get_input(get_last_input_file())
+    input_: dict = _get_input(state.get_last_input_file())
     locations = []
     for loc in input_['locations']:
         if 'disabled' in loc and loc['disabled'] is True:
@@ -62,15 +61,15 @@ def get_locations() -> list[Location]:
 
 
 def get_watched_file_name() -> str:
-    fn = get_last_input_file() + '.watched.txt'
+    fn = str(state.get_last_input_file()) + '.watched.txt'
     if not os.path.exists(fn):
         with open(fn, 'w'):
             pass
-    return fn
+    return str(fn)
 
 
 def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
-    input_ = _get_input(get_last_input_file())
+    input_ = _get_input(state.get_last_input_file())
     for entry in entries:
         location = next(filter(lambda i: i['name'] == entry.location.name, input_['locations']))
         if entry.group.name == entry.location.name:
@@ -81,7 +80,7 @@ def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
         if group_name not in blacklist:
             blacklist.append(group_name)
     yaml = YAML()
-    yaml.dump(input_, Path(get_last_input_file()))
+    yaml.dump(input_, Path(state.get_last_input_file()))
 
 
 def _get_group_list(data: list[dict[str, Any]], additional_options: list[dict[str, Any]]) \
@@ -110,7 +109,7 @@ def _get_timed(d: dict[str, Any]) -> Timed:
     )
 
 
-def _get_input(input_file: str) -> dict[str, Any]:
+def _get_input(input_file: Path) -> dict[str, Any]:
     try:
         with open(input_file, 'r') as f:
             yaml = YAML()
@@ -220,24 +219,3 @@ def _nested_get(key: str, options: list[dict[str, Any]]) -> Any:
     for option in options:
         if key in option:
             return option.get(key)
-
-
-def get_last_input_file() -> str:
-    return typing.cast(str, _get_state()['last-input-file'])
-
-
-def set_last_input_file(input_file: str) -> None:
-    _get_input(input_file)  # ensure that the input can be read
-    _set_state('last-input-file', input_file)
-
-
-def _get_state() -> dict[str, Any]:
-    with open(_STATE_FILE, 'r') as f:
-        return typing.cast(dict[str, Any], json.load(f))
-
-
-def _set_state(key: str, val: Any) -> None:
-    state = _get_state()
-    state[key] = val
-    with open(_STATE_FILE, 'w') as f:
-        json.dump(state, f)

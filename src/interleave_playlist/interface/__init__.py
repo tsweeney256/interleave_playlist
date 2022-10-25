@@ -20,7 +20,7 @@ from math import log10, ceil
 from PySide6.QtWidgets import QMessageBox
 
 from interleave_playlist.core.playlist import get_playlist, PlaylistEntry
-from interleave_playlist.persistence import input_
+from interleave_playlist.persistence import input_, state
 from interleave_playlist.persistence.watched import get_watched
 
 
@@ -44,15 +44,15 @@ def _create_playlist(search_filter: str = "", use_cache: bool = False) -> list[P
         msg_box.show()
     try:
         return get_playlist(input_.get_locations(), get_watched(), search_filter, use_cache)
-    except FileNotFoundError:
-        show_warning(f'Input yml file not found: {input_.get_last_input_file()}\n\n'
+    except (FileNotFoundError, IsADirectoryError):
+        show_warning(f'Input yml file not found: {state.get_last_input_file()}\n\n'
                      'Please create or find file and open it')
     except input_.InvalidInputFile as e:
         show_warning(f'Error reading yml file. Please fix it and try again\n'
-                     f'{input_.get_last_input_file()}\n{e}')
+                     f'{state.get_last_input_file()}\n{e}')
     except input_.LocationNotFound as e:
         show_warning(f'Location from input file not found. Please fix it and try again\n'
-                     f'{input_.get_last_input_file()}\n{e}')
+                     f'{state.get_last_input_file()}\n{e}')
     return []
 
 

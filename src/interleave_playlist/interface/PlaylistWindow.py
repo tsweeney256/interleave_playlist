@@ -17,6 +17,7 @@ import os
 import subprocess
 import threading
 import typing
+from pathlib import Path
 from typing import Optional, Callable, Any
 
 import natsort
@@ -34,9 +35,8 @@ from interleave_playlist.interface import open_with_default_application, _create
 from interleave_playlist.interface.PlaylistWindowItem import PlaylistWindowItem
 from interleave_playlist.interface.SearchBarThread import SearchBarThread, \
     SearchBarThreadAlreadyDeadException
-from interleave_playlist.persistence import input_
+from interleave_playlist.persistence import input_, state
 from interleave_playlist.persistence import settings
-from interleave_playlist.persistence.input_ import set_last_input_file
 from interleave_playlist.persistence.watched import add_watched, remove_watched
 
 _LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
@@ -359,7 +359,7 @@ class PlaylistWindow(QWidget):
             if file_name.strip() == '':
                 return
             try:
-                set_last_input_file(file_name)
+                state.set_last_input_file(Path(file_name))
             except input_.InvalidInputFile:
                 msg_box = QMessageBox()
                 msg_box.setWindowTitle('Error')

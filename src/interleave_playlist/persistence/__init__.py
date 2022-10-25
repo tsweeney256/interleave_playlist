@@ -22,6 +22,7 @@ import appdirs
 from crontab import CronTab
 
 from interleave_playlist.persistence.settings import create_settings_file
+from interleave_playlist.persistence.state import create_state_file
 
 _STATE_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(),
                                         'interleave_playlist',
@@ -92,12 +93,6 @@ class Location:
             self.additional = []
 
 
-def _create_state_file() -> None:
-    if not os.path.exists(_STATE_FILE):
-        with open(_STATE_FILE, 'w') as f:
-            f.write('{"last-input-file": "See config/input.yml.example"}')
-
-
 def create_needed_files() -> None:
     create_settings_file()
-    _create_state_file()
+    create_state_file()
