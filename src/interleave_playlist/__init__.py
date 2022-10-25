@@ -14,6 +14,8 @@
 import os
 import pathlib
 
+APP_NAME = 'interleave_playlist'
+APP_NAME_PRETTY = 'Interleave Playlist'
 SCRIPT_LOC = os.path.sep.join(pathlib.Path(__file__).parts[:-1])
 
 

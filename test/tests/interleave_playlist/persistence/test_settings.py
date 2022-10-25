@@ -131,7 +131,7 @@ def test_get_font_size_with_different_value_after_cached_returning_old_value(moc
     assert settings.get_font_size() == 12
 
 
-def test_create_settings_file_with_not_already_existing(mocker, tmp_path):
+def test_create_settings_file_with_not_already_existing(tmp_path):
     settings._SETTINGS_FILE = tmp_path / 'foo' / SETTINGS_FILENAME
 
     settings.create_settings_file()

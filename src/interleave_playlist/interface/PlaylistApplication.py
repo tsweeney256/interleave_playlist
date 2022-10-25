@@ -20,6 +20,7 @@ from typing import Type, Optional, Sequence
 
 from PySide6.QtWidgets import QApplication, QMessageBox
 
+import interleave_playlist
 from interleave_playlist import SCRIPT_LOC, CriticalUserError
 from interleave_playlist.interface.PlaylistWindow import PlaylistWindow
 from interleave_playlist.persistence import create_needed_files
@@ -32,7 +33,7 @@ class PlaylistApplication(QApplication):
         create_needed_files()
         validate_settings_file()
         playlist_window = PlaylistWindow()
-        playlist_window.setWindowTitle('Interleave Playlist')
+        playlist_window.setWindowTitle(interleave_playlist.APP_NAME_PRETTY)
         playlist_window.resize(800, 600)
         playlist_window.show()
         if get_dark_mode():

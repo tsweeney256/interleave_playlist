@@ -20,10 +20,10 @@ from typing import Any
 import appdirs
 from ruamel.yaml import YAML
 
+import interleave_playlist
 from interleave_playlist import CriticalUserError
 
-_SETTINGS_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(),
-                                           'interleave_playlist',
+_SETTINGS_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(interleave_playlist.APP_NAME),
                                            'settings.yml'))
 _CACHED_FILE: dict[str, Any] = {}
 
