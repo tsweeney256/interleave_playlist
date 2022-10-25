@@ -69,4 +69,4 @@ def test_set_last_input_path(tmp_path):
     state.set_last_input_file(Path(expected))
     with open(state._STATE_FILE, 'r') as f:
         actual = json.load(f)
-        assert actual[state._KEYS.LAST_INPUT_FILE] == '/foo/bar/input.yml'
+        assert Path(actual[state._KEYS.LAST_INPUT_FILE]) == Path('/foo/bar/input.yml')
