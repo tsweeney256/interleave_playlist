@@ -23,14 +23,16 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 import interleave_playlist
 from interleave_playlist import SCRIPT_LOC, CriticalUserError
 from interleave_playlist.interface.PlaylistWindow import PlaylistWindow
-from interleave_playlist.persistence import create_needed_files
-from interleave_playlist.persistence.settings import get_dark_mode, validate_settings_file
+from interleave_playlist.persistence.settings import get_dark_mode, validate_settings_file, \
+    create_settings_file
+from interleave_playlist.persistence.state import create_state_file
 
 
 class PlaylistApplication(QApplication):
     def __init__(self, arr: Sequence[str]):
         super().__init__(arr)
-        create_needed_files()
+        create_state_file()
+        create_settings_file()
         validate_settings_file()
         playlist_window = PlaylistWindow()
         playlist_window.setWindowTitle(interleave_playlist.APP_NAME_PRETTY)
