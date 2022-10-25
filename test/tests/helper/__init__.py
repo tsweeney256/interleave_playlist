@@ -11,9 +11,10 @@
 #    GNU General Public License for more details.
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import typing
 from os import PathLike
 from pathlib import Path
-from typing import Union
+from typing import Union, Any
 from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
@@ -34,8 +35,8 @@ def mock_listdir(mocker: MockerFixture, data: dict[str, list[str]]) -> MagicMock
     return mocker.patch('os.listdir', side_effect=ListdirMock(data).listdir)
 
 
-def get_mock_isfile(mocker: MockerFixture, files: dict[Union[PathLike, str], bool]):
-    def isfile_mock(filename, *args, **kwargs) -> bool:
+def get_mock_isfile(mocker: MockerFixture, files: dict[Union[PathLike, str], bool]) -> MagicMock:
+    def isfile_mock(filename: Path, *args: Any, **kwargs: Any) -> bool:
         if filename in files:
             return files[filename]
         elif str(filename) in files:
@@ -46,16 +47,16 @@ def get_mock_isfile(mocker: MockerFixture, files: dict[Union[PathLike, str], boo
     return mocker.patch('os.path.isfile', side_effect=isfile_mock)
 
 
-def get_mock_open(mocker: MockerFixture, files: dict[str, str]) -> MagicMock:
-    def open_mock(filename, *args, **kwargs) -> str:
+def get_mock_open(mocker: MockerFixture, files: dict[Path, str]) -> MagicMock:
+    def open_mock(filename: Path, *args: Any, **kwargs: Any) -> str:
         if filename in files:
-            return mocker.mock_open(read_data=files[filename]).return_value
+            return typing.cast(str, mocker.mock_open(read_data=files[filename]).return_value)
         raise FileNotFoundError(f'(mock) Unable to open {filename}')
     return mocker.patch('builtins.open', side_effect=open_mock)
 
 
 def get_mock_os_path_exists(mocker: MockerFixture,
-                            files: dict[Union[str, PathLike], bool]) -> MagicMock:
-    def os_path_exists_mock(filename, *args, **kwargs) -> bool:
+                            files: dict[Path, bool]) -> MagicMock:
+    def os_path_exists_mock(filename: Path, *args: Any, **kwargs: Any) -> bool:
         return bool(files.get(filename))
     return mocker.patch('os.path.exists', side_effect=os_path_exists_mock)

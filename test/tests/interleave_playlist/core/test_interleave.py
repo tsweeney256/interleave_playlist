@@ -19,14 +19,15 @@ from tests.interleave_playlist.core.interleave_helper import interleave_testdata
 
 
 @pytest.mark.parametrize("groups,expected", interleave_testdata)
-def test_interleave(groups, expected):
+def test_interleave(groups: list[list[str]], expected: list[list[str]]) -> None:
     a, b = groups
     actual = interleave(a, b)
     assert actual == expected
 
 
 @pytest.mark.parametrize("groups,expected", interleave_testdata)
-def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected):
+def test_interleave_all_acts_same_as_interleave_with_two_inputs(
+        groups: list[list[str]], expected: list[list[str]]) -> None:
     actual = interleave_all(groups)
     assert actual == expected
 
@@ -37,14 +38,14 @@ def test_interleave_all_acts_same_as_interleave_with_two_inputs(groups, expected
 # The actual quality of the interleaving is measured outside unit tests.
 # There is no absolute correct way of determining how to interleave more than two asymmetric lists
 @pytest.mark.parametrize("groups", combinations)
-def test_interleave_all(groups: list[list[str]]):
+def test_interleave_all(groups: list[list[str]]) -> None:
     expected_counts = {}
     for group in groups:
         if group:
             expected_counts[group[0][0]] = len(group)
     actual = interleave_all(groups)
-    actual_last_seen = {}
-    actual_counts = {}
+    actual_last_seen: dict[str, str] = {}
+    actual_counts: dict[str, int] = {}
     for item in actual:
         key = item[0]
         count = actual_counts.get(key, 0)

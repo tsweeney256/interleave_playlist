@@ -12,6 +12,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import itertools
+from typing import Generator, Collection
 
 import pytest
 from _pytest.mark import ParameterSet
@@ -20,7 +21,7 @@ InterleaveParameterSet = ParameterSet[list[str], list[str], list[str]]
 InterleaveDefinition = tuple[list[int], str]
 
 
-def alpha(n: int):
+def alpha(n: int) -> Generator:
     for i in range(n):
         yield chr(ord('a') + i)
 
@@ -41,7 +42,7 @@ def reverse_testdata_arguments(input_: list[int], expected: str, values: list[st
     return list(reversed(input_)), "".join(r_expected)
 
 
-def transform_interleave_all_testdata(input_: list[int], k: int):
+def transform_interleave_all_testdata(input_: Collection[int], k: int) -> ParameterSet:
     transformed_input: list[list[str]] = []
     a = alpha(len(input_))
     for size in input_:
@@ -125,7 +126,7 @@ interleave_testdata_definition: list[InterleaveDefinition] = [
 ]
 
 n = 5
-combinations: list[ParameterSet[list[str]]] = [
+combinations: list[ParameterSet] = [
     transform_interleave_all_testdata(combo, i)
     for i, combo in enumerate(
         itertools.combinations_with_replacement(list(range(n+1)), n)

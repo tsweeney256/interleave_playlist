@@ -13,8 +13,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 from contextlib import nullcontext as does_not_raise
+from pathlib import Path
+from typing import Callable, Any
 
 import pytest
+from pytest_mock import MockerFixture
 
 from interleave_playlist import CriticalUserError
 from interleave_playlist.persistence import settings
@@ -51,7 +54,7 @@ exclude-directories: 'TrUe'
 
 
 @pytest.fixture(autouse=True)
-def before_each():
+def before_each() -> None:
     settings._CACHED_FILE = {}
     settings._SETTINGS_FILE = ORIGINAL_SETTINGS_FILE
 
@@ -83,7 +86,10 @@ def before_each():
         (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_max_watched_remembered, 10),
         (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_exclude_directories, True),
     ])
-def test_get_setting_options(mocker, open_mock_data, option, expected):
+def test_get_setting_options(mocker: MockerFixture,
+                             open_mock_data: dict[Path, str],
+                             option: Callable[[], Any],
+                             expected: Any) -> None:
     get_mock_open(mocker, open_mock_data)
     assert option() == expected
 
@@ -105,7 +111,10 @@ def test_get_setting_options(mocker, open_mock_data, option, expected):
          pytest.raises(settings.InvalidSettingsYmlException))
     ]
 )
-def test_invalid_settings_files_raise(mocker, open_mock_data, option, expectation):
+def test_invalid_settings_files_raise(mocker: MockerFixture,
+                                      open_mock_data: dict[Path, str],
+                                      option: Callable[[], Any],
+                                      expectation: Any) -> None:
     get_mock_open(mocker, open_mock_data)
     with expectation:
         option()
@@ -118,20 +127,23 @@ def test_invalid_settings_files_raise(mocker, open_mock_data, option, expectatio
         (DEFAULT_SETTINGS_MOCK, does_not_raise()),
         (INVALID_SETTINGS_MOCK, pytest.raises(CriticalUserError))
     ])
-def test_validate_settings_file(mocker, open_mock_data, expectation):
+def test_validate_settings_file(mocker: MockerFixture,
+                                open_mock_data: dict[Path, str],
+                                expectation: Any) -> None:
     get_mock_open(mocker, open_mock_data)
     with expectation:
         settings.validate_settings_file()
 
 
-def test_get_font_size_with_different_value_after_cached_returning_old_value(mocker):
+def test_get_font_size_with_different_value_after_cached_returning_old_value(
+        mocker: MockerFixture) -> None:
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
     assert settings.get_font_size() == 12
     get_mock_open(mocker, MODIFIED_SETTINGS_MOCK)
     assert settings.get_font_size() == 12
 
 
-def test_create_settings_file_with_not_already_existing(tmp_path):
+def test_create_settings_file_with_not_already_existing(tmp_path: Path) -> None:
     settings._SETTINGS_FILE = tmp_path / 'foo' / SETTINGS_FILENAME
 
     settings.create_settings_file()
@@ -140,7 +152,7 @@ def test_create_settings_file_with_not_already_existing(tmp_path):
         assert f.read() == DEFAULT_SETTINGS_CONTENT
 
 
-def test_create_settings_file_with_already_existing(mocker):
+def test_create_settings_file_with_already_existing(mocker: MockerFixture) -> None:
     get_mock_os_path_exists(mocker, {
         settings._SETTINGS_FILE: True,
         settings._SETTINGS_FILE.parent: True
@@ -153,7 +165,8 @@ def test_create_settings_file_with_already_existing(mocker):
     open_mock.assert_not_called()
 
 
-def test_create_settings_file_with_directory_already_existing_but_not_file(mocker, tmp_path):
+def test_create_settings_file_with_directory_already_existing_but_not_file(
+        mocker: MockerFixture, tmp_path: Path) -> None:
     settings._SETTINGS_FILE = tmp_path / 'foo' / SETTINGS_FILENAME
     get_mock_os_path_exists(mocker, {
         settings._SETTINGS_FILE: False,

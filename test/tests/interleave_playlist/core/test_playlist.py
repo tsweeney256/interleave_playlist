@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 import pytest
 from crontab import CronTab
 from freezegun import freeze_time
+from pytest_mock import MockerFixture
 
 from interleave_playlist.core import PlaylistEntry, playlist
 from interleave_playlist.core.playlist import get_playlist
@@ -35,18 +36,18 @@ B_DIR = str(B_DIR_PATH)
 
 
 @pytest.fixture(autouse=True)
-def before_each():
+def before_each() -> None:
     settings._CACHED_FILE = {}
     playlist._FILE_CACHE = {}
 
 
-def test_get_playlist_with_no_locations():
+def test_get_playlist_with_no_locations() -> None:
     actual = get_playlist([], [])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_empty(mocker):
+def test_get_playlist_with_one_location_empty(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: []})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -54,11 +55,11 @@ def test_get_playlist_with_one_location_empty(mocker):
     group = Group(A_DIR)
     location = Location(A_DIR, group)
     actual = get_playlist([location], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_one_file(mocker):
+def test_get_playlist_with_one_location_one_file(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -70,7 +71,7 @@ def test_get_playlist_with_one_location_one_file(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_many_files(mocker):
+def test_get_playlist_with_one_location_many_files(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -85,7 +86,7 @@ def test_get_playlist_with_one_location_many_files(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_no_files(mocker):
+def test_get_playlist_with_many_locations_no_files(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: [],
         B_DIR: [],
@@ -98,11 +99,11 @@ def test_get_playlist_with_many_locations_no_files(mocker):
     bg = Group(B_DIR)
     bl = Location(B_DIR, bg)
     actual = get_playlist([al, bl], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_one_file(mocker):
+def test_get_playlist_with_many_locations_one_file(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv'],
         B_DIR: ['bar.mkv'],
@@ -122,7 +123,7 @@ def test_get_playlist_with_many_locations_one_file(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_many_files(mocker):
+def test_get_playlist_with_many_locations_many_files(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv', 'hooplah.mkv'],
         B_DIR: ['bar.mkv', 'something.mkv'],
@@ -144,7 +145,7 @@ def test_get_playlist_with_many_locations_many_files(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_duplicate_locations_no_files(mocker):
+def test_get_playlist_with_duplicate_locations_no_files(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: [],
     })
@@ -156,11 +157,11 @@ def test_get_playlist_with_duplicate_locations_no_files(mocker):
     aag = Group(A_DIR)
     aal = Location(A_DIR, aag)
     actual = get_playlist([al, aal], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_duplicate_locations_one_file(mocker):
+def test_get_playlist_with_duplicate_locations_one_file(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv'],
     })
@@ -178,7 +179,7 @@ def test_get_playlist_with_duplicate_locations_one_file(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_duplicate_locations_many_files(mocker):
+def test_get_playlist_with_duplicate_locations_many_files(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv', 'bar.mkv'],
     })
@@ -197,7 +198,7 @@ def test_get_playlist_with_duplicate_locations_many_files(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_with_no_files_with_regex(mocker):
+def test_get_playlist_with_one_location_with_no_files_with_regex(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: []})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -205,11 +206,12 @@ def test_get_playlist_with_one_location_with_no_files_with_regex(mocker):
     group = Group(A_DIR)
     location = Location(A_DIR, group, regex='.+\\.mkv')
     actual = get_playlist([location], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_with_no_files_with_group_regex(mocker):
+def test_get_playlist_with_one_location_with_no_files_with_group_regex(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: []})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -217,11 +219,12 @@ def test_get_playlist_with_one_location_with_no_files_with_group_regex(mocker):
     group = Group(A_DIR)
     location = Location(A_DIR, group, regex='(?P<group>.+)\\.mkv')
     actual = get_playlist([location], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_with_files_with_regex_no_matches(mocker):
+def test_get_playlist_with_one_location_with_files_with_regex_no_matches(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mp4', 'bar.mp4']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -229,11 +232,12 @@ def test_get_playlist_with_one_location_with_files_with_regex_no_matches(mocker)
     group = Group(A_DIR)
     location = Location(A_DIR, group, regex='.+\\.mkv')
     actual = get_playlist([location], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_with_files_with_group_regex_no_matches(mocker):
+def test_get_playlist_with_one_location_with_files_with_group_regex_no_matches(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mp4', 'bar.mp4']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -241,11 +245,11 @@ def test_get_playlist_with_one_location_with_files_with_group_regex_no_matches(m
     group = Group(A_DIR)
     location = Location(A_DIR, group, regex='(?P<group>.+)\\.mkv')
     actual = get_playlist([location], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_with_files_one_regex_match(mocker):
+def test_get_playlist_with_one_location_with_files_one_regex_match(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mp4']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -257,7 +261,7 @@ def test_get_playlist_with_one_location_with_files_one_regex_match(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_one_regex_group(mocker):
+def test_get_playlist_with_one_location_one_regex_group(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mp4']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -269,7 +273,7 @@ def test_get_playlist_with_one_location_one_regex_group(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_many_regex_groups(mocker):
+def test_get_playlist_with_one_location_many_regex_groups(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'bar 1.mp4', 'bar 1.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -284,7 +288,8 @@ def test_get_playlist_with_one_location_many_regex_groups(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_many_regex_groups_many_files_each(mocker):
+def test_get_playlist_with_one_location_many_regex_groups_many_files_each(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: [
         'foo 1.mkv', 'bar 1.mp4', 'bar 1.mkv', 'bar 2.mkv', 'foo 2.mkv'
     ]})
@@ -303,7 +308,8 @@ def test_get_playlist_with_one_location_many_regex_groups_many_files_each(mocker
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_many_regex_groups_many_files_each_interleaved(mocker):
+def test_get_playlist_with_one_location_many_regex_groups_many_files_each_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: [
         'foo 1.mkv', 'bar 1.mp4', 'bar 1.mkv', 'bar 2.mkv', 'foo 2.mkv'
     ]})
@@ -322,7 +328,7 @@ def test_get_playlist_with_one_location_many_regex_groups_many_files_each_interl
     assert actual == expected
 
 
-def test_get_playlist_with_many_locations_with_regex_with_no_matches(mocker):
+def test_get_playlist_with_many_locations_with_regex_with_no_matches(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv'],
         B_DIR: ['bar.mkv'],
@@ -335,11 +341,12 @@ def test_get_playlist_with_many_locations_with_regex_with_no_matches(mocker):
     bg = Group(B_DIR)
     bl = Location(B_DIR, bg, regex='[A-Z]+.+\\.mkv')
     actual = get_playlist([al, bl], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_with_regex_group_with_no_groups(mocker):
+def test_get_playlist_with_many_locations_with_regex_group_with_no_groups(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv'],
         B_DIR: ['bar.mkv'],
@@ -352,11 +359,11 @@ def test_get_playlist_with_many_locations_with_regex_group_with_no_groups(mocker
     bg = Group(B_DIR)
     bl = Location(B_DIR, bg, regex='(?P<group>[A-Z]+).*\\.mkv')
     actual = get_playlist([al, bl], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_one_regex_match_each(mocker):
+def test_get_playlist_with_many_locations_one_regex_match_each(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv'],
         B_DIR: ['bar.mkv'],
@@ -376,7 +383,7 @@ def test_get_playlist_with_many_locations_one_regex_match_each(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_one_regex_group_each(mocker):
+def test_get_playlist_with_many_locations_one_regex_group_each(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo.mkv'],
         B_DIR: ['bar.mkv'],
@@ -396,7 +403,7 @@ def test_get_playlist_with_many_locations_one_regex_group_each(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_many_regex_matches_each(mocker):
+def test_get_playlist_with_many_locations_many_regex_matches_each(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -418,7 +425,8 @@ def test_get_playlist_with_many_locations_many_regex_matches_each(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_many_regex_matches_each_interleaved(mocker):
+def test_get_playlist_with_many_locations_many_regex_matches_each_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -440,7 +448,7 @@ def test_get_playlist_with_many_locations_many_regex_matches_each_interleaved(mo
     assert actual == expected
 
 
-def test_get_playlist_with_many_locations_many_regex_groups_each(mocker):
+def test_get_playlist_with_many_locations_many_regex_groups_each(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -462,7 +470,8 @@ def test_get_playlist_with_many_locations_many_regex_groups_each(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_many_regex_group_files_each_interleaved(mocker):
+def test_get_playlist_with_many_locations_many_regex_group_files_each_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -484,7 +493,8 @@ def test_get_playlist_with_many_locations_many_regex_group_files_each_interleave
     assert actual == expected
 
 
-def test_get_playlist_with_many_locations_many_regex_groups_each_interleaved(mocker):
+def test_get_playlist_with_many_locations_many_regex_groups_each_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
         B_DIR: ['cat 1.mkv', 'cat 2.mkv', 'dog 1.mkv', 'dog 2.mkv'],
@@ -515,7 +525,7 @@ def test_get_playlist_with_many_locations_many_regex_groups_each_interleaved(moc
 
 
 def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_crossing_locations(
-        mocker):
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 2.mkv'],
         B_DIR: ['bar 1.mkv', 'foo 2.mkv'],
@@ -537,7 +547,7 @@ def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_cro
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_crossing_locations_with_group_override_with_whitelist(mocker):  # noqa: E501
+def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_crossing_locations_with_group_override_with_whitelist(mocker: MockerFixture) -> None:  # noqa: E501
     mock_listdir(mocker, {
         A_DIR: ['A-foo 1.mkv', 'A-bar 1.mkv'],
         B_DIR: ['B-foo 1.mkv', 'B-bar 1.mkv'],
@@ -559,7 +569,8 @@ def test_get_playlist_with_many_locations_many_regex_groups_each_with_groups_cro
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_location_using_regex_other_no_regex_interleaved(mocker):
+def test_get_playlist_with_one_location_using_regex_other_no_regex_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'foo 0.mkv'],
@@ -581,7 +592,7 @@ def test_get_playlist_with_one_location_using_regex_other_no_regex_interleaved(m
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_with_priority(mocker):
+def test_get_playlist_with_one_location_with_priority(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -598,7 +609,7 @@ def test_get_playlist_with_one_location_with_priority(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_many_locations_with_same_priority(mocker):
+def test_get_playlist_with_many_locations_with_same_priority(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -620,7 +631,8 @@ def test_get_playlist_with_many_locations_with_same_priority(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_many_locations_with_one_priority_one_no_priority(mocker):
+def test_get_playlist_with_many_locations_with_one_priority_one_no_priority(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -642,7 +654,7 @@ def test_get_playlist_with_many_locations_with_one_priority_one_no_priority(mock
     assert actual == expected
 
 
-def test_get_playlist_with_many_locations_different_priorities(mocker):
+def test_get_playlist_with_many_locations_different_priorities(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -664,7 +676,8 @@ def test_get_playlist_with_many_locations_different_priorities(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_many_regex_groups_same_priorities(mocker):
+def test_get_playlist_with_one_location_many_regex_groups_same_priorities(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
     })
@@ -683,7 +696,8 @@ def test_get_playlist_with_one_location_many_regex_groups_same_priorities(mocker
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_overrides(mocker):
+def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_overrides(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
     })
@@ -705,7 +719,7 @@ def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_ov
 
 
 def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_subset_overrides(
-        mocker):
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
     })
@@ -726,7 +740,7 @@ def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_su
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_subset_case_insensitive_overrides(mocker):  # noqa: E501
+def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_subset_case_insensitive_overrides(mocker: MockerFixture) -> None:  # noqa: E501
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
     })
@@ -748,7 +762,7 @@ def test_get_playlist_with_one_location_many_regex_groups_same_priority_group_su
 
 
 def test_get_playlist_with_one_location_many_regex_groups_one_with_priority_one_with_no_priority(
-        mocker):
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
     })
@@ -769,7 +783,8 @@ def test_get_playlist_with_one_location_many_regex_groups_one_with_priority_one_
     assert actual == expected
 
 
-def test_get_playlist_with_one_location_many_regex_groups_different_priorities(mocker):
+def test_get_playlist_with_one_location_many_regex_groups_different_priorities(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv'],
     })
@@ -790,7 +805,8 @@ def test_get_playlist_with_one_location_many_regex_groups_different_priorities(m
     assert actual == expected
 
 
-def test_get_playlist_with_many_location_many_regex_groups_same_priorities(mocker):
+def test_get_playlist_with_many_location_many_regex_groups_same_priorities(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -814,7 +830,8 @@ def test_get_playlist_with_many_location_many_regex_groups_same_priorities(mocke
     assert actual == expected
 
 
-def test_get_playlist_with_many_location_many_regex_groups_one_with_one_without_priorities(mocker):
+def test_get_playlist_with_many_location_many_regex_groups_one_with_one_without_priorities(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -838,7 +855,8 @@ def test_get_playlist_with_many_location_many_regex_groups_one_with_one_without_
     assert actual == expected
 
 
-def test_get_playlist_with_many_location_many_regex_groups_different_priorities(mocker):
+def test_get_playlist_with_many_location_many_regex_groups_different_priorities(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -863,7 +881,7 @@ def test_get_playlist_with_many_location_many_regex_groups_different_priorities(
 
 
 def test_get_playlist_with_many_location_many_regex_groups_different_priorities_from_default(
-        mocker):
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv'],
@@ -887,7 +905,7 @@ def test_get_playlist_with_many_location_many_regex_groups_different_priorities_
     assert actual == expected
 
 
-def test_get_playlist_with_search_empty_string_no_op(mocker):
+def test_get_playlist_with_search_empty_string_no_op(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -904,7 +922,7 @@ def test_get_playlist_with_search_empty_string_no_op(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_no_entries_none_matching(mocker):
+def test_get_playlist_with_search_filter_no_entries_none_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: [],
     })
@@ -914,11 +932,11 @@ def test_get_playlist_with_search_filter_no_entries_none_matching(mocker):
     ag = Group(A_DIR)
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter='bar 1.mkv')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_none_matching(mocker):
+def test_get_playlist_with_search_filter_none_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -928,11 +946,11 @@ def test_get_playlist_with_search_filter_none_matching(mocker):
     ag = Group(A_DIR)
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter='bar 1.mkv')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_matching_exact(mocker):
+def test_get_playlist_with_search_filter_matching_exact(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -948,7 +966,7 @@ def test_get_playlist_with_search_filter_matching_exact(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_matching_subset(mocker):
+def test_get_playlist_with_search_filter_matching_subset(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -964,7 +982,8 @@ def test_get_playlist_with_search_filter_matching_subset(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_matching_subset_case_insensitive(mocker):
+def test_get_playlist_with_search_filter_matching_subset_case_insensitive(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -980,7 +999,8 @@ def test_get_playlist_with_search_filter_matching_subset_case_insensitive(mocker
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_with_many_locations_interleaved(mocker):
+def test_get_playlist_with_search_filter_with_many_locations_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
@@ -1002,7 +1022,8 @@ def test_get_playlist_with_search_filter_with_many_locations_interleaved(mocker)
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_with_many_groups_interleaved(mocker):
+def test_get_playlist_with_search_filter_with_many_groups_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv', 'bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
     })
@@ -1023,7 +1044,8 @@ def test_get_playlist_with_search_filter_with_many_groups_interleaved(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_with_many_locations_and_groups_interleaved(mocker):
+def test_get_playlist_with_search_filter_with_many_locations_and_groups_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv', 'bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
         B_DIR: ['cat 1.mkv', 'cat 2.mkv', 'cat 10.mkv', 'dog 1.mkv', 'dog 2.mkv', 'dog 10.mkv'],
@@ -1053,7 +1075,8 @@ def test_get_playlist_with_search_filter_with_many_locations_and_groups_interlea
     assert actual == expected
 
 
-def test_get_playlist_with_search_filter_with_many_groups_different_priorities_interleaved(mocker):
+def test_get_playlist_with_search_filter_with_many_groups_different_priorities_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv', 'bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
         B_DIR: ['cat 1.mkv', 'cat 2.mkv', 'cat 10.mkv', 'dog 1.mkv', 'dog 2.mkv', 'dog 10.mkv'],
@@ -1083,7 +1106,7 @@ def test_get_playlist_with_search_filter_with_many_groups_different_priorities_i
     assert actual == expected
 
 
-def test_get_playlist_with_search_ignoring_directory(mocker):
+def test_get_playlist_with_search_ignoring_directory(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1093,11 +1116,11 @@ def test_get_playlist_with_search_ignoring_directory(mocker):
     ag = Group(A_DIR)
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter=A_DIR)
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_no_entries_none_matching(mocker):
+def test_get_playlist_with_whitelist_no_entries_none_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: [],
     })
@@ -1107,11 +1130,11 @@ def test_get_playlist_with_whitelist_no_entries_none_matching(mocker):
     ag = Group(A_DIR, whitelist=['1'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_none_matching(mocker):
+def test_get_playlist_with_whitelist_none_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1121,11 +1144,11 @@ def test_get_playlist_with_whitelist_none_matching(mocker):
     ag = Group(A_DIR, whitelist=['3'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_matching_exact(mocker):
+def test_get_playlist_with_whitelist_matching_exact(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1141,7 +1164,7 @@ def test_get_playlist_with_whitelist_matching_exact(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_matching_subset(mocker):
+def test_get_playlist_with_whitelist_matching_subset(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1157,7 +1180,8 @@ def test_get_playlist_with_whitelist_matching_subset(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_matching_subset_case_insensitive(mocker):
+def test_get_playlist_with_whitelist_matching_subset_case_insensitive(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1173,7 +1197,7 @@ def test_get_playlist_with_whitelist_matching_subset_case_insensitive(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_group_whitelist_matching(mocker):
+def test_get_playlist_with_group_whitelist_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1190,7 +1214,7 @@ def test_get_playlist_with_group_whitelist_matching(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_with_many_locations_interleaved(mocker):
+def test_get_playlist_with_whitelist_with_many_locations_interleaved(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv'],
         B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
@@ -1212,7 +1236,7 @@ def test_get_playlist_with_whitelist_with_many_locations_interleaved(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_with_many_groups_interleaved(mocker):
+def test_get_playlist_with_whitelist_with_many_groups_interleaved(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv', 'bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
     })
@@ -1233,7 +1257,8 @@ def test_get_playlist_with_whitelist_with_many_groups_interleaved(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_with_many_locations_and_groups_interleaved(mocker):
+def test_get_playlist_with_whitelist_with_many_locations_and_groups_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv', 'bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
         B_DIR: ['cat 1.mkv', 'cat 2.mkv', 'cat 10.mkv', 'dog 1.mkv', 'dog 2.mkv', 'dog 10.mkv'],
@@ -1263,7 +1288,8 @@ def test_get_playlist_with_whitelist_with_many_locations_and_groups_interleaved(
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_with_many_groups_different_priorities_interleaved(mocker):
+def test_get_playlist_with_whitelist_with_many_groups_different_priorities_interleaved(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 10.mkv', 'bar 1.mkv', 'bar 2.mkv', 'bar 10.mkv'],
         B_DIR: ['cat 1.mkv', 'cat 2.mkv', 'cat 10.mkv', 'dog 1.mkv', 'dog 2.mkv', 'dog 10.mkv'],
@@ -1293,7 +1319,7 @@ def test_get_playlist_with_whitelist_with_many_groups_different_priorities_inter
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_ignoring_directory(mocker):
+def test_get_playlist_with_whitelist_ignoring_directory(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1303,11 +1329,11 @@ def test_get_playlist_with_whitelist_ignoring_directory(mocker):
     ag = Group(A_DIR, whitelist=[A_DIR])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_no_entries_none_matching(mocker):
+def test_get_playlist_with_blacklist_no_entries_none_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: [],
     })
@@ -1317,11 +1343,11 @@ def test_get_playlist_with_blacklist_no_entries_none_matching(mocker):
     ag = Group(A_DIR, blacklist=['1'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_none_matching(mocker):
+def test_get_playlist_with_blacklist_none_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1338,7 +1364,7 @@ def test_get_playlist_with_blacklist_none_matching(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_exact(mocker):
+def test_get_playlist_with_blacklist_exact(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1354,7 +1380,7 @@ def test_get_playlist_with_blacklist_exact(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_subset(mocker):
+def test_get_playlist_with_blacklist_subset(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1370,7 +1396,7 @@ def test_get_playlist_with_blacklist_subset(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_subset_case_insensitive(mocker):
+def test_get_playlist_with_blacklist_subset_case_insensitive(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1386,7 +1412,7 @@ def test_get_playlist_with_blacklist_subset_case_insensitive(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_group_blacklist_matching(mocker):
+def test_get_playlist_with_group_blacklist_matching(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1403,7 +1429,7 @@ def test_get_playlist_with_group_blacklist_matching(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_ignoring_directory(mocker):
+def test_get_playlist_with_blacklist_ignoring_directory(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv'],
     })
@@ -1420,7 +1446,7 @@ def test_get_playlist_with_blacklist_ignoring_directory(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_and_whitelist_working_together(mocker):
+def test_get_playlist_with_blacklist_and_whitelist_working_together(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1436,7 +1462,7 @@ def test_get_playlist_with_blacklist_and_whitelist_working_together(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_and_whitelist_contradicting(mocker):
+def test_get_playlist_with_blacklist_and_whitelist_contradicting(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1446,11 +1472,11 @@ def test_get_playlist_with_blacklist_and_whitelist_contradicting(mocker):
     ag = Group(A_DIR, blacklist=['bar'], whitelist=['bar'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_and_search_working_together(mocker):
+def test_get_playlist_with_whitelist_and_search_working_together(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1466,7 +1492,7 @@ def test_get_playlist_with_whitelist_and_search_working_together(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_and_search_contradicting(mocker):
+def test_get_playlist_with_whitelist_and_search_contradicting(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1476,11 +1502,11 @@ def test_get_playlist_with_whitelist_and_search_contradicting(mocker):
     ag = Group(A_DIR, whitelist=['bar'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter='foo')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_and_search_working_together(mocker):
+def test_get_playlist_with_blacklist_and_search_working_together(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1496,7 +1522,7 @@ def test_get_playlist_with_blacklist_and_search_working_together(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_blacklist_and_search_contradicting(mocker):
+def test_get_playlist_with_blacklist_and_search_contradicting(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1506,11 +1532,12 @@ def test_get_playlist_with_blacklist_and_search_contradicting(mocker):
     ag = Group(A_DIR, blacklist=['bar'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter='bar')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_whitelist_and_blacklist_and_search_working_together(mocker):
+def test_get_playlist_with_whitelist_and_blacklist_and_search_working_together(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1527,7 +1554,7 @@ def test_get_playlist_with_whitelist_and_blacklist_and_search_working_together(m
 
 
 def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_because_whitelist(
-        mocker):
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1537,12 +1564,12 @@ def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_beca
     ag = Group(A_DIR, blacklist=['bar'], whitelist=['bar'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter='foo')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
 def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_because_blacklist(
-        mocker):
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1552,12 +1579,12 @@ def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_beca
     ag = Group(A_DIR, blacklist=['foo'], whitelist=['foo'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter='foo')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
 def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_because_search(
-        mocker):
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1567,11 +1594,11 @@ def test_get_playlist_with_whitelist_and_blacklist_and_search_contradicting_beca
     ag = Group(A_DIR, blacklist=['foo'], whitelist=['bar'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[], search_filter='foo')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_exclude_directories_setting_on(mocker):
+def test_get_playlist_with_exclude_directories_setting_on(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv', 'foo']})
     get_mock_isfile(mocker, {
         A_DIR_PATH / 'foo.mkv': True,
@@ -1586,7 +1613,7 @@ def test_get_playlist_with_exclude_directories_setting_on(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_not_exclude_directories_setting_off(mocker):
+def test_get_playlist_with_not_exclude_directories_setting_off(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv', 'foo']})
     get_mock_isfile(mocker, {
         A_DIR_PATH / 'foo.mkv': True,
@@ -1603,7 +1630,7 @@ def test_get_playlist_with_not_exclude_directories_setting_off(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_one_watched(mocker):
+def test_get_playlist_with_one_watched(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1617,7 +1644,7 @@ def test_get_playlist_with_one_watched(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_many_watched(mocker):
+def test_get_playlist_with_many_watched(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1630,11 +1657,11 @@ def test_get_playlist_with_many_watched(mocker):
         ('bar 1.mkv', al.name),
         ('foo 1.mkv', al.name)
     ])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_watched_not_in_list(mocker):
+def test_get_playlist_with_watched_not_in_list(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1652,7 +1679,7 @@ def test_get_playlist_with_watched_not_in_list(mocker):
 
 
 # This functionality is desirable if going from default group to group override
-def test_get_playlist_with_watched_and_different_group(mocker):
+def test_get_playlist_with_watched_and_different_group(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1672,7 +1699,7 @@ def test_get_playlist_with_watched_and_different_group(mocker):
 # This is desirable if you move your location path around
 # Unfortunately this blocks any use case where duplicates across different locations is desired
 # The former is going to be /far/ more common than the latter though
-def test_get_playlist_with_watched_and_different_location(mocker):
+def test_get_playlist_with_watched_and_different_location(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv'],
         B_DIR: ['foo 1.mkv']
@@ -1685,11 +1712,11 @@ def test_get_playlist_with_watched_and_different_location(mocker):
     bg = Group(B_DIR)
     bl = Location(B_DIR, bg)
     actual = get_playlist([al, bl], watched_list=[('foo 1.mkv', al.name)])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_watched_and_case_insensitive(mocker):
+def test_get_playlist_with_watched_and_case_insensitive(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1703,7 +1730,7 @@ def test_get_playlist_with_watched_and_case_insensitive(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_watched_and_searched(mocker):
+def test_get_playlist_with_watched_and_searched(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1713,11 +1740,11 @@ def test_get_playlist_with_watched_and_searched(mocker):
     ag = Group(A_DIR)
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[('bar 1.mkv', al.name)], search_filter='bar 1.mkv')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_watched_and_whitelisted(mocker):
+def test_get_playlist_with_watched_and_whitelisted(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1727,11 +1754,11 @@ def test_get_playlist_with_watched_and_whitelisted(mocker):
     ag = Group(A_DIR, whitelist=['bar 1.mkv'])
     al = Location(A_DIR, ag)
     actual = get_playlist([al], watched_list=[('bar 1.mkv', al.name)])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert actual == expected
 
 
-def test_get_playlist_with_watched_and_blacklisted(mocker):
+def test_get_playlist_with_watched_and_blacklisted(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
     })
@@ -1746,7 +1773,7 @@ def test_get_playlist_with_watched_and_blacklisted(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_one_loc_timed_for_future(mocker):
+def test_get_playlist_with_one_loc_timed_for_future(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1756,12 +1783,12 @@ def test_get_playlist_with_one_loc_timed_for_future(mocker):
     ))
     location = Location(A_DIR, group)
     actual = get_playlist([location], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_one_loc_timed(mocker):
+def test_get_playlist_with_one_loc_timed(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1776,7 +1803,7 @@ def test_get_playlist_with_one_loc_timed(mocker):
 
 
 @freeze_time(NEW_YEAR_2000 - timedelta(seconds=1))
-def test_get_playlist_with_many_loc_timed_right_before(mocker):
+def test_get_playlist_with_many_loc_timed_right_before(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1793,7 +1820,7 @@ def test_get_playlist_with_many_loc_timed_right_before(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_many_loc_timed(mocker):
+def test_get_playlist_with_many_loc_timed(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1811,7 +1838,7 @@ def test_get_playlist_with_many_loc_timed(mocker):
 
 
 @freeze_time(NEW_YEAR_2000 + timedelta(seconds=1))
-def test_get_playlist_with_many_loc_timed_right_after(mocker):
+def test_get_playlist_with_many_loc_timed_right_after(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1829,7 +1856,7 @@ def test_get_playlist_with_many_loc_timed_right_after(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_loc_timed_finished(mocker):
+def test_get_playlist_with_loc_timed_finished(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1847,7 +1874,7 @@ def test_get_playlist_with_loc_timed_finished(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_many_amount(mocker):
+def test_get_playlist_with_many_amount(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1866,7 +1893,7 @@ def test_get_playlist_with_many_amount(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_zero_amount(mocker):
+def test_get_playlist_with_zero_amount(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1884,7 +1911,7 @@ def test_get_playlist_with_zero_amount(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_negative_amount(mocker):
+def test_get_playlist_with_negative_amount(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1902,7 +1929,7 @@ def test_get_playlist_with_negative_amount(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_starting_at_episode(mocker):
+def test_get_playlist_with_starting_at_episode(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1920,7 +1947,7 @@ def test_get_playlist_with_starting_at_episode(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_one_loc_timed_start_at_cron_is_true(mocker):
+def test_get_playlist_with_one_loc_timed_start_at_cron_is_true(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1931,12 +1958,12 @@ def test_get_playlist_with_one_loc_timed_start_at_cron_is_true(mocker):
     ))
     location = Location(A_DIR, group)
     actual = get_playlist([location], watched_list=[])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_one_loc_timed_start_at_cron_is_false(mocker):
+def test_get_playlist_with_one_loc_timed_start_at_cron_is_false(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1952,7 +1979,7 @@ def test_get_playlist_with_one_loc_timed_start_at_cron_is_false(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_many_loc_timed_start_at_cron_is_true(mocker):
+def test_get_playlist_with_many_loc_timed_start_at_cron_is_true(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1968,7 +1995,7 @@ def test_get_playlist_with_many_loc_timed_start_at_cron_is_true(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_many_loc_timed_start_at_cron_is_false(mocker):
+def test_get_playlist_with_many_loc_timed_start_at_cron_is_false(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -1987,7 +2014,8 @@ def test_get_playlist_with_many_loc_timed_start_at_cron_is_false(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_one_loc_timed_start_at_cron_is_true_exact_at_cron(mocker):
+def test_get_playlist_with_one_loc_timed_start_at_cron_is_true_exact_at_cron(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2003,7 +2031,8 @@ def test_get_playlist_with_one_loc_timed_start_at_cron_is_true_exact_at_cron(moc
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_many_loc_timed_start_at_cron_is_true_exact_at_cron(mocker):
+def test_get_playlist_with_many_loc_timed_start_at_cron_is_true_exact_at_cron(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2022,7 +2051,7 @@ def test_get_playlist_with_many_loc_timed_start_at_cron_is_true_exact_at_cron(mo
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_timed_and_watched(mocker):
+def test_get_playlist_with_timed_and_watched(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2032,12 +2061,12 @@ def test_get_playlist_with_timed_and_watched(mocker):
     ))
     location = Location(A_DIR, group)
     actual = get_playlist([location], watched_list=[('foo 1.mkv', group.name)])
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_timed_and_whitelist(mocker):
+def test_get_playlist_with_timed_and_whitelist(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2054,7 +2083,7 @@ def test_get_playlist_with_timed_and_whitelist(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_timed_and_blacklist(mocker):
+def test_get_playlist_with_timed_and_blacklist(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2071,7 +2100,7 @@ def test_get_playlist_with_timed_and_blacklist(mocker):
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_timed_ands_search(mocker):
+def test_get_playlist_with_timed_ands_search(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2081,12 +2110,12 @@ def test_get_playlist_with_timed_ands_search(mocker):
     ))
     location = Location(A_DIR, group)
     actual = get_playlist([location], watched_list=[], search_filter='foo 2.mkv')
-    expected = []
+    expected: list[PlaylistEntry] = []
     assert set(actual) == set(expected)
 
 
 @freeze_time(NEW_YEAR_2000)
-def test_get_playlist_with_timed_group_override(mocker):
+def test_get_playlist_with_timed_group_override(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'bar 1.mkv', 'bar 2.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2106,7 +2135,7 @@ def test_get_playlist_with_timed_group_override(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_least_recently_watched_bias_with_groups(mocker):
+def test_get_playlist_with_least_recently_watched_bias_with_groups(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
                 'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv',
@@ -2140,7 +2169,8 @@ def test_get_playlist_with_least_recently_watched_bias_with_groups(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_least_recently_watched_bias_with_locations(mocker):
+def test_get_playlist_with_least_recently_watched_bias_with_locations(
+        mocker: MockerFixture) -> None:
     foo_dir_path = pathlib.Path('/dir/foo')
     bar_dir_path = pathlib.Path('/dir/bar')
     baz_dir_path = pathlib.Path('/dir/baz')
@@ -2185,7 +2215,7 @@ def test_get_playlist_with_least_recently_watched_bias_with_locations(mocker):
     assert actual == expected
 
 
-def test_get_playlist_using_cache_with_existing_after_update(mocker):
+def test_get_playlist_using_cache_with_existing_after_update(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2202,7 +2232,8 @@ def test_get_playlist_using_cache_with_existing_after_update(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_using_cache_after_refreshing_cache_after_update(mocker):
+def test_get_playlist_using_cache_after_refreshing_cache_after_update(
+        mocker: MockerFixture) -> None:
     mock_listdir(mocker, {A_DIR: ['foo.mkv', 'bar.mkv']})
     mocker.patch('os.path.isfile', return_value=True)
     get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
@@ -2223,7 +2254,7 @@ def test_get_playlist_using_cache_after_refreshing_cache_after_update(mocker):
     assert set(actual) == set(expected)
 
 
-def test_get_playlist_with_additional(mocker):
+def test_get_playlist_with_additional(mocker: MockerFixture) -> None:
     additional_a_dir_path = pathlib.Path('/a/dir/additional/A')  # sorts first
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv'],
@@ -2242,7 +2273,7 @@ def test_get_playlist_with_additional(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_additional_with_groups(mocker):
+def test_get_playlist_with_additional_with_groups(mocker: MockerFixture) -> None:
     additional_a_dir_path = pathlib.Path('/a/dir/additional/A')  # sorts first
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
@@ -2271,7 +2302,7 @@ def test_get_playlist_with_additional_with_groups(mocker):
     assert actual == expected
 
 
-def test_get_playlist_with_additional_with_groups_interleaved(mocker):
+def test_get_playlist_with_additional_with_groups_interleaved(mocker: MockerFixture) -> None:
     additional_a_dir_path = pathlib.Path('/a/dir/additional/A')  # sorts first
     mock_listdir(mocker, {
         A_DIR: ['foo 1.mkv', 'bar 1.mkv'],
