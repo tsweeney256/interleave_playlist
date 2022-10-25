@@ -23,7 +23,7 @@ from natsort import natsorted, ns
 
 from interleave_playlist.core import PlaylistEntry
 from interleave_playlist.core.interleave import interleave_all
-from interleave_playlist.persistence import Group, Location, Timed
+from interleave_playlist.model import Group, Location, Timed
 from interleave_playlist.persistence import settings
 
 FilePathsByGroup = dict[Group, list[str]]

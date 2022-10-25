@@ -20,7 +20,8 @@ from freezegun import freeze_time
 
 from interleave_playlist.core import PlaylistEntry, playlist
 from interleave_playlist.core.playlist import get_playlist
-from interleave_playlist.persistence import Location, Group, settings, Timed
+from interleave_playlist.model import Location, Group, Timed
+from interleave_playlist.persistence import settings
 from tests.helper import mock_listdir, get_mock_open, get_mock_isfile
 
 ISO_FORMAT = '%Y-%m-%dT%H:%M:%S'

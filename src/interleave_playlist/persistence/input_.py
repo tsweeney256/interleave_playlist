@@ -23,7 +23,8 @@ from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
 
 from interleave_playlist.core import PlaylistEntry
-from interleave_playlist.persistence import Location, Group, Timed, state
+from interleave_playlist.model import Location, Group, Timed
+from interleave_playlist.persistence import state
 
 
 class InvalidInputFile(Exception):

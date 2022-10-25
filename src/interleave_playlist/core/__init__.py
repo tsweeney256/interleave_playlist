@@ -13,7 +13,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from dataclasses import dataclass, field
 
-from interleave_playlist.persistence import Group, Location
+from interleave_playlist.model import Group, Location
 
 
 @dataclass(unsafe_hash=True)
