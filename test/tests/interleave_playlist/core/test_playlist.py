@@ -145,6 +145,28 @@ def test_get_playlist_with_many_locations_many_files(mocker: MockerFixture) -> N
     assert set(actual) == set(expected)
 
 
+def test_get_playlist_with_many_locations_many_duplicate_files(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo.mkv', 'bar.mkv'],
+        B_DIR: ['foo.mkv', 'bar.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    ag = Group(A_DIR)
+    al = Location(A_DIR, ag)
+    bg = Group(B_DIR)
+    bl = Location(B_DIR, bg)
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar.mkv'), al, ag),
+        PlaylistEntry(str(B_DIR_PATH / 'bar.mkv'), bl, bg),
+        PlaylistEntry(str(A_DIR_PATH / 'foo.mkv'), al, ag),
+        PlaylistEntry(str(B_DIR_PATH / 'foo.mkv'), bl, bg),
+    ]
+    assert actual == expected
+
+
 def test_get_playlist_with_duplicate_locations_no_files(mocker: MockerFixture) -> None:
     mock_listdir(mocker, {
         A_DIR: [],

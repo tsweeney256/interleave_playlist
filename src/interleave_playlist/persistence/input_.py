@@ -61,14 +61,6 @@ def get_locations() -> list[Location]:
     return locations
 
 
-def get_watched_file_name() -> str:
-    fn = str(state.get_last_input_file()) + '.watched.txt'
-    if not os.path.exists(fn):
-        with open(fn, 'w'):
-            pass
-    return str(fn)
-
-
 def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
     input_ = _get_input(state.get_last_input_file())
     for entry in entries:

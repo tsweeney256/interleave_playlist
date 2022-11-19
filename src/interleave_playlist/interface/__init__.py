@@ -56,10 +56,6 @@ def _create_playlist(search_filter: str = "", use_cache: bool = False) -> list[P
     return []
 
 
-def _get_temp_file_name() -> str:
-    return input_.get_watched_file_name() + '.tmp'
-
-
 def _get_duration_str(ms: int, override_ms: int) -> str:
     hours, remainder = divmod(ms, 1000 * 60 * 60)
     minutes, remainder = divmod(remainder, 1000 * 60)

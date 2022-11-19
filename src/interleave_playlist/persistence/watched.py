@@ -16,12 +16,12 @@ import os
 from os import path
 
 from interleave_playlist.core.playlist import FileGroup, get_playlist, PlaylistEntry
-from interleave_playlist.persistence import input_
 from interleave_playlist.persistence import settings
+from interleave_playlist.persistence import state, input_
 
 
 def get_watched() -> list[FileGroup]:
-    with open(input_.get_watched_file_name(), 'r') as f:
+    with open(get_watched_file_name(), 'r') as f:
         rows = csv.reader(f)
         watched_list: list[FileGroup] = []
         for row in rows:
@@ -49,8 +49,16 @@ def remove_watched(remove: list[PlaylistEntry]) -> None:
     _write_new_watched_list(new_watched_list)
 
 
+def get_watched_file_name() -> str:
+    fn = str(state.get_last_input_file()) + '.watched.txt'
+    if not os.path.exists(fn):
+        with open(fn, 'w'):
+            pass
+    return fn
+
+
 def _get_temp_file_name() -> str:
-    return input_.get_watched_file_name() + '.tmp'
+    return get_watched_file_name() + '.tmp'
 
 
 def _get_basename_playlist() -> list[PlaylistEntry]:
@@ -82,4 +90,4 @@ def _write_new_watched_list(new_watched_list: list[FileGroup]) -> None:
     with open(_get_temp_file_name(), 'w') as tmp:
         writer = csv.writer(tmp, quoting=csv.QUOTE_ALL)
         writer.writerows(new_watched_list)
-    os.replace(_get_temp_file_name(), input_.get_watched_file_name())
+    os.replace(_get_temp_file_name(), get_watched_file_name())

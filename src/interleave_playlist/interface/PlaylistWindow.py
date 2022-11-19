@@ -35,7 +35,7 @@ from interleave_playlist.interface import open_with_default_application, _create
 from interleave_playlist.interface.PlaylistWindowItem import PlaylistWindowItem
 from interleave_playlist.interface.SearchBarThread import SearchBarThread, \
     SearchBarThreadAlreadyDeadException
-from interleave_playlist.persistence import input_, state
+from interleave_playlist.persistence import input_, state, watched
 from interleave_playlist.persistence import settings
 from interleave_playlist.persistence.watched import add_watched, remove_watched
 
@@ -375,7 +375,7 @@ class PlaylistWindow(QWidget):
     @Slot()
     def open_watched_file(self) -> None:
         def _impl() -> None:
-            open_with_default_application(input_.get_watched_file_name())
+            open_with_default_application(watched.get_watched_file_name())
         thread = threading.Thread(target=_impl)
         thread.start()
         self.item_list.setFocus()
