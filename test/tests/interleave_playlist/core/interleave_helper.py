@@ -17,7 +17,7 @@ from typing import Generator, Collection
 import pytest
 from _pytest.mark import ParameterSet
 
-InterleaveParameterSet = ParameterSet[list[str], list[str], list[str]]
+InterleaveParameterSet = ParameterSet
 InterleaveDefinition = tuple[list[int], str]
 
 
