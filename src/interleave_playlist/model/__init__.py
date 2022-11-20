@@ -12,9 +12,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import sys
+import typing
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Any
+from uuid import uuid4
 
 from crontab import CronTab
 
@@ -50,6 +52,32 @@ class Timed:
         return initial + first_cron_amount + cron_amount - 1
 
 
+@dataclass(frozen=True)
+class Weight:
+    name: str = field(hash=True)
+    weight: int
+
+    def __lt__(self, other: Any) -> bool:
+        if self.weight < other.weight:
+            return True
+        if self.name > other.name:
+            return True
+        return False
+
+    def __gt__(self, other: Any) -> bool:
+        if self.weight > other.weight:
+            return True
+        if self.name < other.name:
+            return True
+        return False
+
+    def __le__(self, other: Any) -> bool:
+        return typing.cast(bool, self > other or self == other)
+
+    def __ge__(self, other: Any) -> bool:
+        return typing.cast(bool, self > other or self == other)
+
+
 @dataclass(unsafe_hash=True)
 class Group:
     name: str = field(hash=True)
@@ -58,6 +86,7 @@ class Group:
     whitelist: list[str] = field(default_factory=list, hash=False, compare=False)
     blacklist: list[str] = field(default_factory=list, hash=False, compare=False)
     timed: Optional[Timed] = field(default=None, hash=False, compare=False)
+    weight: Weight = field(default=Weight(str(uuid4()), 0))
 
     def __post_init__(self) -> None:
         if self.priority is None:

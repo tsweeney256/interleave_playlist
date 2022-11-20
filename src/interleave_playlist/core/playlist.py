@@ -22,13 +22,15 @@ from typing import Any
 from natsort import natsorted, ns
 
 from interleave_playlist.core import PlaylistEntry
-from interleave_playlist.core.interleave import interleave_all
-from interleave_playlist.model import Group, Location, Timed
+from interleave_playlist.core.interleave import interleave_all, interleave_weighted
+from interleave_playlist.model import Group, Location, Timed, Weight
 from interleave_playlist.persistence import settings
 
 FilePathsByGroup = dict[Group, list[str]]
 FileGroup = tuple[str, str]
 PlaylistEntriesByGroup = dict[Group, list[PlaylistEntry]]
+PlaylistEntriesByGroupItem = tuple[Group, list[PlaylistEntry]]
+PlaylistEntriesByGroupItems = list[PlaylistEntriesByGroupItem]
 _FILE_CACHE: dict[str, list[str]] = {}
 
 
@@ -40,15 +42,28 @@ def get_playlist(locations: list[Location],
     for loc in locations:
         paths: list[str] = _get_paths_from_location(loc, use_cache)
         location_groups.update(_group_items_by_regex(loc, paths))
+    location_group_items: PlaylistEntriesByGroupItems = [(k, v) for k, v in location_groups.items()]
+    location_group_items.sort(key=lambda lgi: lgi[0].name)
+    location_groups = dict(location_group_items)
 
-    def _key(i: tuple[Group, list[PlaylistEntry]]) -> int: return i[0].priority
-    entries_by_priority: dict[int, PlaylistEntriesByGroup] = {
-        k: dict(v) for k, v in groupby(sorted(location_groups.items(), key=_key), _key)
+    def _priority_key(i: PlaylistEntriesByGroupItem) -> int: return i[0].priority
+    def _weight_key(i: PlaylistEntriesByGroupItem) -> Weight: return i[0].weight
+    entries_by_priority_and_weight: dict[int, dict[Weight, PlaylistEntriesByGroup]] = {
+        k: {
+            kk: dict(vv)
+            for kk, vv
+            in groupby(sorted(dict(v).items(), key=_weight_key, reverse=True), _weight_key)
+        }
+        for k, v
+        in groupby(sorted(location_groups.items(), key=_priority_key), _priority_key)
     }
-    data: list[PlaylistEntry] = []
-    for ep in entries_by_priority.values():
-        data.extend(_get_playlist(ep, watched_list, search_filter))
-    return data
+    result: list[PlaylistEntry] = []
+    for p, ew in entries_by_priority_and_weight.items():
+        interleaved: list[tuple[list[PlaylistEntry], int]] = []
+        for w, e in ew.items():
+            interleaved.append((_get_playlist(e, watched_list, search_filter), w.weight))
+        result.extend(interleave_weighted(interleaved))
+    return result
 
 
 def _get_playlist(entries_by_group: PlaylistEntriesByGroup,

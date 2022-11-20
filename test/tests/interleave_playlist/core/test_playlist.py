@@ -21,7 +21,7 @@ from pytest_mock import MockerFixture
 
 from interleave_playlist.core import PlaylistEntry, playlist
 from interleave_playlist.core.playlist import get_playlist
-from interleave_playlist.model import Location, Group, Timed
+from interleave_playlist.model import Location, Group, Timed, Weight
 from interleave_playlist.persistence import settings
 from tests.helper import mock_listdir, get_mock_open, get_mock_isfile
 
@@ -507,10 +507,10 @@ def test_get_playlist_with_many_locations_many_regex_group_files_each_interleave
     bl = Location(B_DIR, bg, regex='(?P<group>[a-z]+).*\\.mkv')
     actual = get_playlist([al, bl], watched_list=[])
     expected = [
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, Group('foo')),
         PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, Group('bar')),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, Group('foo')),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, Group('foo')),
         PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), bl, Group('bar')),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, Group('foo')),
     ]
     assert actual == expected
 
@@ -535,13 +535,13 @@ def test_get_playlist_with_many_locations_many_regex_groups_each_interleaved(
     actual = get_playlist([al, bl], watched_list=[])
     expected = [
         PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 1.mkv'), bl, cat_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 1.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), al, bar_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 2.mkv'), bl, cat_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 2.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_group),
     ]
     assert actual == expected
 
@@ -606,10 +606,10 @@ def test_get_playlist_with_one_location_using_regex_other_no_regex_interleaved(
     bl = Location(B_DIR, bg)
     actual = get_playlist([al, bl], watched_list=[])
     expected = [
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, Group('foo')),
         PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, Group(B_DIR)),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, Group('foo')),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, Group('foo')),
         PlaylistEntry(str(B_DIR_PATH / 'foo 0.mkv'), bl, Group(B_DIR)),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, Group('foo')),
     ]
     assert actual == expected
 
@@ -844,10 +844,10 @@ def test_get_playlist_with_many_location_many_regex_groups_same_priorities(
     bl = Location(B_DIR, bg, regex='(?P<group>[a-z]+).*\\.mkv')
     actual = get_playlist([al, bl], watched_list=[])
     expected = [
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_g),
         PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, bar_g),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_g),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_g),
         PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), bl, bar_g),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, foo_g),
     ]
     assert actual == expected
 
@@ -1086,13 +1086,13 @@ def test_get_playlist_with_search_filter_with_many_locations_and_groups_interlea
     actual = get_playlist([al, bl], watched_list=[], search_filter='1')
     expected = [
         PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 1.mkv'), bl, cat_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 1.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 10.mkv'), al, bar_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 10.mkv'), bl, cat_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 10.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
     ]
     assert actual == expected
 
@@ -1116,10 +1116,10 @@ def test_get_playlist_with_search_filter_with_many_groups_different_priorities_i
     bl = Location(B_DIR, bg, regex='(?P<group>[a-z]+).*\\.mkv', groups=[dog_group])
     actual = get_playlist([al, bl], watched_list=[], search_filter='1')
     expected = [
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 1.mkv'), bl, dog_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 10.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 1.mkv'), bl, cat_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 10.mkv'), al, bar_group),
@@ -1299,13 +1299,13 @@ def test_get_playlist_with_whitelist_with_many_locations_and_groups_interleaved(
     actual = get_playlist([al, bl], watched_list=[])
     expected = [
         PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 1.mkv'), bl, cat_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 1.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 10.mkv'), al, bar_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 10.mkv'), bl, cat_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 10.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
     ]
     assert actual == expected
 
@@ -1329,10 +1329,10 @@ def test_get_playlist_with_whitelist_with_many_groups_different_priorities_inter
     bl = Location(B_DIR, bg, regex='(?P<group>[a-z]+).*\\.mkv', groups=[dog_group])
     actual = get_playlist([al, bl], watched_list=[])
     expected = [
-        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 1.mkv'), bl, dog_group),
-        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(B_DIR_PATH / 'dog 10.mkv'), bl, dog_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 10.mkv'), al, foo_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), al, bar_group),
         PlaylistEntry(str(B_DIR_PATH / 'cat 1.mkv'), bl, cat_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 10.mkv'), al, bar_group),
@@ -2348,5 +2348,594 @@ def test_get_playlist_with_additional_with_groups_interleaved(mocker: MockerFixt
         PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, foo_group),
         PlaylistEntry(str(additional_a_dir_path / 'bar 2.mkv'), al, bar_group),
         PlaylistEntry(str(additional_a_dir_path / 'foo 2.mkv'), al, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_one_location(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    weight = Weight('foo', 1)
+    group = Group(A_DIR, weight=weight)
+    location = Location(A_DIR, group)
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_locations_same(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv'],
+        B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    weight = Weight('same', 1)
+    ag = Group(A_DIR, weight=weight)
+    al = Location(A_DIR, ag)
+    bg = Group(B_DIR, weight=weight)
+    bl = Location(B_DIR, bg)
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, ag),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, bg),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), bl, bg),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), al, ag),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 3.mkv'), bl, bg),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_locations_different(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv'],
+        B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    weight_foo = Weight('foo', 1)
+    weight_bar = Weight('bar', 2)
+    ag = Group(A_DIR, weight=weight_foo)
+    al = Location(A_DIR, ag)
+    bg = Group(B_DIR, weight=weight_bar)
+    bl = Location(B_DIR, bg)
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, bg),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), bl, bg),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, ag),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 3.mkv'), bl, bg),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), al, ag),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_locations_mixed(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv'],
+        B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    weight_foo = Weight('foo', 1)
+    ag = Group(A_DIR, weight=weight_foo)
+    al = Location(A_DIR, ag)
+    bg = Group(B_DIR)
+    bl = Location(B_DIR, bg)
+    actual = get_playlist([al, bl], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), al, ag),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), al, ag),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), al, ag),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), bl, bg),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), bl, bg),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 3.mkv'), bl, bg),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_one_group(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group)
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_groups_same(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    weight = Weight('same', 1)
+    foo_group = Group('foo', weight=weight)
+    bar_group = Group('bar', weight=weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_groups_different(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_groups_mixed(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_group = Group('foo')
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_on_group_and_not_loc(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_group = Group('foo')
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_on_loc_and_not_group(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    loc_weight = Weight('loc', 2)
+    default_group = Group(A_DIR, weight=loc_weight)
+    foo_group = Group('foo', weight=loc_weight)
+    bar_group = Group('bar')
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_on_loc_and_group_same(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    loc_weight = Weight('loc', 2)
+    foo_group = Group('foo', weight=loc_weight)
+    default_group = Group(A_DIR, weight=loc_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_on_loc_and_group_different(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    loc_weight = Weight('loc', 1)
+    foo_group = Group('foo', weight=loc_weight)
+    default_group = Group(A_DIR, weight=loc_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_groups_across_locations_same(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv'],
+        B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    weight = Weight('same', 1)
+    a_default_group = Group(A_DIR)
+    b_default_group = Group(B_DIR)
+    foo_group = Group('foo', weight=weight)
+    bar_group = Group('bar', weight=weight)
+    a_location = Location(A_DIR,
+                          a_default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[foo_group])
+    b_location = Location(B_DIR,
+                          b_default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[bar_group])
+    actual = get_playlist([a_location, b_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), b_location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), b_location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), a_location, foo_group),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 3.mkv'), b_location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), a_location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_groups_across_locations_different(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv'],
+        B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    a_default_group = Group(A_DIR)
+    b_default_group = Group(B_DIR)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    a_location = Location(A_DIR,
+                          a_default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[foo_group])
+    b_location = Location(B_DIR,
+                          b_default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[bar_group])
+    actual = get_playlist([a_location, b_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), b_location, bar_group),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), b_location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 3.mkv'), b_location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), a_location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), a_location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_many_groups_across_locations_different_with_regex_filtering(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv', 'invalid.mp4'],
+        B_DIR: ['bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv', 'filtered away.mp3', 'loss.jpg'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    a_location = Location(A_DIR,
+                          default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[foo_group])
+    b_location = Location(B_DIR,
+                          default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[bar_group])
+    actual = get_playlist([a_location, b_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(B_DIR_PATH / 'bar 1.mkv'), b_location, bar_group),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 2.mkv'), b_location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
+        PlaylistEntry(str(B_DIR_PATH / 'bar 3.mkv'), b_location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), a_location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), a_location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_priority(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv',
+                'priority 1.mkv', 'priority 2.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    priority_group = Group('priority', priority=1)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight, priority=2)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight, priority=2)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group, priority_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'priority 1.mkv'), location, priority_group),
+        PlaylistEntry(str(A_DIR_PATH / 'priority 2.mkv'), location, priority_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_whitelist(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight)
+    bar_weight = Weight('bar', 2,)
+    bar_group = Group('bar', weight=bar_weight, whitelist=['1', '3'])
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_blacklist(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight, blacklist=['2'])
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group])
+    actual = get_playlist([location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_search_filter(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mp4', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group])
+    actual = get_playlist([location], watched_list=[], search_filter=".mkv")
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+def test_get_playlist_with_weighted_and_watched(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv',
+                'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR)
+    foo_weight = Weight('foo', 1)
+    foo_group = Group('foo', weight=foo_weight)
+    bar_weight = Weight('bar', 2)
+    bar_group = Group('bar', weight=bar_weight)
+    location = Location(A_DIR,
+                        default_group,
+                        regex='(?P<group>.+) [0-9]+\\.mkv',
+                        groups=[foo_group, bar_group])
+    actual = get_playlist([location], watched_list=[('bar 2.mkv', bar_group.name)])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+    ]
+    assert actual == expected
+
+
+@freeze_time(NEW_YEAR_2000)
+def test_get_playlist_with_weighted_and_timed_and_watched(mocker: MockerFixture) -> None:
+    mock_listdir(mocker, {A_DIR: ['foo 1.mkv', 'foo 2.mkv', 'foo 3.mkv', 'foo 4.mkv', 'foo 5.mkv',
+                                  'bar 1.mkv', 'bar 2.mkv', 'bar 3.mkv']})
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+    foo_weight = Weight('foo', 2)
+    foo_group = Group('foo', timed=Timed(
+        start=NEW_YEAR_2000 - timedelta(days=4),
+        cron=CronTab('0 1 * * *'),
+        start_at_cron=True
+    ), weight=foo_weight)
+    bar_weight = Weight('bar', 1)
+    bar_group = Group('bar', weight=bar_weight)
+    loc_group = Group(A_DIR)
+    location = Location(A_DIR,
+                        loc_group,
+                        groups=[foo_group, bar_group],
+                        regex='(?P<group>.+) [0-9]+\\.mkv')
+    actual = get_playlist([location], watched_list=[('foo 1.mkv', foo_group.name)])
+    expected: list[PlaylistEntry] = [
+        PlaylistEntry(str(A_DIR_PATH / 'foo 2.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 3.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 1.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 4.mkv'), location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
+        PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
     ]
     assert actual == expected
