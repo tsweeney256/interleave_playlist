@@ -1,0 +1,13 @@
+site_name: Interleave Playlist
+site_url: https://example.com # TODO: Change this!!
+repo_url: https://github.com/tsweeney256/interleave_playlist
+theme: readthedocs
+nav:
+  - "Interleave Playlist":
+    - Overview: index.md
+  - "Input File":
+    - Scopes:
+      - Hierarchy: input/scope-hierarchy.md
+      - Global: input/global-scope.md
+      - Location: input/location-scope.md
+      - Group: input/group-scope.md

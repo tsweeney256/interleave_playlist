@@ -6,6 +6,12 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
+    - id: copy-readme
+      name: copy-readme
+      entry: python precommit/copy-readme.py
+      files: (^README.md$|^docs/index.md$)
+      language: system
+      fail_fast: true
     - id: flake8
       name: flake8
       entry: flake8
