@@ -6,6 +6,8 @@
 
 Interleave episodes of the shows you watch to maximize variety when catching up
 
+![](https://raw.githubusercontent.com/tsweeney256/interleave_playlist/e8fb44208464c2dfd65db766c9e12b267d6f8beb/docs/images/screenshot.png)
+
 **Recommended Installation Instructions:**
 ```
 cd /where/I/want/to/install
