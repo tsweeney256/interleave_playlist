@@ -11,3 +11,5 @@ nav:
       - Global: input/global-scope.md
       - Location: input/location-scope.md
       - Group: input/group-scope.md
+    - Options:
+      - Hierarchical: input/hierarchical-options.md

@@ -5,7 +5,7 @@
 The group scope refers to the set of options for a particular group from the
 optional list of `groups` from the location scope.
 
-This scope inherits hierarchical options from the local scope, and transitively
+This scope inherits hierarchical options from the location scope, and transitively
 inherits options from the global scope, if not overridden by the location scope.
 This scope may also override any options from the location scope, taking affect for
 the defined group.
@@ -38,7 +38,7 @@ Take the following input yaml
 priority: 10
 locations:
   - name: /my/location/foo
-    regex: (?P<group>.+) - [0-9]+.mkv
+    regex: '(?P<group>.+) - [0-9]+.mkv'
     groups:
       - name: 'AWESOME'
         priority: 1
