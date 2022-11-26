@@ -5,8 +5,6 @@
 * TOML (maybe)
   * Use [this mkdocs plugin](https://github.com/yacir/markdown-fenced-code-tabs) for docs
 * mpv IPC integration (maybe)
-* reminder to mark things watched if left app open at least equal or greater duration than first file
-duration time
 
 ## Alpha 8
 
@@ -35,6 +33,7 @@ duration time
 * [ ] `start-at-cron` should default to `true`
 * [ ] Documentation
 * [ ] Last version used in state file, warning when downgraded
+* [ ] `default` regex
 * [ ] Run simulation tests with `weighted`
 
 
@@ -49,6 +48,8 @@ duration time
 - [ ] cache file durations
 - [ ] Update PySide for python 3.11 support
 - [ ] Fix PyPi being called "Interleave-Playlist"
+- [ ] reminder popup to mark things watched if left app open at least equal or greater duration than first file
+duration time
 
 
 
