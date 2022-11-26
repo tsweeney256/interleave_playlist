@@ -5,6 +5,8 @@
 * TOML (maybe)
   * Use [this mkdocs plugin](https://github.com/yacir/markdown-fenced-code-tabs) for docs
 * mpv IPC integration (maybe)
+* reminder to mark things watched if left app open at least equal or greater duration than first file
+duration time
 
 ## Alpha 8
 
