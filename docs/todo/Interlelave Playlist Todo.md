@@ -33,7 +33,9 @@
 * [ ] `start-at-cron` should default to `true`
 * [ ] Documentation
 * [ ] Last version used in state file, warning when downgraded
-* [ ] `default` regex
+* [ ] Regex refactor
+  * [ ] define regexes globally and reference in locations
+  * [ ] `default` regex
 * [ ] Run simulation tests with `weighted`
 
 
