@@ -12,9 +12,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import sys
-import typing
 from dataclasses import dataclass, field
-from typing import TypeVar, Iterator
+from typing import TypeVar, Iterator, cast, Generic
 
 T = TypeVar('T')
 _MARGIN = 10e-6
@@ -79,43 +78,56 @@ def interleave_all(groups: list[list[T]]) -> list[T]:
     return sorted_groups[0] if len(sorted_groups) > 0 else []
 
 
-def interleave_weighted(groups: list[tuple[list[T], int]]) -> list[T]:
-    @dataclass(order=True)
-    class Weighted:
-        group: list[T] = field(compare=False)
-        weight: int = field(compare=True)
-        weight_share: float = field(default=0, compare=False)
-        score: float = field(default=0.0, compare=False)
-        iter: Iterator[T] = typing.cast(Iterator[T], field(default=None, compare=False))
+@dataclass(order=True)
+class _Weighted(Generic[T]):
+    group: list[T] = field(compare=False)
+    weight: int = field(compare=True)
+    iter: Iterator[T] = cast(Iterator[T], field(default=None, compare=False))
 
-        def __post_init__(self) -> None:
-            self.iter = iter(self.group)
+    def __post_init__(self) -> None:
+        self.iter = iter(self.group)
 
-    def calculate_aggregate_weights(weight_list: list[Weighted]) -> None:
-        total_weight: int = sum(weight.weight for weight in weight_list)
-        for weight in weight_list:
-            weight.weight_share = weight.weight / total_weight
 
-    weights: list[Weighted] = [Weighted(*g) for g in groups if g[1] != 0]
-    zero_weight_groups: list[list[T]] = [g[0] for g in groups if g[1] == 0]
-    calculate_aggregate_weights(weights)
-    weights.sort(reverse=True)
+def _weighted_weave(larger: _Weighted[T], smaller: _Weighted[T]) -> list[T]:
     result = []
+    total_weight = larger.weight + smaller.weight
+    larger_weight_share = larger.weight / total_weight
+    smaller_weight_share = smaller.weight / total_weight
 
-    while weights:
-        for i, w in enumerate(weights):
-            if w.score + _MARGIN >= 1:
-                try:
-                    result.append(next(w.iter))
-                    w.score -= 1
-                except StopIteration:
-                    weights.pop(i)
-                    calculate_aggregate_weights(weights)
-            w.score += w.weight_share
-        weights.sort(reverse=True)
+    def append(a: Iterator, b: Iterator) -> bool:
+        try:
+            result.append(next(a))
+            return True
+        except StopIteration:
+            result.extend(b)
+            return False
 
+    i = 1
+    continue_processing = True
+    while continue_processing:
+        if i % (larger_weight_share/smaller_weight_share + 1) >= 1:
+            continue_processing = append(larger.iter, smaller.iter)
+        else:
+            continue_processing = append(smaller.iter, larger.iter)
+        i += 1
+    return result
+
+
+def interleave_weighted(groups: list[tuple[list[T], int]]) -> list[T]:
+    weights: list[_Weighted[T]] = [_Weighted(*g) for g in groups if g[1] != 0]
+    zero_weight_groups: list[list[T]] = [g[0] for g in groups if g[1] == 0]
+    weights.sort(reverse=True)
+
+    result = []
+    while len(weights) > 1:
+        smaller: _Weighted[T] = weights.pop()
+        larger: _Weighted[T] = weights.pop()
+        new_group = _weighted_weave(larger, smaller)
+        weights.append(_Weighted(new_group, larger.weight + smaller.weight))
+
+    if weights:
+        result.extend(weights.pop().group)
     for g in zero_weight_groups:
-        for item in g:
-            result.append(item)
+        result.extend(g)
 
     return result

@@ -123,11 +123,14 @@ def test_interleave_all(groups: list[list[str]]) -> None:
               "abcabaa",
               id="interleave_weighted_with_equal_weights_of_three_groups_of_many_with_unequal_sizes"),  # noqa
         param([("aaa", 1), ("bbb", 2), ("ccc", 3)],
-              "cbccbabaa",
+              "cbcbcabaa",
               id="interleave_weighted_with_unequal_weights_of_three_groups_of_many_with_equal_sizes"),  # noqa
         param([("a", 1), ("bbb", 2), ("ccccc", 3)],
-              "cbccbacbc",
+              "cbcbcacbc",
               id="interleave_weighted_with_unequal_weights_of_three_groups_of_many_with_unequal_sizes"),  # noqa
+        param([("aaa", 1), ("bbb", 1), ("cccccc", 2)],
+              "cacbcacbcacb",
+              id="interleave_weighted_with_unequal_weights_of_three_groups_of_many_with_unequal_sizes_equal_size_to_weight"),  # noqa
         param([("aaa", 0)],
               "aaa",
               id="interleave_weighted_with_zer)weight_of_one_group"),
