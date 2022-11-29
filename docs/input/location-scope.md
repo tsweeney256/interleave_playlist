@@ -22,3 +22,5 @@ affect for the defined location.
     * blacklist
     * priority
     * timed
+    * weight
+    * regex

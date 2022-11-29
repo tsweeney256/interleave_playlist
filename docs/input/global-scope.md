@@ -11,8 +11,11 @@ if the individual locations did not define or override the options themselves.
 * Unique options
     * locations (required)
     * weights
+    * regexes
 * hierarchical options
     * whitelist
     * blacklist
     * priority
     * timed
+    * weight
+    * regex

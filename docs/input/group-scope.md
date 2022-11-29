@@ -30,6 +30,8 @@ associated to a file, then the group defined first takes precedence.
     * blacklist
     * priority
     * timed
+    * weight
+    * regex (Currently unsupported. Will add in a future version)
 
 ## Examples
 
