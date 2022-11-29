@@ -5,6 +5,9 @@
 * TOML (maybe)
   * Use [this mkdocs plugin](https://github.com/yacir/markdown-fenced-code-tabs) for docs
 * mpv IPC integration (maybe)
+* Context menu
+  * Do standard actions
+  * See stats like priority/weight/group
 
 ## Alpha 8
 
@@ -36,6 +39,7 @@
 * [ ] Regex refactor
   * [ ] define regexes globally and reference in locations
   * [ ] `default` regex
+  * [ ] allow regex at global scope
 * [ ] Run simulation tests with `weighted`
 
 
