@@ -3,13 +3,17 @@ site_url: https://example.com # TODO: Change this!!
 repo_url: https://github.com/tsweeney256/interleave_playlist
 theme: readthedocs
 nav:
-  - "Interleave Playlist":
+  - Interleave Playlist:
     - Overview: index.md
-  - "Input File":
+  - Input File:
     - Scopes:
-      - Hierarchy: input/scope-hierarchy.md
-      - Global: input/global-scope.md
-      - Location: input/location-scope.md
-      - Group: input/group-scope.md
+      - Hierarchy: input/scope/scope-hierarchy.md
+      - Global: input/scope/global-scope.md
+      - Location: input/scope/location-scope.md
+      - Group: input/scope/group-scope.md
     - Options:
-      - Hierarchical: input/hierarchical-options.md
+      - Blacklist & Whitelist: input/option/blackwhitelist.md
+      - Regex: input/option/regex.md
+      - Priority: input/option/priority.md
+      - Weight: input/option/weight.md
+      - Timed: input/option/timed.md

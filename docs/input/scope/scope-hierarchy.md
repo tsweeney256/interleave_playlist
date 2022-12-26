@@ -2,23 +2,25 @@
 ## Description
 The input yml file is divided into three scopes, ordered most general to most specific:
 
-* Global
-* Location
-* Group
+* [Global](/input/scope/global-scope)
+* [Location](/input/scope/location-scope)
+* [Group](/input/scope/group-scope)
 
 These scopes are hierarchical and automatically inherit supported settings from
-its parent. From this you can override specific settings in a lower scope while
-retaining the settings you want more generally defined in a higher scope.
+their parents. From this you can override settings in a more specific scope while
+retaining the settings you want defined in a more general scope.
 
-## Supported Settings
+## Supported Options
 
 The following settings are supported in all three scopes, are inherited by child
 scopes, and can be overriden in these child scopes.
 
-* whitelist
-* blacklist
-* priority
-* timed
+* [`whitelist`](/input/option/blackwhitelist)
+* [`blacklist`](/input/option/blackwhitelist)
+* [`regex`](/input/option/regex)
+* [`priority`](/input/option/priority)
+* [`weight`](/input/option/weight)
+* [`timed`](/input/option/timed)
 
 ## Examples
 
@@ -53,6 +55,7 @@ only have `.avi` files whitelisted.
 * Meanwhile, in `/my/location/bar`, the global whitelist of `.mkv` and `.mp4` are inherited.
 * Additionally, files that match the group expression `cool show` in that location
 also inherit the global whitelist of `.mkv` and `.mp4`.
+* Finally, files in `/my/location/baz` override the whitelist to disable it wtih the empty string
 
 Assuming we had the following files, this is how they would get filtered based
 on these scoping rules.

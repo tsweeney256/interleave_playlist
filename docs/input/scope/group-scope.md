@@ -1,13 +1,13 @@
-# Global Scope
+# Group Scope
 
 ## Description
 
 The group scope refers to the set of options for a particular group from the
-optional list of `groups` from the location scope.
+optional list of `groups` from the [location scope](/input/scope/location-scope).
 
 This scope inherits hierarchical options from the location scope, and transitively
-inherits options from the global scope, if not overridden by the location scope.
-This scope may also override any options from the location scope, taking affect for
+inherits options from the [global scope](/input/scope/global-scope) if not overridden by the location scope.
+This scope may also override any options from the location scope, taking effect for
 the defined group.
 
 In order to use group level options, it is required to use the regex option from the location
@@ -24,14 +24,18 @@ associated to a file, then the group defined first takes precedence.
 ## Supported options
 
 * Unique options
-    * name (required)
+    * `name`
+        * **Description**: Name of the group that should match against the derived group name.
+        * **Type**: String
+        * **Required**: True
 * Hierarchical options
-    * whitelist
-    * blacklist
-    * priority
-    * timed
-    * weight
-    * regex (Currently unsupported. Will add in a future version)
+    * [`whitelist`](/input/option/blackwhitelist)
+    * [`blacklist`](/input/option/blackwhitelist)
+    * [`regex`](/input/option/regex) (Not yet supported in the group scope)
+    * [`priority`](/input/option/priority)
+    * [`weight`](/input/option/weight)
+    * [`timed`](/input/option/timed)
+
 
 ## Examples
 
