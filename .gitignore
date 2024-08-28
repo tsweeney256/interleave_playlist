@@ -18,3 +18,5 @@ coverage.lcov
 dist/
 site/
 config/
+build/
+.temp/
