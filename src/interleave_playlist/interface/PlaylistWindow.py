@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2022 Thomas Sweeney
+#    Copyright (C) 2021-2024 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -26,9 +26,6 @@ from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
     QGroupBox, QCheckBox, QLineEdit, QLayout
-from natsort import natsorted
-from pymediainfo import MediaInfo
-
 from interleave_playlist.core.playlist import PlaylistEntry
 from interleave_playlist.interface import open_with_default_application, _create_playlist, \
     _get_duration_str
@@ -38,6 +35,8 @@ from interleave_playlist.interface.SearchBarThread import SearchBarThread, \
 from interleave_playlist.persistence import input_, state, watched
 from interleave_playlist.persistence import settings
 from interleave_playlist.persistence.watched import add_watched, remove_watched
+from natsort import natsorted
+from pymediainfo import MediaInfo
 
 _LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
 _DARK_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(77, 12, 12))
@@ -243,22 +242,22 @@ class PlaylistWindow(QWidget):
     def eventFilter(self, widget: QWidget, event: QEvent) -> bool:
         if event.type() == QEvent.KeyPress:
             switch: dict[int, Callable] = {
-                Qt.NoModifier + Qt.Key_Return: self._play,
-                Qt.NoModifier + Qt.Key_Enter: self._play,
-                Qt.ControlModifier + Qt.Key_W: self.mark_watched,
-                Qt.ControlModifier + Qt.Key_U: self.unmark_watched,
-                Qt.NoModifier + Qt.Key_F5: self.refresh,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_D: self.drop_groups,
-                Qt.ControlModifier + Qt.Key_O: self.open_input,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_O: self.open_watched_file,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_I: self.interleave_radio.toggle,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_A: self.alphabetical_radio.toggle,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_M: self.last_modified_radio.toggle,
-                Qt.ControlModifier + Qt.ShiftModifier + Qt.Key_R: self.reversed_checkbox.toggle,
-                Qt.ControlModifier + Qt.Key_F: self._focus_search_bar
+                Qt.NoModifier | Qt.Key_Return: self._play,
+                Qt.NoModifier | Qt.Key_Enter: self._play,
+                Qt.ControlModifier | Qt.Key_W: self.mark_watched,
+                Qt.ControlModifier | Qt.Key_U: self.unmark_watched,
+                Qt.NoModifier | Qt.Key_F5: self.refresh,
+                Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_D: self.drop_groups,
+                Qt.ControlModifier | Qt.Key_O: self.open_input,
+                Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_O: self.open_watched_file,
+                Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_I: self.interleave_radio.toggle,
+                Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_A: self.alphabetical_radio.toggle,
+                Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_M: self.last_modified_radio.toggle,
+                Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_R: self.reversed_checkbox.toggle,
+                Qt.ControlModifier | Qt.Key_F: self._focus_search_bar
             }
-            if event.keyCombination().toCombined() in switch:
-                switch[event.keyCombination().toCombined()]()
+            if event.keyCombination() in switch:
+                switch[event.keyCombination()]()
                 return True
         return False
 
@@ -424,7 +423,7 @@ class PlaylistWindow(QWidget):
         if not checked:
             return
         self.sort = natsort.natsort_keygen(
-            lambda i: os.path.basename(i.filename))  # type: ignore[no-any-return]
+            lambda i: os.path.basename(i.filename))
         self._refresh_sort()
         self.item_list.setFocus()
 

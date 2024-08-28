@@ -106,7 +106,7 @@ def _get_input(input_file: Path) -> dict[str, Any]:
     try:
         with open(input_file, 'r') as f:
             yaml = YAML()
-            yaml.preserve_quotes = True  # type: ignore
+            yaml.preserve_quotes = True
             yml = yaml.load(f)
         _validate_group(yml)
         if 'locations' not in yml:

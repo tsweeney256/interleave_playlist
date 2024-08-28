@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2022 Thomas Sweeney
+#    Copyright (C) 2021-2024 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ def interleave(a: list[T], b: list[T]) -> list[T]:
 # Sort by minimum group size difference
 def interleave_all(groups: list[list[T]]) -> list[T]:
     groups = [group for group in groups if group]  # just make debugging easier
-    sorted_groups = sorted(groups, key=lambda l: len(l))
+    sorted_groups = sorted(groups, key=lambda group: len(group))
     while len(sorted_groups) > 1:
         min_diff: int = sys.maxsize
         min_i: int = -1

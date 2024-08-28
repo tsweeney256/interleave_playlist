@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2022 Thomas Sweeney
+#    Copyright (C) 2021-2024 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,9 @@ import typing
 from typing import Any
 
 import appdirs
-from ruamel.yaml import YAML
-
 import interleave_playlist
 from interleave_playlist import CriticalUserError
+from ruamel.yaml import YAML
 
 _SETTINGS_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(interleave_playlist.APP_NAME),
                                            'settings.yml'))
@@ -63,7 +62,7 @@ def _get_settings(option: str) -> Any:
     if not _CACHED_FILE:
         with open(_SETTINGS_FILE, 'r') as f:
             yaml = YAML()
-            yaml.preserve_quotes = True  # type: ignore
+            yaml.preserve_quotes = True
             _CACHED_FILE = yaml.load(f)
             if _CACHED_FILE is None:
                 _CACHED_FILE = {}
