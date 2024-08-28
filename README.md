@@ -37,6 +37,14 @@ source /where/I/want/to/install/venv/bin/activate && python -m interleave_playli
 source /where/I/want/to/install/venv/bin/activate
 python -m pip install --upgrade Interleave-Playlist
 ```
+If you run into the following error when updating:
+> ModuleNotFoundError: No module named 'PySide6.QtWidgets'
+
+Run the following:
+```commandline
+python -m pip uninstall PySide6 PySide6_Addons PySide6_Essentials
+python -m pip install Interleave-Playlist
+```
 
 ## Basic Usage (Barebones)
 **Install**
