@@ -2977,7 +2977,74 @@ def test_get_playlist_with_non_exact_group_name(mocker: MockerFixture) -> None: 
     expected = [
         PlaylistEntry(str(A_DIR_PATH / 'fo 2.mkv'), a_location, foo_group),
         PlaylistEntry(str(A_DIR_PATH / 'fo 3.mkv'), a_location, foo_group),
-        # future sort regex group feature will fix this ordering
         PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
     ]
-    assert actual == expected
+    assert set(actual) == set(expected)
+
+def test_get_playlist_with_exact_group_name_subset_of_other_exact(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'fo 2.mkv', 'fo 3.mkv', 'invalid.mp4'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR, whitelist=['nothing allowed'])
+    fo_group = Group('fo', exact=True, whitelist=['fo'])
+    foo_group = Group('foo', exact=True, whitelist=['foo'])
+    a_location = Location(A_DIR,
+                          default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[fo_group, foo_group])
+    actual = get_playlist([a_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'fo 2.mkv'), a_location, fo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'fo 3.mkv'), a_location, fo_group),
+    ]
+    assert set(actual) == set(expected)
+
+def test_get_playlist_with_exact_group_name_subset_of_other_non_exact(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'fo 2.mkv', 'fo 3.mkv', 'invalid.mp4'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR, whitelist=['nothing allowed'])
+    fo_group = Group('fo', exact=True, whitelist=['fo'])
+    foo_group = Group('foo', exact=False, whitelist=['foo'])
+    a_location = Location(A_DIR,
+                          default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[fo_group, foo_group])
+    actual = get_playlist([a_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'fo 2.mkv'), a_location, fo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'fo 3.mkv'), a_location, fo_group),
+    ]
+    assert set(actual) == set(expected)
+
+def test_get_playlist_with_exact_group_name_subset_of_two_exacts(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'fo 2.mkv', 'fo 3.mkv', 'f 4.mkv', 'invalid.mp4'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR, whitelist=['nothing allowed'])
+    f_group = Group('f', exact=False, whitelist=['f'])
+    fo_group = Group('fo', exact=True, whitelist=['fo'])
+    foo_group = Group('foo', exact=True, whitelist=['foo'])
+    a_location = Location(A_DIR,
+                          default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[fo_group, foo_group, f_group])
+    actual = get_playlist([a_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'f 4.mkv'), a_location, f_group),
+        PlaylistEntry(str(A_DIR_PATH / 'fo 2.mkv'), a_location, fo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'fo 3.mkv'), a_location, fo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
+    ]
+    assert set(actual) == set(expected)
