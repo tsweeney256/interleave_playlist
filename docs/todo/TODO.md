@@ -15,7 +15,7 @@
   * text file
 * priority names (like weight and regex names)
 
-## Alpha 8
+## Alpha 10
 
 * [ ] Validation for:
   * [ ] input file
@@ -42,8 +42,9 @@
 * [ ] Run simulation tests with `weighted`
 * [ ] Theme horizontal scrollbar too
 * [ ] Test all documentation examples
+* [ ] Priority groups should be "stable" if no new additions or subtractions
 
-## Alpha 9
+## Alpha 11
 
 - [ ] Rewrite loading bar
 - [ ] Full interface test coverage
@@ -57,7 +58,7 @@
 - [ ] reminder popup to mark things watched if left app open at least equal or greater duration than first file
 duration time
 
-## Alpha 10
+## Alpha 12
 
 - [ ] Update notification with release notes
 - [ ] About box
@@ -67,7 +68,7 @@ duration time
   - [ ] button on update popup
   - [ ] ignore all updates option
 
-## Alpha 11
+## Alpha 13
 
 - [ ] Actual GUI for watched file
 - [ ] Convert watched file to DB
@@ -84,14 +85,14 @@ duration time
 - [ ] Allow identifying groups by regex rather than just substring
 - [ ] Consider removing restriction on requiring named capture `group`
 
-## Alpha 12
+## Alpha 14
 
 - [ ] GUI for settings file
 - [ ] Pause `timed` feature
   * timed pause table containing hierarchy name, start date, end date
   * sum all start/end intervals and subtract from normal "current" ep for a given hierarchy name.
 
-## Alpha 13
+## Alpha 15
 
 - [ ] "Where's my file?" GUI
 
