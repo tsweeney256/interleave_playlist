@@ -1,6 +1,6 @@
 # Interleave Playlist
 [![PyPi Version](https://img.shields.io/pypi/v/Interleave-Playlist.svg)](https://pypi.org/project/Interleave-Playlist/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/Interleave-Playlist.svg)](https://coveralls.io/github/tsweeney256/interleave_playlist)
+![Python Versions](https://img.shields.io/pypi/pyversions/Interleave-Playlist.svg)
 ![Tests](https://github.com/tsweeney256/interleave_playlist/actions/workflows/tests.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/tsweeney256/interleave_playlist/badge.svg?kill_cache=1)](https://coveralls.io/github/tsweeney256/interleave_playlist)
 
