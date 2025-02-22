@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2022 Thomas Sweeney
+#    Copyright (C) 2022-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 import json
 import os.path
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import appdirs
 
@@ -42,8 +42,12 @@ def create_state_file() -> None:
             json.dump(_DEFAULT_STATE, f)
 
 
-def get_last_input_file() -> Path:
-    return Path(_get_json_value(_KEYS.LAST_INPUT_FILE))
+def get_last_input_file() -> Optional[Path]:
+    last_input_file: str = _get_json_value(_KEYS.LAST_INPUT_FILE)
+    if last_input_file:
+        return Path(last_input_file)
+    else:
+        return None
 
 
 def set_last_input_file(last_input_file: Path) -> None:
@@ -52,7 +56,7 @@ def set_last_input_file(last_input_file: Path) -> None:
 
 def _get_json_value(key: str) -> Any:
     _load_state()
-    return _CACHED_STATE[key]
+    return _CACHED_STATE[key] if key in _CACHED_STATE else ''
 
 
 def _set_json(key: str, value: Any) -> None:

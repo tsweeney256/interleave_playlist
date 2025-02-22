@@ -356,8 +356,13 @@ class PlaylistWindow(QWidget):
     @Slot()
     def open_input(self) -> None:
         try:
+            last_input_file = state.get_last_input_file()
+            if not last_input_file:
+                open_dir = '~'
+            else:
+                open_dir = os.path.dirname(last_input_file)
             file_name: str = QFileDialog.getOpenFileName(
-                self, 'Open yaml', os.path.expanduser('~'), 'yaml files (*.yml *.yaml)')[0]
+                self, 'Open yaml', open_dir, 'yaml files (*.yml *.yaml)')[0]
             if file_name.strip() == '':
                 return
             try:

@@ -13,11 +13,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
-import typing
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, cast
 
 from crontab import CronTab
 from ruamel.yaml import YAML, YAMLError
@@ -73,7 +72,11 @@ def drop_groups(entries: Iterable[PlaylistEntry]) -> None:
         if group_name not in blacklist:
             blacklist.append(group_name)
     yaml = YAML()
-    yaml.dump(input_, Path(state.get_last_input_file()))
+    last_input_file = state.get_last_input_file()
+    if not last_input_file:
+        raise InvalidInputFile("Input file is unexpectedly missing! "
+                               "This is likely a bug and should be reported.")
+    yaml.dump(input_, Path(last_input_file))
 
 
 def _get_group_list(data: list[dict[str, Any]], additional_options: list[dict[str, Any]]) \
@@ -103,7 +106,10 @@ def _get_timed(d: dict[str, Any]) -> Timed:
     )
 
 
-def _get_input(input_file: Path) -> dict[str, Any]:
+def _get_input(input_file: Optional[Path]) -> dict[str, Any]:
+    if not input_file:
+        raise InvalidInputFile('Input file is unexpectedly missing. '
+                               'This is likely a bug and should be reported.')
     try:
         with open(input_file, 'r') as f:
             yaml = YAML()
@@ -138,7 +144,7 @@ def _get_input(input_file: Path) -> dict[str, Any]:
 
     except YAMLError as e:
         raise InvalidInputFile("Unable to parse input file") from e
-    return typing.cast(dict[str, Any], yml)
+    return cast(dict[str, Any], yml)
 
 
 def _validate_wb_list(d: dict, wb_list: str) -> None:

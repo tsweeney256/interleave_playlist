@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2022 Thomas Sweeney
+#    Copyright (C) 2022-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,9 +21,11 @@ from pytest_mock import MockerFixture
 from interleave_playlist.persistence import state
 from tests.helper import get_mock_open
 
+EMPTY_STATE_CONTENT = '{}'
 DEFAULT_STATE_CONTENT = '{"last-input-file": ""}'
 EXISTING_STATE_CONTENT = '{"last-input-file": "/foo/bar/input.yml"}'
 ORIGINAL_STATE_FILE = state._STATE_FILE
+EMPTY_STATE_MOCK = {state._STATE_FILE: EMPTY_STATE_CONTENT}
 DEFAULT_STATE_MOCK = {state._STATE_FILE: DEFAULT_STATE_CONTENT}
 EXISTING_STATE_MOCK = {state._STATE_FILE: EXISTING_STATE_CONTENT}
 
@@ -31,6 +33,7 @@ EXISTING_STATE_MOCK = {state._STATE_FILE: EXISTING_STATE_CONTENT}
 @pytest.fixture(autouse=True)
 def before_each() -> None:
     state._STATE_FILE = ORIGINAL_STATE_FILE
+    state._CACHED_STATE = {}
 
 
 def test_create_state_file_when_file_not_exists_and_folder_not_exists(tmp_path: Path) -> None:
@@ -61,6 +64,11 @@ def test_create_state_file_when_file_exists_and_folder_exists(tmp_path: Path) ->
 def test_get_last_input_path(mocker: MockerFixture) -> None:
     get_mock_open(mocker, EXISTING_STATE_MOCK)
     assert state.get_last_input_file() == Path('/foo/bar/input.yml')
+
+
+def test_get_last_input_path_with_empty_state_file(mocker: MockerFixture) -> None:
+    get_mock_open(mocker, EMPTY_STATE_MOCK)
+    assert state.get_last_input_file() is None
 
 
 def test_set_last_input_path(tmp_path: Path) -> None:
