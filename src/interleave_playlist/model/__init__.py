@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2022 Thomas Sweeney
+#    Copyright (C) 2022-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -86,6 +86,7 @@ class Group:
     whitelist: list[str] = field(default_factory=list, hash=False, compare=False)
     blacklist: list[str] = field(default_factory=list, hash=False, compare=False)
     timed: Optional[Timed] = field(default=None, hash=False, compare=False)
+    exact: Optional[bool] = field(default=False)
     weight: Weight = field(default=Weight(str(uuid4()), 0))
 
     def __post_init__(self) -> None:

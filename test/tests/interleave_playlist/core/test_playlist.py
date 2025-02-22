@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2022 Thomas Sweeney
+#    Copyright (C) 2022-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -2937,5 +2937,47 @@ def test_get_playlist_with_weighted_and_timed_and_watched(mocker: MockerFixture)
         PlaylistEntry(str(A_DIR_PATH / 'foo 4.mkv'), location, foo_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 2.mkv'), location, bar_group),
         PlaylistEntry(str(A_DIR_PATH / 'bar 3.mkv'), location, bar_group),
+    ]
+    assert actual == expected
+
+def test_get_playlist_with_exact_group_name(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'fo 2.mkv', 'fo 3.mkv', 'invalid.mp4'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR, whitelist=['nothing allowed'])
+    foo_group = Group('fo', exact=True, whitelist=['fo'])
+    a_location = Location(A_DIR,
+                          default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[foo_group])
+    actual = get_playlist([a_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'fo 2.mkv'), a_location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'fo 3.mkv'), a_location, foo_group),
+    ]
+    assert actual == expected
+
+def test_get_playlist_with_non_exact_group_name(mocker: MockerFixture) -> None:  # noqa
+    mock_listdir(mocker, {
+        A_DIR: ['foo 1.mkv', 'fo 2.mkv', 'fo 3.mkv', 'invalid.mp4'],
+    })
+    mocker.patch('os.path.isfile', return_value=True)
+    get_mock_open(mocker, DEFAULT_SETTINGS_MOCK)
+
+    default_group = Group(A_DIR, whitelist=['nothing allowed'])
+    foo_group = Group('fo', exact=False, whitelist=['fo'])
+    a_location = Location(A_DIR,
+                          default_group,
+                          regex='(?P<group>.+) [0-9]+\\.mkv',
+                          groups=[foo_group])
+    actual = get_playlist([a_location], watched_list=[])
+    expected = [
+        PlaylistEntry(str(A_DIR_PATH / 'fo 2.mkv'), a_location, foo_group),
+        PlaylistEntry(str(A_DIR_PATH / 'fo 3.mkv'), a_location, foo_group),
+        # future sort regex group feature will fix this ordering
+        PlaylistEntry(str(A_DIR_PATH / 'foo 1.mkv'), a_location, foo_group),
     ]
     assert actual == expected

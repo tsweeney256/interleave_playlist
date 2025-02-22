@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2022 Thomas Sweeney
+#    Copyright (C) 2021-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -88,6 +88,7 @@ def _get_group_list(data: list[dict[str, Any]], additional_options: list[dict[st
             _nested_get('whitelist', options),
             _nested_get('blacklist', options),
             _nested_get('timed', options),
+            _nested_get('exact', options),
         ))
     return groups
 

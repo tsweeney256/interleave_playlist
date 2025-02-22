@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2022 Thomas Sweeney
+#    Copyright (C) 2021-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -128,13 +128,14 @@ def _group_items_by_regex(loc: Location, paths: list[str]) -> PlaylistEntriesByG
             continue
         match_dict = match.groupdict()
         if 'group' in match_dict:
-            group_name = path.basename(match.group('group')).strip()
-            group = _get_from_dict_key_superset(group_name.upper(), group_dict)
+            regex_group_name = path.basename(match.group('group')).strip()
+            group = _get_from_dict_key_superset(regex_group_name.upper(), group_dict)
             if group is None:
                 group = copy(loc.default_group)
-                group_dict[group_name.upper()] = group
+                group_dict[regex_group_name.upper()] = group
+                group.name = regex_group_name
             # Overwrite name so we always use the full name
-            group.name = group_name
+
         else:
             group = loc.default_group
         group_members = grouped_items.setdefault(group, list())
@@ -167,10 +168,11 @@ def _matches_blacklist(s: str, blacklist: list[str]) -> bool:
     return False
 
 
-def _get_from_dict_key_superset(super_key: str, d: dict[str, Any]) -> Any:
+def _get_from_dict_key_superset(super_key: str, d: dict[str, Group]) -> Any:
     for k, v in d.items():
-        if k in super_key:
+        if k in super_key and (not v.exact or k == super_key):
             return v
+    return None
 
 
 def _get_watched_groups_lru(watched_list: list[FileGroup]) -> list[str]:
