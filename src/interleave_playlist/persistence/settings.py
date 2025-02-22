@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2024 Thomas Sweeney
+#    Copyright (C) 2021-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,9 +18,10 @@ import typing
 from typing import Any
 
 import appdirs
+from ruamel.yaml import YAML
+
 import interleave_playlist
 from interleave_playlist import CriticalUserError
-from ruamel.yaml import YAML
 
 _SETTINGS_FILE = pathlib.Path(os.path.join(appdirs.user_config_dir(interleave_playlist.APP_NAME),
                                            'settings.yml'))
@@ -55,6 +56,21 @@ def get_max_watched_remembered() -> int:
 
 def get_exclude_directories() -> bool:
     return _get_settings_and_convert('exclude-directories', _convert_to_bool)
+
+
+def get_default_sort_reversed() -> bool:
+    return _get_settings_and_convert('default-sort-reversed', _convert_to_bool)
+
+
+def get_default_sort_name() -> str:
+    key: str = 'default-sort-name'
+    allowed_values: list[str] = ['INTERLEAVE', 'ALPHABETICAL', 'LAST MODIFIED']
+    sort_name: str = _get_settings_and_convert(key, str)
+    if sort_name.upper() not in allowed_values:
+        raise InvalidSettingsYmlException(f"Invalid settings.yml value for "
+                                          f"'{key}': {sort_name}"
+                                          f"valid values are: {allowed_values}", key, sort_name)
+    return sort_name.upper()
 
 
 def _get_settings(option: str) -> Any:
@@ -103,7 +119,9 @@ def _get_default_settings() -> dict[str, Any]:
         'play-command': 'mpv',
         'dark-mode': False,
         'max-watched-remembered': 100,
-        'exclude-directories': True
+        'exclude-directories': True,
+        'default-sort-name': 'interleave',
+        'default-sort-reversed': False
     }
 
 

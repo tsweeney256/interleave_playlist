@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2021-2024 Thomas Sweeney
+#    Copyright (C) 2021-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -26,6 +26,9 @@ from PySide6.QtGui import QFont, QColor, QBrush, QFontDatabase, QCloseEvent
 from PySide6.QtWidgets import QVBoxLayout, QListWidget, QWidget, QAbstractItemView, QHBoxLayout, \
     QPushButton, QMessageBox, QFileDialog, QLabel, QGridLayout, QProgressBar, QRadioButton, \
     QGroupBox, QCheckBox, QLineEdit, QLayout
+from natsort import natsorted
+from pymediainfo import MediaInfo
+
 from interleave_playlist.core.playlist import PlaylistEntry
 from interleave_playlist.interface import open_with_default_application, _create_playlist, \
     _get_duration_str
@@ -35,8 +38,6 @@ from interleave_playlist.interface.SearchBarThread import SearchBarThread, \
 from interleave_playlist.persistence import input_, state, watched
 from interleave_playlist.persistence import settings
 from interleave_playlist.persistence.watched import add_watched, remove_watched
-from natsort import natsorted
-from pymediainfo import MediaInfo
 
 _LIGHT_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(255, 121, 121))
 _DARK_MODE_WATCHED_COLOR = QBrush(QColor.fromRgb(77, 12, 12))
@@ -156,7 +157,6 @@ class PlaylistWindow(QWidget):
 
         self.interleave_radio = QRadioButton("Interleave")
         self.interleave_radio.setToolTip('Ctrl+Shift+I')
-        self.interleave_radio.toggle()
         self.interleave_radio.toggled.connect(self.interleave_sort)
         self.alphabetical_radio = QRadioButton("Alphabetical")
         self.alphabetical_radio.setToolTip('Ctrl+Shift+A')
@@ -167,6 +167,9 @@ class PlaylistWindow(QWidget):
         self.reversed_checkbox = QCheckBox("Reversed")
         self.reversed_checkbox.toggled.connect(self.reverse_sort)
         self.reversed_checkbox.setToolTip('Ctrl+Shift+R')
+
+        self._enable_sort(settings.get_default_sort_name(),
+                          settings.get_default_sort_reversed())
 
         total_layout = QVBoxLayout()
         stats_group = QGroupBox("Stats")
@@ -550,3 +553,16 @@ class PlaylistWindow(QWidget):
     def _refresh_buttons(self) -> None:
         for button in self.selection_dependent_buttons:
             button.setEnabled(len(self.item_list.selectedItems()) > 0)
+
+    def _enable_sort(self, sort_name: str, reverse_sort: bool) -> None:
+        if sort_name == 'INTERLEAVE':
+            self.interleave_radio.toggle()
+        elif sort_name == 'ALPHABETICAL':
+            self.alphabetical_radio.toggle()
+        elif sort_name == 'LAST MODIFIED':
+            self.last_modified_radio.toggle()
+        else:
+            self.interleave_radio.toggle()
+            print(f"Warning: Unknown sort name: {sort_name}. Defaulting to interleave sort")
+        if reverse_sort:
+            self.reversed_checkbox.toggle()

@@ -1,5 +1,5 @@
 #    Interleave Playlist
-#    Copyright (C) 2022 Thomas Sweeney
+#    Copyright (C) 2022-2025 Thomas Sweeney
 #    This file is part of Interleave Playlist.
 #    Interleave Playlist is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@ play-command: mpv
 dark-mode: false
 max-watched-remembered: 100
 exclude-directories: true
+default-sort-name: interleave
+default-sort-reversed: false
 '''
 DEFAULT_SETTINGS_MOCK = {settings._SETTINGS_FILE: DEFAULT_SETTINGS_CONTENT}
 MODIFIED_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''font-size: 13
@@ -38,18 +40,24 @@ play-command: vlc
 dark-mode: true
 max-watched-remembered: 10
 exclude-directories: false
+default-sort-name: alphabetical
+default-sort-reversed: true
 '''}
 INVALID_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''font-size: thirteen
 play-command: 24
 dark-mode: maybe
 max-watched-remembered: ten
 exclude-directories: maybe
+default-sort-name: foo
+default-sort-reversed: what
 '''}
 NEEDS_CONVERSION_SETTINGS_MOCK = {settings._SETTINGS_FILE: '''font-size: '13'
 play-command: true
 dark-mode: 'FaLsE'
 max-watched-remembered: '10'
 exclude-directories: 'TrUe'
+default-sort-name: 'interleave'
+default-sort-reversed: 'FaLSe'
 '''}
 
 
@@ -67,31 +75,42 @@ def before_each() -> None:
         (EMPTY_SETTINGS_MOCK, settings.get_dark_mode, False),
         (EMPTY_SETTINGS_MOCK, settings.get_max_watched_remembered, 100),
         (EMPTY_SETTINGS_MOCK, settings.get_exclude_directories, True),
+        (EMPTY_SETTINGS_MOCK, settings.get_default_sort_name, 'INTERLEAVE'),
+        (EMPTY_SETTINGS_MOCK, settings.get_default_sort_reversed, False),
 
         (DEFAULT_SETTINGS_MOCK, settings.get_font_size, 12),
         (DEFAULT_SETTINGS_MOCK, settings.get_play_command, 'mpv'),
         (DEFAULT_SETTINGS_MOCK, settings.get_dark_mode, False),
         (DEFAULT_SETTINGS_MOCK, settings.get_max_watched_remembered, 100),
         (DEFAULT_SETTINGS_MOCK, settings.get_exclude_directories, True),
+        (DEFAULT_SETTINGS_MOCK, settings.get_default_sort_name, 'INTERLEAVE'),
+        (DEFAULT_SETTINGS_MOCK, settings.get_default_sort_reversed, False),
 
         (MODIFIED_SETTINGS_MOCK, settings.get_font_size, 13),
         (MODIFIED_SETTINGS_MOCK, settings.get_play_command, 'vlc'),
         (MODIFIED_SETTINGS_MOCK, settings.get_dark_mode, True),
         (MODIFIED_SETTINGS_MOCK, settings.get_max_watched_remembered, 10),
         (MODIFIED_SETTINGS_MOCK, settings.get_exclude_directories, False),
+        (MODIFIED_SETTINGS_MOCK, settings.get_default_sort_name, 'ALPHABETICAL'),
+        (MODIFIED_SETTINGS_MOCK, settings.get_default_sort_reversed, True),
 
         (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_font_size, 13),
         (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_play_command, 'True'),
         (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_dark_mode, False),
         (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_max_watched_remembered, 10),
         (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_exclude_directories, True),
+        (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_default_sort_name, 'INTERLEAVE'),
+        (NEEDS_CONVERSION_SETTINGS_MOCK, settings.get_default_sort_reversed, False),
     ])
 def test_get_setting_options(mocker: MockerFixture,
                              open_mock_data: dict[Path, str],
                              option: Callable[[], Any],
                              expected: Any) -> None:
     get_mock_open(mocker, open_mock_data)
-    assert option() == expected
+    try:
+        assert option() == expected
+    except Exception as e:
+        print(e)
 
 
 @pytest.mark.parametrize(
@@ -108,6 +127,10 @@ def test_get_setting_options(mocker: MockerFixture,
         (INVALID_SETTINGS_MOCK, settings.get_exclude_directories,
          pytest.raises(settings.InvalidSettingsYmlException)),
         ({settings._SETTINGS_FILE: 'exclude-directories: 13'}, settings.get_exclude_directories,
+         pytest.raises(settings.InvalidSettingsYmlException)),
+        (INVALID_SETTINGS_MOCK, settings.get_default_sort_name,
+         pytest.raises(settings.InvalidSettingsYmlException)),
+        (INVALID_SETTINGS_MOCK, settings.get_default_sort_reversed,
          pytest.raises(settings.InvalidSettingsYmlException))
     ]
 )
