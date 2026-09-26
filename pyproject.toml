@@ -4,8 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Interleave-Playlist"
-version = "1.0.0-alpha10"
+version = "1.0.0-alpha10.post1"
 description = "Interleave episodes of the shows you watch to maximize variety when catching up"
+readme = "README.md"
 keywords = ["interleave", "playlist", "episode", "show"]
 authors = [{ name = "Thomas Sweeney" }]
 license = "GPL-3.0-or-later"
