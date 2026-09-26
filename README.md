@@ -28,14 +28,14 @@ uv tool update-shell
 **Install**
 
 ```shell
-uv tool install --python 3.13 Interleave-Playlist
+uv tool install --python 3.13 interleave-playlist
 ```
 
 **Run**
 You can run the following from the terminal to start the application.
 
 ```shell
-interleave_playlist
+interleave-playlist
 ```
 
 On Linux, MacOS, and other BSDs, you can find the symlink in `~/.local/bin`.
