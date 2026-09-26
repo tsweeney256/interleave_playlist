@@ -10,7 +10,51 @@ Interleave episodes of the shows you watch to maximize variety when catching up
 
 ![](https://raw.githubusercontent.com/tsweeney256/interleave_playlist/e8fb44208464c2dfd65db766c9e12b267d6f8beb/docs/images/screenshot.png)
 
-## Basic Usage (Recommended)
+## Basic Usage (`uv`, Recommended)
+This requires having `uv` installed. You can get `uv` from your package manager
+or you can [install it manually](https://docs.astral.sh/uv/getting-started/installation/).
+
+This should work on any operating system!
+
+**Pre-Install**
+
+If you just installed `uv` and never ran this yet, make sure to do so.
+You only need to run this once after installing `uv`.
+
+```shell
+uv tool update-shell
+```
+
+**Install**
+
+```shell
+uv tool install --python 3.13 Interleave-Playlist
+```
+
+**Run**
+You can run the following from the terminal to start the application.
+
+```shell
+interleave_playlist
+```
+
+On Linux, MacOS, and other BSDs, you can find the symlink in `~/.local/bin`.
+
+On Windows, you can find the exe in `%USERPROFILE%\.local\bin`
+
+**Update**
+
+```shell
+uv tool upgrade interleave-playlist
+```
+
+If you wanted to upgrade your python version when you update, then you can run:
+```
+# python 3.13 is the max supported currently
+uv tool upgrade --python 3.13 interleave-playlist
+```
+
+## Basic Usage (`venv`, Old)
 
 Note that you can simplify this process with something like
 [virtualenvwrapper](https://wiki.archlinux.org/title/Python/Virtual_environment#virtualenvwrapper)
@@ -46,7 +90,7 @@ python -m pip uninstall PySide6 PySide6_Addons PySide6_Essentials
 python -m pip install Interleave-Playlist
 ```
 
-## Basic Usage (Barebones)
+## Basic Usage (`pip`, Barebones)
 **Install**
 ```shell
 python -m pip install Interleave-Playlist
